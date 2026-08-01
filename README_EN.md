@@ -1,108 +1,80 @@
-# ScaleFlow
-
-中文版本：[README.md](README.md)
+<div align="center">
+  <h1>ScaleFlow</h1>
+  <p>Collaborative multi-scale language-model inference for resource-constrained edge environments</p>
+  <p>
+    <a href="README.md">简体中文</a> |
+    <strong>English</strong>
+  </p>
+  <p>
+    <a href="https://www.python.org/"><img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white"></a>
+    <a href="https://pypi.org/project/vllm/0.26.0/"><img alt="vLLM 0.26.0" src="https://img.shields.io/badge/vLLM-0.26.0-4B8BBE"></a>
+    <a href="https://huggingface.co/Qwen/Qwen3.5-0.8B"><img alt="Qwen3.5" src="https://img.shields.io/badge/Model-Qwen3.5-7C3AED"></a>
+    <a href="LICENSE"><img alt="Apache-2.0 License" src="https://img.shields.io/badge/License-Apache%202.0-D22128?logo=apache"></a>
+    <a href="https://github.com/HGinkgo/ScaleFlow/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/HGinkgo/ScaleFlow?style=flat&logo=github"></a>
+    <a href="https://github.com/HGinkgo/ScaleFlow/commits/main"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/HGinkgo/ScaleFlow?style=flat"></a>
+  </p>
+</div>
 
 ## Overview
 
-ScaleFlow is a research framework for collaborative inference and scheduling across language models of different sizes in resource-constrained edge deployments. It studies how to route, validate, and escalate heterogeneous requests among local models while reserving cloud inference for cases where local quality is insufficient.
+ScaleFlow is a lightweight, configuration-driven framework for studying request routing, result validation, and dynamic escalation across local language models under limited GPU resources.
 
-ScaleFlow does not implement a new low-level inference runtime and does not train or modify language-model parameters. Real-model execution uses established runtimes. `Qwen/Qwen3.5-0.8B` is now integrated through vLLM, while a deterministic MockBackend remains available for scheduler and data-flow validation.
+The project does not implement a new low-level inference runtime and does not train or modify model parameters. Real-model execution uses vLLM, while MockBackend provides deterministic validation of scheduling and result-recording logic.
 
-## Thesis Background
+## Features
 
-The project supports a master's thesis on collaborative multi-scale language-model inference and scheduling optimization for resource-constrained edge environments. The central question is how to select a local model, decide when to escalate, decide when to return the current answer, and decide when cloud fallback is justified while balancing task quality, end-to-end latency, throughput, GPU resource consumption, and cloud-call ratio.
+- YAML-based model, sampling, and scheduling configuration;
+- `AlwaysModelPolicy` and confidence-driven `ConfidenceCascadePolicy`;
+- deterministic MockBackend outputs, latency, confidence, and failure simulation;
+- text-only, non-thinking Qwen3.5-0.8B inference through vLLM;
+- real output-token logprobs, length-normalized confidence, latency, and GPU-memory readings;
+- complete decision traces with direct JSONL output;
+- CPU-only unit and CLI integration tests.
 
-The research focuses on edge computing and cloud-edge deployment constraints. It does not cover wireless physical-layer modeling, model-parameter training, complex GPU memory management, or reinforcement learning introduced without experimental justification.
+The current local model path is:
 
-## Edge-Constrained Scenario
+```text
+Qwen3.5-0.8B -> Qwen3.5-2B -> Qwen3.5-4B -> Qwen3.5-9B
+```
 
-The target setting includes:
-
-- requests with different difficulty, quality requirements, and latency deadlines;
-- limited edge GPU memory and concurrent serving capacity;
-- network round-trip latency, transfer overhead, and API cost between edge and cloud;
-- low-cost local handling for simple requests and progressive escalation for harder ones;
-- a cloud model used as fallback and a quality reference, not as the primary research subject.
-
-## Multi-Scale Collaboration
-
-The selected local Qwen3.5 model family is:
-
-1. `Qwen/Qwen3.5-0.8B`
-2. `Qwen/Qwen3.5-2B`
-3. `Qwen/Qwen3.5-4B`
-4. `Qwen/Qwen3.5-9B`
-
-The intended quality-aware cascade is `0.8B -> 2B -> 4B -> 9B`. Model order and confidence thresholds are read from YAML rather than hard-coded in scheduler logic. DeepSeek-V4-Flash is planned as the cloud fallback. Its API integration is not implemented and is never called by the current Mock experiments.
-
-## Implemented Features
-
-Phase 2 currently includes:
-
-- four shared data structures: `InferenceRequest`, `ModelResponse`, `DecisionRecord`, and `InferenceResult`;
-- `AlwaysModelPolicy` for fixed-model execution;
-- `ConfidenceCascadePolicy` for configuration-driven confidence escalation;
-- a MockBackend with configurable text, confidence, simulated latency, success, and failure;
-- deterministic easy, medium, and hard requests;
-- complete decision traces, escalation counts, and accumulated simulated latency;
-- direct JSONL result writing;
-- CPU-only unit and CLI integration tests;
-- synchronous single-model text inference with `Qwen/Qwen3.5-0.8B` on stable vLLM;
-- explicit text-only, non-thinking execution with a pinned model revision;
-- real selected-token logprobs, length-normalized confidence, end-to-end inference latency, and NVML GPU-memory readings;
-- five fixed real-model smoke requests defined in YAML.
-
-The 2B, 4B, and 9B models, DeepSeek API access, real multi-model cascades, concurrent queues, resource-aware scheduling, dataset evaluation, network simulation, formal benchmarks, plotting, and learning-based policies are not implemented yet.
+Only Qwen3.5-0.8B is integrated for real inference. The remaining models and cloud fallback are future work.
 
 ## Repository Layout
 
 ```text
 ScaleFlow/
-├── configs/
-│   ├── mock_qwen35.yaml
-│   └── qwen35_0_8b_vllm.yaml
+├── configs/                 # Reproducible experiment configurations
 ├── src/scaleflow/
-│   ├── backends/
-│   │   ├── base.py
-│   │   ├── mock.py
-│   │   └── vllm.py
-│   ├── scheduler/
-│   │   ├── policies.py
-│   │   └── runner.py
-│   ├── schemas.py
-│   ├── config.py
-│   ├── cli.py
-│   └── __main__.py
-├── tests/
+│   ├── backends/            # MockBackend and VLLMBackend
+│   ├── scheduler/           # Policies and synchronous execution
+│   ├── schemas.py           # Shared data structures
+│   ├── config.py            # YAML loading
+│   └── cli.py               # Command-line entry point
+├── tests/                   # CPU-only tests
 ├── environment.yml
 └── pyproject.toml
 ```
 
-The generated `results/` directory and experiment artifacts are excluded from Git.
+Model caches, datasets, and generated results are stored in Git-ignored directories.
 
-## Environment and Installation
+## Installation
 
-Linux, conda, and Python 3.12 are required. Mock-only execution does not need a GPU. Real-model execution requires an NVIDIA GPU, a compatible driver, and the optional vLLM dependencies.
-
-```bash
-conda create -n scaleflow python=3.12 pip -y
-conda run -n scaleflow python -m pip install -e '.[dev]'
-```
-
-Install the pinned stable vLLM version for real-model execution. It resolves the matching PyTorch and CUDA user-space runtime dependencies:
-
-```bash
-conda run -n scaleflow python -m pip install -e '.[dev,vllm]'
-```
-
-Alternatively, use the repository environment file:
+ScaleFlow uses Python 3.12 in an isolated conda environment:
 
 ```bash
 conda env create -f environment.yml
 conda run -n scaleflow python -m pip install -e '.[dev]'
 ```
 
-## Run the Mock Example
+Install the pinned vLLM version for real-model execution:
+
+```bash
+conda run -n scaleflow python -m pip install -e '.[dev,vllm]'
+```
+
+## Quickstart
+
+Run the deterministic Mock scenario:
 
 ```bash
 CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
@@ -111,89 +83,42 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
   --output results/mock_results.jsonl
 ```
 
-The command runs three fixed requests and writes JSONL output. The JSONL file is a generated artifact and is not versioned. Mock confidence and latency values are configuration inputs, not real-model measurements.
+Run real Qwen3.5-0.8B inference:
 
-## Run Tests
+```bash
+CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
+  python -m scaleflow run-vllm \
+  --config configs/qwen35_0_8b_vllm.yaml \
+  --output results/qwen35_0_8b_results.jsonl
+```
+
+Select the GPU with `CUDA_VISIBLE_DEVICES`. Model ID, revision, and generation parameters come from YAML; a download endpoint can be selected with the `HF_ENDPOINT` environment variable.
+
+Run all tests:
 
 ```bash
 CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 ```
 
-Tests do not use a GPU, download models, or call remote APIs.
+## Configuration and Measurements
 
-## Run Qwen3.5-0.8B
+- `configs/mock_qwen35.yaml` defines the deterministic four-scale Qwen3.5 Mock cascade;
+- `configs/qwen35_0_8b_vllm.yaml` pins the Qwen3.5-0.8B revision, BF16 dtype, non-thinking mode, and deterministic sampling parameters.
 
-The following command exposes one GPU and runs five fixed text requests. The first run downloads the model into the Hugging Face cache. Model weights, caches, and generated results are excluded from Git.
-
-```bash
-CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
-  python -m scaleflow run-vllm \
-  --config configs/qwen35_0_8b_vllm.yaml \
-  --output results/qwen35_0_8b_results.jsonl
-```
-
-On networks that cannot reach Hugging Face directly, select a verified compatible endpoint through environment variables. The restricted network used for Phase 2 validation required:
-
-```bash
-HF_ENDPOINT=https://hf-mirror.com HF_HUB_DISABLE_XET=1 \
-CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
-  python -m scaleflow run-vllm \
-  --config configs/qwen35_0_8b_vllm.yaml \
-  --output results/qwen35_0_8b_results.jsonl
-```
-
-The backend accepts text only and fixes `enable_thinking` to `false`. At completion, the command prints vLLM version, model-load latency, and GPU memory before and after loading. Per-request JSONL contains generated text, inference latency, GPU memory, the decision record, and raw logprobs.
-
-### Logprobs and confidence
-
-The configuration requests `logprobs: 1`. For each actually selected output token, vLLM returns:
+For the conditional logprob `l_i` of each generated token, confidence is currently defined as:
 
 ```text
-l_i = log p(token_i | prompt, token_1, ..., token_{i-1})
+confidence = exp(mean(output_token_logprobs))
 ```
 
-All `l_i` values are preserved in `token_logprobs`. ScaleFlow currently uses the geometric mean output-token probability:
+JSONL records preserve full token logprobs, the confidence method, latency, GPU-memory readings, and decision records. This confidence has not been calibrated as the probability of answer correctness.
 
-```text
-confidence = exp((1 / T) * sum(l_i))
-```
+## Status
 
-The JSONL `confidence_method` field records `exp(mean(output_token_logprobs))`. This normalization reduces the direct effect of output length, but it has not yet been calibrated against task correctness and must not be interpreted as the probability that an answer is correct.
+The project skeleton, deterministic Mock scheduling flow, and real Qwen3.5-0.8B single-model inference path are implemented. Real multi-model cascades, labeled-dataset evaluation, cloud fallback, concurrent queues, and resource-aware scheduling are not yet implemented.
 
-`total_latency_ms` starts immediately before `LLM.chat` and ends after text, logprob, and confidence parsing; one-time model loading is excluded. The first request can include Triton kernel JIT, so the five-request smoke run is not a formal performance benchmark. `gpu_memory_used_mb` is the total NVML used-memory reading for the selected visible GPU; the CLI summary also reports the before/after loading delta.
+Published results should record the configuration, random seed, model revision, runtime environment, and code version. Smoke-test observations are not presented as benchmark conclusions.
 
-## Configuration
+## License
 
-[`configs/mock_qwen35.yaml`](configs/mock_qwen35.yaml) defines:
-
-- the fixed random seed;
-- scheduler policy;
-- confidence threshold;
-- model order;
-- easy, medium, and hard requests;
-- text, confidence, simulated latency, success, and error values for every model/request pair.
-
-No real model path, GPU identifier, or API key is stored in the configuration. Future secrets must be provided through environment variables or an untracked local `.env` file.
-
-[`configs/qwen35_0_8b_vllm.yaml`](configs/qwen35_0_8b_vllm.yaml) pins the model ID and revision, BF16 dtype, 4096-token context, GPU-memory utilization, non-thinking mode, deterministic sampling, logprob count, and five requests. GPU selection uses `CUDA_VISIBLE_DEVICES`; download endpoint selection uses `HF_ENDPOINT`. Neither is hard-coded in the project configuration.
-
-## Development Status and Roadmap
-
-Phase 0 (independent environment and skeleton), Phase 1 (minimal MockBackend scheduling flow), and Phase 2 (real Qwen3.5-0.8B single-model inference) are complete. Planned work will proceed incrementally:
-
-1. integrate and validate Qwen3.5-2B, 4B, and 9B individually;
-2. calibrate the relationship between real token logprobs and quality on labeled tasks;
-3. add real fixed routing, dynamic cascade, Local-Only, Cloud-Only, and Oracle baselines;
-4. incorporate queue state, GPU load, deadlines, and communication cost;
-5. run reproducible experiments under varying load and network conditions and produce Pareto analyses;
-6. evaluate simple learning-based methods only if rule-based policies show clear limitations.
-
-These items are plans, not claims about currently implemented functionality or experimental results.
-
-## Reproducibility
-
-The Mock scenario is fully defined in YAML, with fixed request order, responses, thresholds, and simulated latencies. The real-model configuration pins the model revision, seed, inference parameters, and request order. Experiments should also record GPU model, driver, CUDA, PyTorch, vLLM, code commit, load latency, and per-request results. Model caches and generated raw results are excluded from Git by default and will use a separate documented release process if research artifacts are published.
-
-## License Status
-
-No open-source license has been selected. All rights are reserved until an explicit license is added to the repository.
+Copyright 2026 Pengfei_He. Licensed under the [Apache License 2.0](LICENSE).

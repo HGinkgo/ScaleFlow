@@ -1,108 +1,80 @@
-# ScaleFlow
+<div align="center">
+  <h1>ScaleFlow</h1>
+  <p>面向资源受限边缘环境的多规模语言模型协同推理实验框架</p>
+  <p>
+    <strong>简体中文</strong> |
+    <a href="README_EN.md">English</a>
+  </p>
+  <p>
+    <a href="https://www.python.org/"><img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white"></a>
+    <a href="https://pypi.org/project/vllm/0.26.0/"><img alt="vLLM 0.26.0" src="https://img.shields.io/badge/vLLM-0.26.0-4B8BBE"></a>
+    <a href="https://huggingface.co/Qwen/Qwen3.5-0.8B"><img alt="Qwen3.5" src="https://img.shields.io/badge/Model-Qwen3.5-7C3AED"></a>
+    <a href="LICENSE"><img alt="Apache-2.0 License" src="https://img.shields.io/badge/License-Apache%202.0-D22128?logo=apache"></a>
+    <a href="https://github.com/HGinkgo/ScaleFlow/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/HGinkgo/ScaleFlow?style=flat&logo=github"></a>
+    <a href="https://github.com/HGinkgo/ScaleFlow/commits/main"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/HGinkgo/ScaleFlow?style=flat"></a>
+  </p>
+</div>
 
-English Version: [README_EN.md](README_EN.md)
+## 简介
 
-## 项目简介
+ScaleFlow 是一个轻量、配置驱动的语言模型推理实验框架，用于研究有限 GPU 资源下不同规模本地模型之间的请求路由、结果验证与动态升级。
 
-ScaleFlow 是一个面向边缘资源受限场景的多规模语言模型协同推理与调度研究框架。项目关注在有限 GPU 资源、差异化质量需求、时延约束和云端访问成本同时存在时，如何在多个不同规模的本地语言模型之间进行路由、验证与动态升级，并仅在必要时调用云端模型。
+项目不实现新的底层推理运行时，也不训练或修改模型参数。真实推理统一使用 vLLM；MockBackend 用于确定性验证调度和结果记录逻辑。
 
-ScaleFlow 不实现新的底层推理引擎，也不训练或修改语言模型参数。真实推理使用成熟运行时；当前已通过 vLLM 接入 `Qwen/Qwen3.5-0.8B`，同时保留确定性的 MockBackend 验证调度逻辑和实验数据流。
+## 核心能力
 
-## 论文研究背景
+- 基于 YAML 的模型、采样参数和调度策略配置；
+- `AlwaysModelPolicy` 固定模型策略与 `ConfidenceCascadePolicy` 置信度级联策略；
+- 可重复的 MockBackend 输出、时延、置信度和失败模拟；
+- 基于 vLLM 的 Qwen3.5-0.8B 纯文本、非思考模式推理；
+- 真实输出 token logprob、长度归一化 confidence、端到端时延和显存读数；
+- 完整决策轨迹和直接 JSONL 结果输出；
+- 不使用 GPU 的单元测试与 CLI 集成测试。
 
-本项目服务于硕士学位论文“面向边缘资源受限场景的多规模语言模型协同推理与调度优化”。核心研究问题是：面对难度、质量要求和实时性要求不同的请求，系统应如何选择本地模型、何时升级到更大模型、何时返回当前结果，以及何时使用云端兜底，从而权衡任务质量、端到端时延、吞吐、GPU 资源消耗和云端调用比例。
+当前本地模型路线为：
 
-研究聚焦边缘计算和云边协同部署，不涉及无线物理层建模、模型参数训练、复杂显存管理系统或为使用强化学习而强行引入 DQN/PPO。
+```text
+Qwen3.5-0.8B -> Qwen3.5-2B -> Qwen3.5-4B -> Qwen3.5-9B
+```
 
-## 边缘资源受限场景
-
-目标场景包含以下约束：
-
-- 终端请求具有不同难度、质量门槛和最大允许时延；
-- 边缘节点仅有有限 GPU、显存和并发服务能力；
-- 边缘到云端存在网络往返时延、传输开销和 API 调用成本；
-- 简单请求应尽量由小模型低成本完成，复杂请求才逐级升级；
-- 云端模型作为兜底和质量参考，而不是论文研究的主要对象。
-
-## 多规模模型协同方案
-
-本地模型族确定为 Qwen3.5：
-
-1. `Qwen/Qwen3.5-0.8B`
-2. `Qwen/Qwen3.5-2B`
-3. `Qwen/Qwen3.5-4B`
-4. `Qwen/Qwen3.5-9B`
-
-质量感知级联的目标路径为 `0.8B -> 2B -> 4B -> 9B`。模型顺序和置信度阈值由 YAML 配置，不写死在调度代码中。规划中的云端兜底模型为 DeepSeek-V4-Flash；该云端接口当前尚未实现，也不会在 Mock 实验中被调用。
-
-## 当前已实现
-
-当前完成 Phase 2，已经实现：
-
-- 四个统一数据结构：`InferenceRequest`、`ModelResponse`、`DecisionRecord`、`InferenceResult`；
-- `AlwaysModelPolicy` 固定模型策略；
-- `ConfidenceCascadePolicy` 配置驱动的置信度级联策略；
-- 可通过 YAML 配置输出、置信度、模拟时延和成功/失败状态的 MockBackend；
-- easy、medium、hard 三条确定性请求；
-- 完整 `decision_trace`、升级次数和累计模拟时延；
-- 简单 JSONL 结果写入；
-- CPU-only 单元测试和 CLI 集成测试；
-- 基于稳定版 vLLM 的 `Qwen/Qwen3.5-0.8B` 单模型同步文本推理；
-- 显式纯文本、非思考模式和固定模型 revision；
-- 每个生成 token 的真实选中 token logprob、长度归一化 confidence、端到端推理时延和 NVML 显存读数；
-- 由 YAML 定义的 5 条固定真实模型冒烟请求。
-
-当前没有接入 2B、4B、9B 或 DeepSeek API，也没有实现多模型真实级联、并发队列、资源感知调度、正式数据集评测、网络模拟、正式 benchmark、绘图或学习式策略。
+目前仅 Qwen3.5-0.8B 已接入真实推理，其余模型和云端兜底仍属于后续工作。
 
 ## 项目结构
 
 ```text
 ScaleFlow/
-├── configs/
-│   ├── mock_qwen35.yaml
-│   └── qwen35_0_8b_vllm.yaml
+├── configs/                 # 可复现的实验配置
 ├── src/scaleflow/
-│   ├── backends/
-│   │   ├── base.py
-│   │   ├── mock.py
-│   │   └── vllm.py
-│   ├── scheduler/
-│   │   ├── policies.py
-│   │   └── runner.py
-│   ├── schemas.py
-│   ├── config.py
-│   ├── cli.py
-│   └── __main__.py
-├── tests/
+│   ├── backends/            # MockBackend 与 VLLMBackend
+│   ├── scheduler/           # 调度策略与同步执行流程
+│   ├── schemas.py           # 共享数据结构
+│   ├── config.py            # YAML 配置读取
+│   └── cli.py               # 命令行入口
+├── tests/                   # CPU-only 测试
 ├── environment.yml
 └── pyproject.toml
 ```
 
-运行生成的 `results/` 目录和实验产物不会提交到 Git。
+模型缓存、数据集和生成结果均位于 Git 忽略目录，不会提交到仓库。
 
-## 环境创建与安装
+## 安装
 
-要求 Linux、conda 和 Python 3.12。仅运行 Mock 时不需要 GPU；真实模型需要 NVIDIA GPU、兼容驱动和 vLLM 可选依赖。
-
-```bash
-conda create -n scaleflow python=3.12 pip -y
-conda run -n scaleflow python -m pip install -e '.[dev]'
-```
-
-也可以使用仓库中的环境文件：
+ScaleFlow 使用 Python 3.12 和独立 conda 环境：
 
 ```bash
 conda env create -f environment.yml
 conda run -n scaleflow python -m pip install -e '.[dev]'
 ```
 
-运行真实模型时安装固定的稳定版 vLLM；其依赖会安装匹配的 PyTorch 和 CUDA 用户态运行库：
+运行真实模型时安装固定版本的 vLLM：
 
 ```bash
 conda run -n scaleflow python -m pip install -e '.[dev,vllm]'
 ```
 
-## 运行 Mock 示例
+## 快速开始
+
+运行确定性 Mock 场景：
 
 ```bash
 CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
@@ -111,89 +83,42 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
   --output results/mock_results.jsonl
 ```
 
-该命令运行三条固定请求并生成 JSONL。JSONL 是运行产物，不纳入版本控制。Mock 中的时延和置信度是配置值，不是真实模型实验结果。
+运行 Qwen3.5-0.8B 真实推理：
 
-## 运行测试
+```bash
+CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
+  python -m scaleflow run-vllm \
+  --config configs/qwen35_0_8b_vllm.yaml \
+  --output results/qwen35_0_8b_results.jsonl
+```
+
+GPU 通过 `CUDA_VISIBLE_DEVICES` 选择。模型 ID、revision 和生成参数来自 YAML；下载 endpoint 可通过 `HF_ENDPOINT` 环境变量指定。
+
+运行全部测试：
 
 ```bash
 CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 ```
 
-测试不使用 GPU、不下载模型，也不调用远程 API。
+## 配置与测量
 
-## 运行 Qwen3.5-0.8B
+- `configs/mock_qwen35.yaml`：四个 Qwen3.5 规模的确定性 Mock 级联场景；
+- `configs/qwen35_0_8b_vllm.yaml`：Qwen3.5-0.8B 的固定 revision、BF16、非思考模式和确定性采样参数。
 
-下面的命令只暴露一张 GPU，通过 vLLM 运行 5 条固定文本请求。首次运行会将模型下载到 Hugging Face 缓存；权重、缓存和结果均被 Git 排除。
-
-```bash
-CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
-  python -m scaleflow run-vllm \
-  --config configs/qwen35_0_8b_vllm.yaml \
-  --output results/qwen35_0_8b_results.jsonl
-```
-
-如果服务器无法直接访问 Hugging Face，可通过环境变量指定经过确认的兼容 endpoint。当前受限网络环境验证时使用：
-
-```bash
-HF_ENDPOINT=https://hf-mirror.com HF_HUB_DISABLE_XET=1 \
-CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
-  python -m scaleflow run-vllm \
-  --config configs/qwen35_0_8b_vllm.yaml \
-  --output results/qwen35_0_8b_results.jsonl
-```
-
-模型加载只接受文本，`enable_thinking` 固定为 `false`。命令结束时会在标准输出打印模型加载时延、加载前后显存和 vLLM 版本；逐请求 JSONL 保存输出、推理时延、显存、决策记录和原始 logprob。
-
-### Logprob 与 confidence
-
-配置使用 `logprobs: 1`。对于生成 token 序列中的第 `i` 个实际选中 token，vLLM 返回：
+对于实际生成 token 的条件对数概率 `l_i`，当前 confidence 定义为：
 
 ```text
-l_i = log p(token_i | prompt, token_1, ..., token_{i-1})
+confidence = exp(mean(output_token_logprobs))
 ```
 
-`token_logprobs` 原样保存所有 `l_i`。ScaleFlow 使用生成 token 概率的几何平均作为当前实验 confidence：
+JSONL 保留完整 token logprob、confidence 计算方法、时延、显存读数和决策记录。该 confidence 尚未校准为答案正确概率。
 
-```text
-confidence = exp((1 / T) * sum(l_i))
-```
+## 状态
 
-JSONL 中的 `confidence_method` 固定记录为 `exp(mean(output_token_logprobs))`。该变换减弱输出长度对概率连乘的影响，但它尚未经过任务准确率校准，不能直接解释为答案正确概率。
+当前已完成项目骨架、Mock 调度流程和 Qwen3.5-0.8B 单模型真实推理链路。多模型真实级联、标注数据集评测、云端兜底、并发队列和资源感知调度尚未实现。
 
-`total_latency_ms` 从调用 `LLM.chat` 前开始，到文本、logprob 和 confidence 解析完成后结束，不包含一次性模型加载。首请求可能包含 Triton kernel JIT，不能将这 5 条冒烟结果视为正式性能 benchmark。`gpu_memory_used_mb` 是 NVML 在所选可见 GPU 上读取的总已用显存；CLI 摘要另外给出加载前后增量。
+所有公开结果都应同时记录配置、随机种子、模型 revision、运行环境和代码版本；未经正式评测的数据不会作为性能结论。
 
-## 配置文件
+## 许可证
 
-[`configs/mock_qwen35.yaml`](configs/mock_qwen35.yaml) 包含：
-
-- 固定随机种子；
-- 调度策略名称；
-- 置信度阈值；
-- 模型调用顺序；
-- easy、medium、hard 请求；
-- 每个模型针对每条请求的输出、置信度、模拟时延、成功状态和错误信息。
-
-配置中不包含真实模型路径、GPU 编号或 API Key。未来涉及敏感信息时必须通过未提交的环境变量或本地 `.env` 提供。
-
-[`configs/qwen35_0_8b_vllm.yaml`](configs/qwen35_0_8b_vllm.yaml) 固定模型 ID 和 revision、BF16、4096 上下文、显存利用率、非思考模式、确定性采样参数、logprob 数量和 5 条文本请求。GPU 由 `CUDA_VISIBLE_DEVICES` 指定，下载 endpoint 由 `HF_ENDPOINT` 指定，二者均不写死在配置中。
-
-## 开发状态与后续路线
-
-当前完成 Phase 0（独立环境与项目骨架）、Phase 1（MockBackend 最小调度流程）和 Phase 2（Qwen3.5-0.8B 单模型真实推理）。后续计划按实验需求逐步推进：
-
-1. 分别接入并验证 Qwen3.5-2B、4B 和 9B；
-2. 在标注任务上校准真实 token logprob 与质量的关系；
-3. 扩展真实固定路由、动态级联、Local-Only、Cloud-Only 和 Oracle 基线；
-4. 加入队列、GPU 负载、截止时间和通信成本等资源状态；
-5. 运行不同负载与网络条件的可重复实验并生成 Pareto 分析；
-6. 仅在规则式策略暴露明确不足时评估简单学习式方法。
-
-以上均为规划，尚未实现的能力不会作为当前项目功能或实验结论陈述。
-
-## 实验可复现性
-
-Mock 场景由 YAML 完整定义，输入顺序、模型响应、阈值和模拟时延固定，相同配置会产生一致结果。真实模型配置固定模型 revision、随机种子、推理参数和请求顺序；GPU 型号、驱动、CUDA、PyTorch、vLLM、代码 commit、加载时延及逐请求结果应随实验记录。生成的模型缓存和原始结果默认不进入 Git；公开论文数据时将使用独立、经过脱敏和说明的发布流程。
-
-## 许可证状态
-
-当前尚未选择开源许可证。在仓库明确添加许可证前，保留所有权利。
+Copyright 2026 Pengfei_He. 本项目基于 [Apache License 2.0](LICENSE) 发布。
