@@ -696,6 +696,28 @@ def test_compare_model_records_reports_all_combinations_pairs_and_oracles() -> N
     assert comparison["actual_cascade_executed"] is False
 
 
+def test_compare_model_records_supports_four_models_without_model_specific_logic() -> None:
+    compare_model_records = require_function("compare_model_records")
+    model_records = [
+        [comparison_record("sample-1", f"model-{index}", "correct")]
+        for index in range(4)
+    ]
+
+    comparison = compare_model_records(model_records)
+
+    assert comparison["model_order"] == [
+        "model-0",
+        "model-1",
+        "model-2",
+        "model-3",
+    ]
+    assert len(comparison["correctness_combinations"]) == 16
+    assert comparison["correctness_combinations"]["1111"]["count"] == 1
+    assert len(comparison["ordered_pairs"]) == 6
+    assert len(comparison["oracle_progression"]) == 4
+    assert comparison["oracle_progression"][-1]["oracle_correct_count"] == 1
+
+
 def test_compare_model_records_requires_two_distinct_models() -> None:
     compare_model_records = require_function("compare_model_records")
     records = [comparison_record("sample-1", "model-a", "correct")]
