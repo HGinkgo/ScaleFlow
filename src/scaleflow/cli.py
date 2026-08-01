@@ -7,8 +7,10 @@ from typing import Any
 
 from scaleflow import __version__
 from scaleflow.baseline import (
+    compare_baseline_records,
     ensure_dataset,
     load_gsm8k_jsonl,
+    load_records_jsonl,
     run_baseline_samples,
     select_samples,
     summarize_baseline,
@@ -68,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     run_gsm8k_parser = subparsers.add_parser(
         "run-gsm8k",
-        help="run the fixed Qwen3.5-0.8B GSM8K single-model baseline",
+        help="run a fixed GSM8K single-model baseline",
     )
     run_gsm8k_parser.add_argument(
         "--config",
@@ -87,6 +89,28 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         required=True,
         help="path to the aggregate JSON summary",
+    )
+    compare_gsm8k_parser = subparsers.add_parser(
+        "compare-gsm8k",
+        help="compare two aligned GSM8K baseline JSONL files",
+    )
+    compare_gsm8k_parser.add_argument(
+        "--baseline",
+        type=Path,
+        required=True,
+        help="path to the baseline model JSONL results",
+    )
+    compare_gsm8k_parser.add_argument(
+        "--candidate",
+        type=Path,
+        required=True,
+        help="path to the candidate model JSONL results",
+    )
+    compare_gsm8k_parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="path to the comparison JSON output",
     )
     return parser
 
@@ -250,6 +274,36 @@ def run_gsm8k(
     return 1 if summary["inference_failure_count"] else 0
 
 
+def compare_gsm8k(
+    baseline_path: Path,
+    candidate_path: Path,
+    output_path: Path,
+) -> int:
+    comparison = compare_baseline_records(
+        load_records_jsonl(baseline_path),
+        load_records_jsonl(candidate_path),
+    )
+    comparison["inputs"] = {
+        "baseline": str(baseline_path),
+        "candidate": str(candidate_path),
+    }
+    write_summary_json(output_path, comparison)
+    print(
+        json.dumps(
+            {
+                "output": str(output_path),
+                "request_count": comparison["request_count"],
+                "categories": comparison["categories"],
+                "rescued_count": comparison["rescued_count"],
+                "rescue_rate": comparison["rescue_rate"],
+                "oracle_accuracy": comparison["oracle_accuracy"],
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -259,5 +313,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_vllm(args.config, args.output)
     if args.command == "run-gsm8k":
         return run_gsm8k(args.config, args.output, args.summary)
+    if args.command == "compare-gsm8k":
+        return compare_gsm8k(args.baseline, args.candidate, args.output)
     parser.print_help()
     return 0

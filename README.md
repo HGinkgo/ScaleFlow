@@ -24,7 +24,7 @@ ScaleFlow 是一个轻量、配置驱动的语言模型推理实验框架，用�
 - 基于 YAML 的模型、采样参数和调度策略配置；
 - `AlwaysModelPolicy` 固定模型策略与 `ConfidenceCascadePolicy` 置信度级联策略；
 - 可重复的 MockBackend 输出、时延、置信度和失败模拟；
-- 基于 vLLM 的 Qwen3.5-0.8B 纯文本、非思考模式推理；
+- 基于 vLLM 的 Qwen3.5-0.8B 与 2B 纯文本、非思考模式推理；
 - 真实输出 token logprob、长度归一化 confidence、端到端时延和显存读数；
 - 完整决策轨迹和直接 JSONL 结果输出；
 - 固定 GSM8K 测试集、64 个样本 ID、预热流程和自动评分基线；
@@ -36,7 +36,7 @@ ScaleFlow 是一个轻量、配置驱动的语言模型推理实验框架，用�
 Qwen3.5-0.8B -> Qwen3.5-2B -> Qwen3.5-4B -> Qwen3.5-9B
 ```
 
-目前仅 Qwen3.5-0.8B 已接入真实推理，其余模型和云端兜底仍属于后续工作。
+目前 Qwen3.5-0.8B 与 2B 已接入真实推理，4B、9B 和云端兜底仍属于后续工作。
 
 ## 项目结构
 
@@ -106,6 +106,24 @@ CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
 
 该命令首次运行会下载并校验官方 GSM8K `test` 数据；原始数据、逐条 JSONL 和汇总 JSON 均被 Git 忽略。
 
+使用相同实验契约顺序运行 2B，再离线对齐两组结果：
+
+```bash
+CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
+  python -m scaleflow run-gsm8k \
+  --config configs/qwen35_2b_gsm8k.yaml \
+  --output results/qwen35_2b_gsm8k_64.jsonl \
+  --summary results/qwen35_2b_gsm8k_64_summary.json
+
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
+  python -m scaleflow compare-gsm8k \
+  --baseline results/qwen35_0_8b_gsm8k_64.jsonl \
+  --candidate results/qwen35_2b_gsm8k_64.jsonl \
+  --output results/qwen35_0_8b_vs_2b.json
+```
+
+两个模型应在独立进程中依次运行，不同时驻留显存。比较命令只做离线对齐和 oracle 分析，不执行实际级联。
+
 运行全部测试：
 
 ```bash
@@ -117,6 +135,7 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 - `configs/mock_qwen35.yaml`：四个 Qwen3.5 规模的确定性 Mock 级联场景；
 - `configs/qwen35_0_8b_vllm.yaml`：Qwen3.5-0.8B 的固定 revision、BF16、非思考模式和确定性采样参数。
 - `configs/qwen35_0_8b_gsm8k.yaml`：固定 GSM8K commit、SHA256、64 个样本索引、Prompt、8 条预热请求和生成参数。
+- `configs/qwen35_2b_gsm8k.yaml`：保持相同实验契约，仅固定 2B 模型 revision 和运行时显存配置。
 
 GSM8K 基线使用 OpenAI 官方测试集 commit `3101c7d5072418e28b9008a6636bde82a006892c`，并校验 SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`。后续不同规模模型应复用同一配置中的样本索引和 Prompt。
 
@@ -132,9 +151,11 @@ GSM8K 结果将 `correct`、`incorrect`、`parse_failure` 和 `inference_failure
 
 ## 状态
 
-当前已完成项目骨架、Mock 调度流程、Qwen3.5-0.8B 单模型真实推理链路和固定 GSM8K-64 基线。多模型真实级联、云端兜底、并发队列和资源感知调度尚未实现。
+当前已完成项目骨架、Mock 调度流程、Qwen3.5-0.8B 与 2B 的固定 GSM8K-64 单模型基线及离线对齐。实际多模型级联、云端兜底、并发队列和资源感知调度尚未实现。
 
-一次固定运行得到 33/64 正确、28 条答案错误和 3 条格式解析失败。配置将 `gpu_memory_utilization` 从早期冒烟测试的 0.4 调整为 0.25；当前 vLLM 日志中权重约 1.53 GiB、预留 KV cache 约 3.36 GiB，NVML 观测的加载显存增量约 6.27 GiB。总显存还包含激活和运行时开销，不能等同于模型权重。8 条预热请求排除了模型加载和主要 Triton JIT 影响；准确率、时延和 confidence 关系仅作初步观察，不构成正式性能或统计结论。
+同一次顺序实验中，0.8B 与 2B 分别得到 33/64 和 40/64 正确，格式解析失败分别为 3 和 4 条；平均时延分别为 3736.68 ms 和 2714.95 ms。离线对齐结果为：两者都正确 24 条、仅 0.8B 正确 9 条、仅 2B 正确 16 条、两者都未正确 15 条。2B 挽救了 16/31 个 0.8B 未正确请求，oracle 上界为 49/64（76.56%）。这不是实际级联结果。
+
+两者均使用 `gpu_memory_utilization=0.25`。vLLM 日志中的权重/KV cache 约为 1.53/3.36 GiB 与 3.63/1.24 GiB；相同总预算下，更大的 2B 权重压缩了预留 KV cache，因此 NVML 峰值仍接近 6.7 GiB。准确率、时延和 confidence 关系仅作固定 64 条样本的初步观察，不构成正式性能或统计结论。
 
 ## 许可证
 

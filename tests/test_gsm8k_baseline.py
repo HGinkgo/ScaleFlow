@@ -371,3 +371,182 @@ def test_baseline_json_and_jsonl_can_be_read_back(tmp_path: Path) -> None:
 
     assert json.loads(records_path.read_text(encoding="utf-8")) == records[0]
     assert json.loads(summary_path.read_text(encoding="utf-8")) == summary
+
+
+def comparison_record(
+    sample_id: str,
+    model_id: str,
+    outcome: str,
+    *,
+    reference_answer: str = "1",
+) -> dict[str, object]:
+    return {
+        "sample_id": sample_id,
+        "dataset_index": int(sample_id.rsplit("-", maxsplit=1)[-1]),
+        "question": f"question for {sample_id}",
+        "prompt": f"prompt for {sample_id}",
+        "model_id": model_id,
+        "reference_answer": reference_answer,
+        "outcome": outcome,
+        "correct": outcome == "correct",
+    }
+
+
+def test_load_records_jsonl_requires_json_objects(tmp_path: Path) -> None:
+    load_records_jsonl = require_function("load_records_jsonl")
+    records_path = tmp_path / "records.jsonl"
+    records_path.write_text(
+        '{"sample_id":"sample-1","correct":true}\n',
+        encoding="utf-8",
+    )
+
+    assert load_records_jsonl(records_path) == [
+        {"sample_id": "sample-1", "correct": True}
+    ]
+
+    records_path.write_text("[]\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="object"):
+        load_records_jsonl(records_path)
+
+
+def test_compare_baselines_aligns_by_id_and_reports_rescue_and_oracle() -> None:
+    compare_baseline_records = require_function("compare_baseline_records")
+    baseline_records = [
+        comparison_record("sample-1", "model-0.8b", "correct"),
+        comparison_record("sample-2", "model-0.8b", "correct"),
+        comparison_record("sample-3", "model-0.8b", "incorrect"),
+        comparison_record("sample-4", "model-0.8b", "incorrect"),
+        comparison_record("sample-5", "model-0.8b", "parse_failure"),
+        comparison_record("sample-6", "model-0.8b", "inference_failure"),
+    ]
+    candidate_records = [
+        comparison_record("sample-6", "model-2b", "incorrect"),
+        comparison_record("sample-5", "model-2b", "correct"),
+        comparison_record("sample-4", "model-2b", "incorrect"),
+        comparison_record("sample-3", "model-2b", "correct"),
+        comparison_record("sample-2", "model-2b", "incorrect"),
+        comparison_record("sample-1", "model-2b", "correct"),
+    ]
+
+    comparison = compare_baseline_records(baseline_records, candidate_records)
+
+    assert comparison["request_count"] == 6
+    assert comparison["baseline_model_id"] == "model-0.8b"
+    assert comparison["candidate_model_id"] == "model-2b"
+    assert comparison["categories"] == {
+        "both_correct": 1,
+        "only_baseline_correct": 1,
+        "only_candidate_correct": 2,
+        "neither_correct": 2,
+    }
+    assert comparison["baseline_correct_count"] == 2
+    assert comparison["candidate_correct_count"] == 3
+    assert comparison["baseline_accuracy"] == pytest.approx(2 / 6)
+    assert comparison["candidate_accuracy"] == pytest.approx(3 / 6)
+    assert comparison["baseline_not_correct_count"] == 4
+    assert comparison["rescued_count"] == 2
+    assert comparison["rescue_rate"] == pytest.approx(0.5)
+    assert comparison["rescued_accuracy_gain"] == pytest.approx(2 / 6)
+    assert comparison["rescue_by_baseline_outcome"] == {
+        "incorrect": {
+            "baseline_count": 2,
+            "rescued_count": 1,
+            "rescue_rate": 0.5,
+        },
+        "parse_failure": {
+            "baseline_count": 1,
+            "rescued_count": 1,
+            "rescue_rate": 1.0,
+        },
+        "inference_failure": {
+            "baseline_count": 1,
+            "rescued_count": 0,
+            "rescue_rate": 0.0,
+        },
+    }
+    assert comparison["oracle_correct_count"] == 4
+    assert comparison["oracle_accuracy"] == pytest.approx(4 / 6)
+    assert [item["sample_id"] for item in comparison["per_request"]] == [
+        record["sample_id"] for record in baseline_records
+    ]
+    assert comparison["per_request"][2] == {
+        "sample_id": "sample-3",
+        "reference_answer": "1",
+        "baseline": {
+            "model_id": "model-0.8b",
+            "outcome": "incorrect",
+            "correct": False,
+        },
+        "candidate": {
+            "model_id": "model-2b",
+            "outcome": "correct",
+            "correct": True,
+        },
+        "category": "only_candidate_correct",
+        "rescued": True,
+        "baseline_failure_outcome": "incorrect",
+    }
+    assert comparison["scope"] == "offline_oracle_analysis"
+    assert comparison["actual_cascade_executed"] is False
+
+
+@pytest.mark.parametrize("side", ["baseline", "candidate"])
+def test_compare_baselines_rejects_duplicate_sample_ids(side: str) -> None:
+    compare_baseline_records = require_function("compare_baseline_records")
+    baseline_records = [comparison_record("sample-1", "baseline", "correct")]
+    candidate_records = [comparison_record("sample-1", "candidate", "correct")]
+    if side == "baseline":
+        baseline_records.append(baseline_records[0])
+    else:
+        candidate_records.append(candidate_records[0])
+
+    with pytest.raises(ValueError, match="duplicate sample_id"):
+        compare_baseline_records(baseline_records, candidate_records)
+
+
+def test_compare_baselines_rejects_mismatched_samples_and_references() -> None:
+    compare_baseline_records = require_function("compare_baseline_records")
+    baseline_records = [comparison_record("sample-1", "baseline", "correct")]
+
+    with pytest.raises(ValueError, match="sample sets"):
+        compare_baseline_records(
+            baseline_records,
+            [comparison_record("sample-2", "candidate", "correct")],
+        )
+
+    with pytest.raises(ValueError, match="reference answer"):
+        compare_baseline_records(
+            baseline_records,
+            [
+                comparison_record(
+                    "sample-1",
+                    "candidate",
+                    "correct",
+                    reference_answer="2",
+                )
+            ],
+        )
+
+    with pytest.raises(ValueError, match="empty"):
+        compare_baseline_records([], [])
+
+
+@pytest.mark.parametrize(
+    ("field", "different_value"),
+    [
+        ("dataset_index", 999),
+        ("question", "different question"),
+        ("prompt", "different prompt"),
+    ],
+)
+def test_compare_baselines_rejects_mismatched_experiment_inputs(
+    field: str,
+    different_value: object,
+) -> None:
+    compare_baseline_records = require_function("compare_baseline_records")
+    baseline_record = comparison_record("sample-1", "baseline", "incorrect")
+    candidate_record = comparison_record("sample-1", "candidate", "correct")
+    candidate_record[field] = different_value
+
+    with pytest.raises(ValueError, match=f"{field} mismatch"):
+        compare_baseline_records([baseline_record], [candidate_record])

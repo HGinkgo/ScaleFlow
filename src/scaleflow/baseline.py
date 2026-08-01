@@ -86,6 +86,22 @@ def load_gsm8k_jsonl(path: str | Path) -> list[dict[str, str]]:
     return records
 
 
+def load_records_jsonl(path: str | Path) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    with Path(path).open(encoding="utf-8") as stream:
+        for line_number, line in enumerate(stream, start=1):
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise ValueError(f"invalid JSON on line {line_number}") from error
+            if not isinstance(record, dict):
+                raise ValueError(f"JSONL line {line_number} must be an object")
+            records.append(record)
+    return records
+
+
 def select_samples(
     records: Sequence[dict[str, str]],
     sample_indices: Sequence[int],
@@ -414,6 +430,192 @@ def summarize_baseline(records: Sequence[dict[str, Any]]) -> dict[str, Any]:
                 "not a formal statistical conclusion."
             ),
         },
+    }
+
+
+_COMPARISON_OUTCOMES = {
+    "correct",
+    "incorrect",
+    "parse_failure",
+    "inference_failure",
+}
+_BASELINE_FAILURE_OUTCOMES = (
+    "incorrect",
+    "parse_failure",
+    "inference_failure",
+)
+
+
+def _index_comparison_records(
+    records: Sequence[dict[str, Any]],
+    label: str,
+) -> tuple[dict[str, dict[str, Any]], str]:
+    indexed: dict[str, dict[str, Any]] = {}
+    model_ids: set[str] = set()
+    for record in records:
+        sample_id = record.get("sample_id")
+        if not isinstance(sample_id, str) or not sample_id:
+            raise ValueError(f"{label} record has no valid sample_id")
+        if sample_id in indexed:
+            raise ValueError(f"{label} has duplicate sample_id: {sample_id}")
+
+        model_id = record.get("model_id")
+        if not isinstance(model_id, str) or not model_id:
+            raise ValueError(f"{label} record {sample_id} has no valid model_id")
+        model_ids.add(model_id)
+
+        outcome = record.get("outcome")
+        if outcome not in _COMPARISON_OUTCOMES:
+            raise ValueError(f"{label} record {sample_id} has invalid outcome")
+        correct = record.get("correct")
+        if not isinstance(correct, bool) or correct != (outcome == "correct"):
+            raise ValueError(
+                f"{label} record {sample_id} has inconsistent correctness"
+            )
+        dataset_index = record.get("dataset_index")
+        if not isinstance(dataset_index, int) or isinstance(dataset_index, bool):
+            raise ValueError(
+                f"{label} record {sample_id} has no valid dataset_index"
+            )
+        for field in ("question", "prompt"):
+            if not isinstance(record.get(field), str):
+                raise ValueError(
+                    f"{label} record {sample_id} has no valid {field}"
+                )
+        if not isinstance(record.get("reference_answer"), str):
+            raise ValueError(
+                f"{label} record {sample_id} has no valid reference answer"
+            )
+        indexed[sample_id] = record
+
+    if len(model_ids) != 1:
+        raise ValueError(f"{label} records must contain exactly one model_id")
+    return indexed, next(iter(model_ids))
+
+
+def compare_baseline_records(
+    baseline_records: Sequence[dict[str, Any]],
+    candidate_records: Sequence[dict[str, Any]],
+) -> dict[str, Any]:
+    if not baseline_records or not candidate_records:
+        raise ValueError("cannot compare empty baseline results")
+
+    baseline_by_id, baseline_model_id = _index_comparison_records(
+        baseline_records,
+        "baseline",
+    )
+    candidate_by_id, candidate_model_id = _index_comparison_records(
+        candidate_records,
+        "candidate",
+    )
+    if baseline_by_id.keys() != candidate_by_id.keys():
+        raise ValueError("baseline and candidate sample sets do not match")
+
+    categories = {
+        "both_correct": 0,
+        "only_baseline_correct": 0,
+        "only_candidate_correct": 0,
+        "neither_correct": 0,
+    }
+    rescue_by_outcome = {
+        outcome: {"baseline_count": 0, "rescued_count": 0, "rescue_rate": None}
+        for outcome in _BASELINE_FAILURE_OUTCOMES
+    }
+    per_request: list[dict[str, Any]] = []
+
+    for baseline_record in baseline_records:
+        sample_id = baseline_record["sample_id"]
+        candidate_record = candidate_by_id[sample_id]
+        reference_answer = baseline_record["reference_answer"]
+        for field in ("dataset_index", "question", "prompt"):
+            if candidate_record[field] != baseline_record[field]:
+                raise ValueError(f"{field} mismatch for sample {sample_id}")
+        if candidate_record["reference_answer"] != reference_answer:
+            raise ValueError(f"reference answer mismatch for sample {sample_id}")
+
+        baseline_correct = baseline_record["correct"]
+        candidate_correct = candidate_record["correct"]
+        if baseline_correct and candidate_correct:
+            category = "both_correct"
+        elif baseline_correct:
+            category = "only_baseline_correct"
+        elif candidate_correct:
+            category = "only_candidate_correct"
+        else:
+            category = "neither_correct"
+        categories[category] += 1
+
+        baseline_failure_outcome = None
+        rescued = False
+        if not baseline_correct:
+            baseline_failure_outcome = baseline_record["outcome"]
+            outcome_rescue = rescue_by_outcome[baseline_failure_outcome]
+            outcome_rescue["baseline_count"] += 1
+            rescued = candidate_correct
+            if rescued:
+                outcome_rescue["rescued_count"] += 1
+
+        per_request.append(
+            {
+                "sample_id": sample_id,
+                "reference_answer": reference_answer,
+                "baseline": {
+                    "model_id": baseline_record["model_id"],
+                    "outcome": baseline_record["outcome"],
+                    "correct": baseline_correct,
+                },
+                "candidate": {
+                    "model_id": candidate_record["model_id"],
+                    "outcome": candidate_record["outcome"],
+                    "correct": candidate_correct,
+                },
+                "category": category,
+                "rescued": rescued,
+                "baseline_failure_outcome": baseline_failure_outcome,
+            }
+        )
+
+    for outcome_summary in rescue_by_outcome.values():
+        baseline_count = outcome_summary["baseline_count"]
+        if baseline_count:
+            outcome_summary["rescue_rate"] = (
+                outcome_summary["rescued_count"] / baseline_count
+            )
+
+    request_count = len(baseline_records)
+    baseline_correct_count = (
+        categories["both_correct"] + categories["only_baseline_correct"]
+    )
+    candidate_correct_count = (
+        categories["both_correct"] + categories["only_candidate_correct"]
+    )
+    baseline_not_correct_count = request_count - baseline_correct_count
+    rescued_count = categories["only_candidate_correct"]
+    oracle_correct_count = request_count - categories["neither_correct"]
+
+    return {
+        "request_count": request_count,
+        "baseline_model_id": baseline_model_id,
+        "candidate_model_id": candidate_model_id,
+        "categories": categories,
+        "baseline_correct_count": baseline_correct_count,
+        "candidate_correct_count": candidate_correct_count,
+        "baseline_accuracy": baseline_correct_count / request_count,
+        "candidate_accuracy": candidate_correct_count / request_count,
+        "baseline_not_correct_count": baseline_not_correct_count,
+        "rescued_count": rescued_count,
+        "rescue_rate": (
+            rescued_count / baseline_not_correct_count
+            if baseline_not_correct_count
+            else None
+        ),
+        "rescued_accuracy_gain": rescued_count / request_count,
+        "rescue_by_baseline_outcome": rescue_by_outcome,
+        "oracle_correct_count": oracle_correct_count,
+        "oracle_accuracy": oracle_correct_count / request_count,
+        "per_request": per_request,
+        "scope": "offline_oracle_analysis",
+        "actual_cascade_executed": False,
     }
 
 

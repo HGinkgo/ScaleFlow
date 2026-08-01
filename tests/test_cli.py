@@ -38,6 +38,7 @@ def test_module_cli_help_starts() -> None:
     assert "run-mock" in completed.stdout
     assert "run-vllm" in completed.stdout
     assert "run-gsm8k" in completed.stdout
+    assert "compare-gsm8k" in completed.stdout
 
 
 def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:
@@ -180,3 +181,93 @@ def test_gsm8k_backend_disables_prefix_caching(monkeypatch) -> None:
     assert captured["enable_prefix_caching"] is False
     assert captured["gpu_memory_utilization"] == 0.25
     assert captured["max_model_len"] == 2048
+
+
+def test_compare_gsm8k_cli_aligns_jsonl_and_writes_comparison(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    baseline_path = tmp_path / "baseline.jsonl"
+    candidate_path = tmp_path / "candidate.jsonl"
+    output_path = tmp_path / "comparison.json"
+    baseline_records = [
+        {
+            "sample_id": "sample-1",
+            "dataset_index": 1,
+            "question": "question 1",
+            "prompt": "prompt 1",
+            "model_id": MODEL_08,
+            "reference_answer": "1",
+            "outcome": "correct",
+            "correct": True,
+        },
+        {
+            "sample_id": "sample-2",
+            "dataset_index": 2,
+            "question": "question 2",
+            "prompt": "prompt 2",
+            "model_id": MODEL_08,
+            "reference_answer": "2",
+            "outcome": "parse_failure",
+            "correct": False,
+        },
+    ]
+    candidate_records = [
+        {
+            "sample_id": "sample-2",
+            "dataset_index": 2,
+            "question": "question 2",
+            "prompt": "prompt 2",
+            "model_id": MODEL_2,
+            "reference_answer": "2",
+            "outcome": "correct",
+            "correct": True,
+        },
+        {
+            "sample_id": "sample-1",
+            "dataset_index": 1,
+            "question": "question 1",
+            "prompt": "prompt 1",
+            "model_id": MODEL_2,
+            "reference_answer": "1",
+            "outcome": "incorrect",
+            "correct": False,
+        },
+    ]
+    baseline_path.write_text(
+        "".join(json.dumps(record) + "\n" for record in baseline_records),
+        encoding="utf-8",
+    )
+    candidate_path.write_text(
+        "".join(json.dumps(record) + "\n" for record in candidate_records),
+        encoding="utf-8",
+    )
+
+    exit_code = cli.main(
+        [
+            "compare-gsm8k",
+            "--baseline",
+            str(baseline_path),
+            "--candidate",
+            str(candidate_path),
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert exit_code == 0
+    comparison = json.loads(output_path.read_text(encoding="utf-8"))
+    assert comparison["categories"] == {
+        "both_correct": 0,
+        "only_baseline_correct": 1,
+        "only_candidate_correct": 1,
+        "neither_correct": 0,
+    }
+    assert comparison["rescued_count"] == 1
+    assert comparison["rescue_by_baseline_outcome"]["parse_failure"] == {
+        "baseline_count": 1,
+        "rescued_count": 1,
+        "rescue_rate": 1.0,
+    }
+    assert comparison["oracle_accuracy"] == 1.0
+    assert json.loads(capsys.readouterr().out)["output"] == str(output_path)
