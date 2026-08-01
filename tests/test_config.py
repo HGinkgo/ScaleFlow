@@ -97,3 +97,31 @@ def test_qwen35_2b_config_reuses_the_exact_gsm8k_experiment_contract() -> None:
         "15852e8c16360a2fea060d615a32b45270f8a8fc"
     )
     assert 0 < candidate["backend"]["gpu_memory_utilization"] <= 1
+
+
+def test_qwen35_4b_config_reuses_the_exact_gsm8k_experiment_contract() -> None:
+    config_module = import_module("scaleflow.config")
+    load_config = getattr(config_module, "load_config")
+    baseline = load_config(Path("configs/qwen35_0_8b_gsm8k.yaml"))
+    candidate = load_config(Path("configs/qwen35_4b_gsm8k.yaml"))
+
+    for section in ("dataset", "prompt", "warmup", "sampling"):
+        assert candidate[section] == baseline[section]
+
+    shared_backend_fields = (
+        "language_model_only",
+        "enable_thinking",
+        "dtype",
+        "max_model_len",
+        "enforce_eager",
+        "enable_prefix_caching",
+    )
+    for field in shared_backend_fields:
+        assert candidate["backend"][field] == baseline["backend"][field]
+
+    assert candidate["project"] == baseline["project"]
+    assert candidate["backend"]["model_id"] == "Qwen/Qwen3.5-4B"
+    assert candidate["backend"]["revision"] == (
+        "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+    )
+    assert 0 < candidate["backend"]["gpu_memory_utilization"] <= 1

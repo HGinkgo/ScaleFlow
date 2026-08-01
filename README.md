@@ -24,10 +24,11 @@ ScaleFlow 是一个轻量、配置驱动的语言模型推理实验框架，用�
 - 基于 YAML 的模型、采样参数和调度策略配置；
 - `AlwaysModelPolicy` 固定模型策略与 `ConfidenceCascadePolicy` 置信度级联策略；
 - 可重复的 MockBackend 输出、时延、置信度和失败模拟；
-- 基于 vLLM 的 Qwen3.5-0.8B 与 2B 纯文本、非思考模式推理；
+- 基于 vLLM 的 Qwen3.5-0.8B、2B 与 4B 纯文本、非思考模式推理；
 - 真实输出 token logprob、长度归一化 confidence、端到端时延和显存读数；
 - 完整决策轨迹和直接 JSONL 结果输出；
 - 固定 GSM8K 测试集、64 个样本 ID、预热流程和自动评分基线；
+- 支持任意两个及以上有序模型结果的严格离线对齐、模型对挽救分析和逐级 oracle 统计；
 - 不使用 GPU 的单元测试与 CLI 集成测试。
 
 当前本地模型路线为：
@@ -36,7 +37,7 @@ ScaleFlow 是一个轻量、配置驱动的语言模型推理实验框架，用�
 Qwen3.5-0.8B -> Qwen3.5-2B -> Qwen3.5-4B -> Qwen3.5-9B
 ```
 
-目前 Qwen3.5-0.8B 与 2B 已接入真实推理，4B、9B 和云端兜底仍属于后续工作。
+目前 Qwen3.5-0.8B、2B 与 4B 已接入真实推理，9B 和云端兜底仍属于后续工作。
 
 ## 项目结构
 
@@ -106,7 +107,7 @@ CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
 
 该命令首次运行会下载并校验官方 GSM8K `test` 数据；原始数据、逐条 JSONL 和汇总 JSON 均被 Git 忽略。
 
-使用相同实验契约顺序运行 2B，再离线对齐两组结果：
+使用相同实验契约依次运行 2B 和 4B，再离线对齐三组结果：
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
@@ -115,14 +116,21 @@ CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
   --output results/qwen35_2b_gsm8k_64.jsonl \
   --summary results/qwen35_2b_gsm8k_64_summary.json
 
+CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
+  python -m scaleflow run-gsm8k \
+  --config configs/qwen35_4b_gsm8k.yaml \
+  --output results/qwen35_4b_gsm8k_64.jsonl \
+  --summary results/qwen35_4b_gsm8k_64_summary.json
+
 CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
-  python -m scaleflow compare-gsm8k \
-  --baseline results/qwen35_0_8b_gsm8k_64.jsonl \
-  --candidate results/qwen35_2b_gsm8k_64.jsonl \
-  --output results/qwen35_0_8b_vs_2b.json
+  python -m scaleflow compare-gsm8k-multi \
+  --inputs results/qwen35_0_8b_gsm8k_64.jsonl \
+           results/qwen35_2b_gsm8k_64.jsonl \
+           results/qwen35_4b_gsm8k_64.jsonl \
+  --output results/qwen35_multi_comparison.json
 ```
 
-两个模型应在独立进程中依次运行，不同时驻留显存。比较命令只做离线对齐和 oracle 分析，不执行实际级联。
+各模型应在独立进程中依次运行，不同时驻留显存。`--inputs` 顺序表示模型能力顺序；比较器校验样本、Prompt、参考答案和公共实验配置，并保留全部正确性组合与样本 ID。`compare-gsm8k` 继续作为双模型兼容入口。比较命令不执行实际级联。
 
 运行全部测试：
 
@@ -136,6 +144,7 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 - `configs/qwen35_0_8b_vllm.yaml`：Qwen3.5-0.8B 的固定 revision、BF16、非思考模式和确定性采样参数。
 - `configs/qwen35_0_8b_gsm8k.yaml`：固定 GSM8K commit、SHA256、64 个样本索引、Prompt、8 条预热请求和生成参数。
 - `configs/qwen35_2b_gsm8k.yaml`：保持相同实验契约，仅固定 2B 模型 revision 和运行时显存配置。
+- `configs/qwen35_4b_gsm8k.yaml`：保持相同实验契约，固定 4B 模型 revision，并使用独立的运行时显存配置。
 
 GSM8K 基线使用 OpenAI 官方测试集 commit `3101c7d5072418e28b9008a6636bde82a006892c`，并校验 SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`。后续不同规模模型应复用同一配置中的样本索引和 Prompt。
 
@@ -151,11 +160,17 @@ GSM8K 结果将 `correct`、`incorrect`、`parse_failure` 和 `inference_failure
 
 ## 状态
 
-当前已完成项目骨架、Mock 调度流程、Qwen3.5-0.8B 与 2B 的固定 GSM8K-64 单模型基线及离线对齐。实际多模型级联、云端兜底、并发队列和资源感知调度尚未实现。
+当前已完成项目骨架、Mock 调度流程、Qwen3.5-0.8B、2B 与 4B 的固定 GSM8K-64 单模型基线及通用多模型离线对齐。实际多模型级联、云端兜底、并发队列和资源感知调度尚未实现。
 
-同一次顺序实验中，0.8B 与 2B 分别得到 33/64 和 40/64 正确，格式解析失败分别为 3 和 4 条；平均时延分别为 3736.68 ms 和 2714.95 ms。离线对齐结果为：两者都正确 24 条、仅 0.8B 正确 9 条、仅 2B 正确 16 条、两者都未正确 15 条。2B 挽救了 16/31 个 0.8B 未正确请求，oracle 上界为 49/64（76.56%）。这不是实际级联结果。
+| 模型 | 正确 | incorrect / parse / inference | mean / P50 / P95 时延（ms） | aggregate tokens/s | NVML 峰值（MiB） |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Qwen3.5-0.8B | 33/64 | 28 / 3 / 0 | 3761.83 / 3389.28 / 7101.28 | 41.52 | 6882.06 |
+| Qwen3.5-2B | 40/64 | 20 / 4 / 0 | 2723.27 / 2486.30 / 4174.76 | 40.52 | 6992.06 |
+| Qwen3.5-4B | 59/64 | 4 / 1 / 0 | 3878.75 / 3457.85 / 7103.72 | 30.87 | 11664.06 |
 
-两者均使用 `gpu_memory_utilization=0.25`。vLLM 日志中的权重/KV cache 约为 1.53/3.36 GiB 与 3.63/1.24 GiB；相同总预算下，更大的 2B 权重压缩了预留 KV cache，因此 NVML 峰值仍接近 6.7 GiB。准确率、时延和 confidence 关系仅作固定 64 条样本的初步观察，不构成正式性能或统计结论。
+2B 未正确的24条中，4B挽救20条（83.33%）：`incorrect` 为16/20，`parse_failure` 为4/4，`inference_failure` 为0/0。双模型 oracle 为49/64（76.56%），加入4B后为60/64（93.75%），增量为11条或17.19个百分点。非单调样本中，2B未正确但0.8B正确有9条；4B未正确但2B正确有1条；4B未正确但任一更小模型正确仍为该1条。以上均为离线理论分析，不是实际级联结果。
+
+0.8B/2B 使用 `gpu_memory_utilization=0.25`，4B 使用 `0.45`。vLLM 日志中的权重/KV cache 分别约为1.53/3.36、3.63/1.24和7.99/1.58 GiB；4B峰值激活约0.96 GiB。4B confidence 与正确性的点二列相关系数为0.2007，排除解析失败后为0.0598。所有准确率、时延和 confidence 关系仅作固定64条样本的初步观察，不构成正式性能或统计结论。
 
 ## 许可证
 

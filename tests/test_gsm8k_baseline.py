@@ -379,7 +379,17 @@ def comparison_record(
     outcome: str,
     *,
     reference_answer: str = "1",
+    experiment_config: dict[str, object] | None = None,
 ) -> dict[str, object]:
+    if experiment_config is None:
+        experiment_config = {
+            "project_seed": 42,
+            "dataset": {"commit": "fixed-commit", "sample_indices": list(range(8))},
+            "prompt_template": "fixed prompt",
+            "warmup_prompts": ["warmup"],
+            "generation_config": {"temperature": 0.0, "max_tokens": 384},
+            "backend_common_config": {"dtype": "bfloat16"},
+        }
     return {
         "sample_id": sample_id,
         "dataset_index": int(sample_id.rsplit("-", maxsplit=1)[-1]),
@@ -389,6 +399,7 @@ def comparison_record(
         "reference_answer": reference_answer,
         "outcome": outcome,
         "correct": outcome == "correct",
+        "experiment_config": experiment_config,
     }
 
 
@@ -550,3 +561,166 @@ def test_compare_baselines_rejects_mismatched_experiment_inputs(
 
     with pytest.raises(ValueError, match=f"{field} mismatch"):
         compare_baseline_records([baseline_record], [candidate_record])
+
+
+def test_compare_model_records_reports_all_combinations_pairs_and_oracles() -> None:
+    compare_model_records = require_function("compare_model_records")
+    patterns = [f"{value:03b}" for value in range(8)]
+    model_ids = ["model-0.8b", "model-2b", "model-4b"]
+    false_outcomes = [
+        {
+            "000": "incorrect",
+            "001": "parse_failure",
+            "010": "inference_failure",
+            "011": "incorrect",
+        },
+        {
+            "000": "incorrect",
+            "001": "parse_failure",
+            "100": "inference_failure",
+            "101": "incorrect",
+        },
+        {
+            "000": "inference_failure",
+            "010": "incorrect",
+            "100": "incorrect",
+            "110": "parse_failure",
+        },
+    ]
+    records_by_model = []
+    for model_index, model_id in enumerate(model_ids):
+        records_by_model.append(
+            [
+                comparison_record(
+                    f"sample-{pattern}",
+                    model_id,
+                    "correct" if pattern[model_index] == "1" else false_outcomes[model_index][pattern],
+                )
+                for pattern in patterns
+            ]
+        )
+
+    comparison = compare_model_records(records_by_model)
+
+    assert comparison["request_count"] == 8
+    assert comparison["model_order"] == model_ids
+    assert [item["correct_count"] for item in comparison["models"]] == [4, 4, 4]
+    assert comparison["models"][1]["outcomes"]["parse_failure"] == {
+        "count": 1,
+        "sample_ids": ["sample-001"],
+    }
+    assert list(comparison["correctness_combinations"]) == patterns
+    for pattern in patterns:
+        assert comparison["correctness_combinations"][pattern]["count"] == 1
+        assert comparison["correctness_combinations"][pattern]["sample_ids"] == [
+            f"sample-{pattern}"
+        ]
+
+    pairs = {
+        (item["source_index"], item["target_index"]): item
+        for item in comparison["ordered_pairs"]
+    }
+    assert set(pairs) == {(0, 1), (0, 2), (1, 2)}
+    assert pairs[(1, 2)]["source_not_correct_count"] == 4
+    assert pairs[(1, 2)]["rescued_count"] == 2
+    assert pairs[(1, 2)]["rescue_rate"] == pytest.approx(0.5)
+    assert pairs[(1, 2)]["rescued_sample_ids"] == ["sample-001", "sample-101"]
+    assert pairs[(1, 2)]["rescue_by_source_outcome"] == {
+        "incorrect": {
+            "source_count": 2,
+            "rescued_count": 1,
+            "rescue_rate": 0.5,
+            "rescued_sample_ids": ["sample-101"],
+        },
+        "parse_failure": {
+            "source_count": 1,
+            "rescued_count": 1,
+            "rescue_rate": 1.0,
+            "rescued_sample_ids": ["sample-001"],
+        },
+        "inference_failure": {
+            "source_count": 1,
+            "rescued_count": 0,
+            "rescue_rate": 0.0,
+            "rescued_sample_ids": [],
+        },
+    }
+    assert pairs[(1, 2)]["non_monotonic_count"] == 2
+    assert pairs[(1, 2)]["non_monotonic_sample_ids"] == [
+        "sample-010",
+        "sample-110",
+    ]
+    assert pairs[(1, 2)]["non_monotonic_by_target_outcome"]["parse_failure"] == {
+        "target_count": 1,
+        "non_monotonic_count": 1,
+        "non_monotonic_rate": 1.0,
+        "sample_ids": ["sample-110"],
+    }
+
+    assert comparison["oracle_progression"] == [
+        {
+            "model_count": 1,
+            "model_ids": ["model-0.8b"],
+            "oracle_correct_count": 4,
+            "oracle_accuracy": 0.5,
+            "incremental_correct_count": 4,
+            "incremental_accuracy_gain": 0.5,
+            "incremental_sample_ids": [
+                "sample-100",
+                "sample-101",
+                "sample-110",
+                "sample-111",
+            ],
+        },
+        {
+            "model_count": 2,
+            "model_ids": ["model-0.8b", "model-2b"],
+            "oracle_correct_count": 6,
+            "oracle_accuracy": 0.75,
+            "incremental_correct_count": 2,
+            "incremental_accuracy_gain": 0.25,
+            "incremental_sample_ids": ["sample-010", "sample-011"],
+        },
+        {
+            "model_count": 3,
+            "model_ids": model_ids,
+            "oracle_correct_count": 7,
+            "oracle_accuracy": 0.875,
+            "incremental_correct_count": 1,
+            "incremental_accuracy_gain": 0.125,
+            "incremental_sample_ids": ["sample-001"],
+        },
+    ]
+    assert comparison["per_request"][1]["correctness_pattern"] == "001"
+    assert comparison["scope"] == "offline_oracle_analysis"
+    assert comparison["actual_cascade_executed"] is False
+
+
+def test_compare_model_records_requires_two_distinct_models() -> None:
+    compare_model_records = require_function("compare_model_records")
+    records = [comparison_record("sample-1", "model-a", "correct")]
+
+    with pytest.raises(ValueError, match="at least two"):
+        compare_model_records([records])
+    with pytest.raises(ValueError, match="model_id.*unique"):
+        compare_model_records([records, records])
+
+
+def test_compare_model_records_strictly_validates_common_experiment_config() -> None:
+    compare_model_records = require_function("compare_model_records")
+    first = [comparison_record("sample-1", "model-a", "incorrect")]
+    different_config = {
+        **first[0]["experiment_config"],
+        "generation_config": {"temperature": 0.0, "max_tokens": 128},
+    }
+    second = [
+        comparison_record(
+            "sample-1",
+            "model-b",
+            "correct",
+            experiment_config=different_config,
+        )
+    ]
+
+    with pytest.raises(ValueError, match="common experiment config"):
+        compare_model_records([first, second])

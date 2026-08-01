@@ -39,6 +39,7 @@ def test_module_cli_help_starts() -> None:
     assert "run-vllm" in completed.stdout
     assert "run-gsm8k" in completed.stdout
     assert "compare-gsm8k" in completed.stdout
+    assert "compare-gsm8k-multi" in completed.stdout
 
 
 def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:
@@ -160,7 +161,27 @@ def test_run_gsm8k_cli_writes_records_and_summary_without_real_model(
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     assert record["sample_id"] == "gsm8k-test-0000"
     assert record["outcome"] == "correct"
+    assert record["experiment_config"] == {
+        "project_seed": 42,
+        "dataset": {
+            "name": "openai/grade-school-math",
+            "split": "test",
+            "commit": "test-commit",
+            "sha256": dataset_sha256,
+            "expected_record_count": 1,
+            "selection_method": "explicit_indices",
+            "selection_seed": 42,
+            "sample_indices": [0],
+        },
+        "prompt_template": "Problem:\n{question}\n",
+        "warmup_prompts": ["1 + 1"],
+        "generation_config": {"max_tokens": 8},
+        "backend_common_config": {},
+    }
+    assert len(record["experiment_fingerprint"]) == 64
     assert summary["request_count"] == 1
+    assert summary["experiment_config"] == record["experiment_config"]
+    assert summary["experiment_fingerprint"] == record["experiment_fingerprint"]
     assert summary["dataset"]["sample_ids"] == ["gsm8k-test-0000"]
     assert summary["warmup"]["request_count"] == 1
     assert summary["model_info"]["backend"] == "mock"
@@ -271,3 +292,67 @@ def test_compare_gsm8k_cli_aligns_jsonl_and_writes_comparison(
     }
     assert comparison["oracle_accuracy"] == 1.0
     assert json.loads(capsys.readouterr().out)["output"] == str(output_path)
+
+
+def test_compare_gsm8k_multi_cli_preserves_model_order_and_writes_report(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    output_path = tmp_path / "multi-comparison.json"
+    experiment_config = {
+        "project_seed": 42,
+        "dataset": {"commit": "fixed", "sample_indices": [1, 2]},
+        "prompt_template": "fixed prompt",
+        "warmup_prompts": ["warmup"],
+        "generation_config": {"temperature": 0.0},
+        "backend_common_config": {"dtype": "bfloat16"},
+    }
+    model_paths = [tmp_path / f"model-{index}.jsonl" for index in range(3)]
+    model_ids = [MODEL_08, MODEL_2, MODEL_4]
+    patterns = ["001", "110"]
+    for model_index, (model_path, model_id) in enumerate(
+        zip(model_paths, model_ids, strict=True)
+    ):
+        records = []
+        for sample_index, pattern in enumerate(patterns, start=1):
+            correct = pattern[model_index] == "1"
+            records.append(
+                {
+                    "sample_id": f"sample-{sample_index}",
+                    "dataset_index": sample_index,
+                    "question": f"question {sample_index}",
+                    "prompt": f"prompt {sample_index}",
+                    "model_id": model_id,
+                    "reference_answer": str(sample_index),
+                    "outcome": "correct" if correct else "incorrect",
+                    "correct": correct,
+                    "experiment_config": experiment_config,
+                }
+            )
+        model_path.write_text(
+            "".join(json.dumps(record) + "\n" for record in records),
+            encoding="utf-8",
+        )
+
+    exit_code = cli.main(
+        [
+            "compare-gsm8k-multi",
+            "--inputs",
+            *(str(path) for path in model_paths),
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert exit_code == 0
+    comparison = json.loads(output_path.read_text(encoding="utf-8"))
+    assert comparison["model_order"] == model_ids
+    assert comparison["inputs"] == [str(path) for path in model_paths]
+    assert len(comparison["ordered_pairs"]) == 3
+    assert comparison["correctness_combinations"]["001"]["sample_ids"] == [
+        "sample-1"
+    ]
+    assert comparison["oracle_progression"][-1]["oracle_correct_count"] == 2
+    stdout = json.loads(capsys.readouterr().out)
+    assert stdout["output"] == str(output_path)
+    assert stdout["model_order"] == model_ids

@@ -1,5 +1,6 @@
 import argparse
 from collections.abc import Sequence
+from hashlib import sha256
 import json
 from pathlib import Path
 import sys
@@ -8,6 +9,7 @@ from typing import Any
 from scaleflow import __version__
 from scaleflow.baseline import (
     compare_baseline_records,
+    compare_model_records,
     ensure_dataset,
     load_gsm8k_jsonl,
     load_records_jsonl,
@@ -112,6 +114,23 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="path to the comparison JSON output",
     )
+    compare_multi_parser = subparsers.add_parser(
+        "compare-gsm8k-multi",
+        help="compare ordered GSM8K baseline JSONL files",
+    )
+    compare_multi_parser.add_argument(
+        "--inputs",
+        type=Path,
+        nargs="+",
+        required=True,
+        help="JSONL result paths in ascending model-capability order",
+    )
+    compare_multi_parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="path to the multi-model comparison JSON output",
+    )
     return parser
 
 
@@ -187,6 +206,51 @@ def _build_vllm_backend(config: dict[str, Any]) -> VLLMBackend:
     )
 
 
+def _common_experiment_config(config: dict[str, Any]) -> dict[str, Any]:
+    dataset = config["dataset"]
+    backend = config["backend"]
+    dataset_fields = (
+        "name",
+        "split",
+        "commit",
+        "sha256",
+        "expected_record_count",
+        "selection_method",
+        "selection_seed",
+        "sample_indices",
+    )
+    backend_fields = (
+        "language_model_only",
+        "enable_thinking",
+        "dtype",
+        "max_model_len",
+        "enforce_eager",
+        "enable_prefix_caching",
+    )
+    return {
+        "project_seed": config["project"]["seed"],
+        "dataset": {
+            field: dataset[field] for field in dataset_fields if field in dataset
+        },
+        "prompt_template": config["prompt"]["template"],
+        "warmup_prompts": list(config["warmup"]["prompts"]),
+        "generation_config": dict(config["sampling"]),
+        "backend_common_config": {
+            field: backend[field] for field in backend_fields if field in backend
+        },
+    }
+
+
+def _experiment_fingerprint(experiment_config: dict[str, Any]) -> str:
+    canonical = json.dumps(
+        experiment_config,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return sha256(canonical.encode("utf-8")).hexdigest()
+
+
 def run_vllm(config_path: Path, output_path: Path) -> int:
     config = load_config(config_path)
     backend = _build_vllm_backend(config)
@@ -244,12 +308,19 @@ def run_gsm8k(
         config["prompt"]["template"],
         max_tokens=config["sampling"]["max_tokens"],
     )
+    experiment_config = _common_experiment_config(config)
+    experiment_fingerprint = _experiment_fingerprint(experiment_config)
+    for record in records:
+        record["experiment_config"] = experiment_config
+        record["experiment_fingerprint"] = experiment_fingerprint
     write_records_jsonl(output_path, records)
 
     summary = summarize_baseline(records)
     summary.update(
         {
             "project_seed": config["project"]["seed"],
+            "experiment_config": experiment_config,
+            "experiment_fingerprint": experiment_fingerprint,
             "dataset": {
                 "name": dataset_config["name"],
                 "split": dataset_config["split"],
@@ -304,6 +375,29 @@ def compare_gsm8k(
     return 0
 
 
+def compare_gsm8k_multi(input_paths: Sequence[Path], output_path: Path) -> int:
+    comparison = compare_model_records(
+        [load_records_jsonl(path) for path in input_paths]
+    )
+    comparison["inputs"] = [str(path) for path in input_paths]
+    write_summary_json(output_path, comparison)
+    final_oracle = comparison["oracle_progression"][-1]
+    print(
+        json.dumps(
+            {
+                "output": str(output_path),
+                "request_count": comparison["request_count"],
+                "model_order": comparison["model_order"],
+                "ordered_pair_count": len(comparison["ordered_pairs"]),
+                "oracle_correct_count": final_oracle["oracle_correct_count"],
+                "oracle_accuracy": final_oracle["oracle_accuracy"],
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -315,5 +409,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_gsm8k(args.config, args.output, args.summary)
     if args.command == "compare-gsm8k":
         return compare_gsm8k(args.baseline, args.candidate, args.output)
+    if args.command == "compare-gsm8k-multi":
+        return compare_gsm8k_multi(args.inputs, args.output)
     parser.print_help()
     return 0
