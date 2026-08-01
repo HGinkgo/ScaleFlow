@@ -1,0 +1,49 @@
+project:
+  name: ScaleFlow
+  seed: 42
+
+backend:
+  type: vllm
+  model_id: Qwen/Qwen3.5-0.8B
+  revision: 2fc06364715b967f1860aea9cf38778875588b17
+  language_model_only: true
+  enable_thinking: false
+  dtype: bfloat16
+  max_model_len: 4096
+  gpu_memory_utilization: 0.4
+  enforce_eager: true
+
+sampling:
+  temperature: 0.0
+  top_p: 1.0
+  top_k: 0
+  min_p: 0.0
+  presence_penalty: 0.0
+  max_tokens: 64
+  logprobs: 1
+
+scheduler:
+  policy: always_model
+  model_id: Qwen/Qwen3.5-0.8B
+
+requests:
+  - request_id: real-01
+    prompt: "用一句话解释什么是边缘计算。"
+    metadata:
+      category: definition
+  - request_id: real-02
+    prompt: "计算 17 乘以 6，只给出结果。"
+    metadata:
+      category: arithmetic
+  - request_id: real-03
+    prompt: "将 'Resource-constrained edge inference' 翻译成中文。"
+    metadata:
+      category: translation
+  - request_id: real-04
+    prompt: "一个传感器连续三次读数为 12、15、18，平均值是多少？简要回答。"
+    metadata:
+      category: arithmetic
+  - request_id: real-05
+    prompt: "列出两个在边缘设备上部署小语言模型时需要考虑的资源约束。"
+    metadata:
+      category: edge_inference

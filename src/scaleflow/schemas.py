@@ -17,6 +17,9 @@ class ModelResponse:
     latency_ms: float
     success: bool
     error: str | None
+    token_logprobs: list[float] = field(default_factory=list)
+    confidence_method: str | None = None
+    gpu_memory_used_mb: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,3 +40,6 @@ class InferenceResult:
     decision_trace: list[DecisionRecord]
     success: bool
     error: str | None
+    token_logprobs: list[float] = field(default_factory=list)
+    confidence_method: str | None = None
+    gpu_memory_used_mb: float | None = None

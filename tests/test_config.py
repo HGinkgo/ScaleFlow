@@ -17,3 +17,16 @@ def test_default_yaml_config_can_be_loaded() -> None:
         "Qwen/Qwen3.5-4B",
         "Qwen/Qwen3.5-9B",
     ]
+
+
+def test_real_qwen35_config_is_text_only_and_requests_logprobs() -> None:
+    config_module = import_module("scaleflow.config")
+    load_config = getattr(config_module, "load_config")
+
+    config = load_config(Path("configs/qwen35_0_8b_vllm.yaml"))
+
+    assert config["backend"]["model_id"] == "Qwen/Qwen3.5-0.8B"
+    assert config["backend"]["language_model_only"] is True
+    assert config["backend"]["enable_thinking"] is False
+    assert config["sampling"]["logprobs"] >= 1
+    assert 5 <= len(config["requests"]) <= 20

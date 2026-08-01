@@ -16,6 +16,9 @@ dependencies = [
 dev = [
     "pytest>=8,<9",
 ]
+vllm = [
+    "vllm==0.26.0",
+]
 
 [project.scripts]
 scaleflow = "scaleflow.cli:main"

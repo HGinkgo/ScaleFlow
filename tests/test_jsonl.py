@@ -21,6 +21,9 @@ def test_jsonl_results_can_be_written_and_read(tmp_path) -> None:
         ],
         success=True,
         error=None,
+        token_logprobs=[-0.1, -0.2],
+        confidence_method="exp(mean(output_token_logprobs))",
+        gpu_memory_used_mb=2048.0,
     )
     output = tmp_path / "result.jsonl"
 
@@ -44,5 +47,8 @@ def test_jsonl_results_can_be_written_and_read(tmp_path) -> None:
             ],
             "success": True,
             "error": None,
+            "token_logprobs": [-0.1, -0.2],
+            "confidence_method": "exp(mean(output_token_logprobs))",
+            "gpu_memory_used_mb": 2048.0,
         }
     ]

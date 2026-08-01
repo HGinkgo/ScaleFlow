@@ -42,6 +42,9 @@ def run_request(
                 decision_trace=decision_trace,
                 success=response.success,
                 error=response.error,
+                token_logprobs=response.token_logprobs,
+                confidence_method=response.confidence_method,
+                gpu_memory_used_mb=response.gpu_memory_used_mb,
             )
 
     raise RuntimeError("policy exhausted its model order without returning a result")

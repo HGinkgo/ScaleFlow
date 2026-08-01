@@ -38,6 +38,37 @@ def test_always_model_policy_only_calls_configured_model() -> None:
     assert result.escalation_count == 0
 
 
+def test_runner_preserves_backend_measurements() -> None:
+    backend = make_backend("model-a", 0.9)
+    original_generate = backend.generate
+
+    def generate_with_measurements(request):
+        response = original_generate(request)
+        return response.__class__(
+            model_id=response.model_id,
+            text=response.text,
+            confidence=response.confidence,
+            latency_ms=response.latency_ms,
+            success=response.success,
+            error=response.error,
+            token_logprobs=[-0.1, -0.2],
+            confidence_method="exp(mean(output_token_logprobs))",
+            gpu_memory_used_mb=2048.0,
+        )
+
+    backend.generate = generate_with_measurements
+
+    result = run_request(
+        InferenceRequest("request-1", "prompt"),
+        {"model-a": backend},
+        AlwaysModelPolicy("model-a"),
+    )
+
+    assert result.token_logprobs == [-0.1, -0.2]
+    assert result.confidence_method == "exp(mean(output_token_logprobs))"
+    assert result.gpu_memory_used_mb == 2048.0
+
+
 def test_confidence_cascade_stops_on_high_confidence() -> None:
     result = run_request(
         InferenceRequest("request-1", "prompt"),

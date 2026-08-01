@@ -58,10 +58,9 @@ def test_mock_backend_can_simulate_failure() -> None:
     assert response.error == "simulated failure"
 
 
-@pytest.mark.parametrize("backend_name", ["VLLMBackend", "SGLangBackend"])
-def test_runtime_backend_placeholders_report_unavailable(backend_name: str) -> None:
+def test_sglang_backend_placeholder_reports_unavailable() -> None:
     backends = import_module("scaleflow.backends")
-    backend_type = getattr(backends, backend_name)
+    backend_type = getattr(backends, "SGLangBackend")
     unavailable_error = getattr(backends, "BackendUnavailableError")
     backend = backend_type(model_id="not-loaded")
 

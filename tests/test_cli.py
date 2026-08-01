@@ -28,6 +28,7 @@ def test_module_cli_help_starts() -> None:
     assert completed.returncode == 0, completed.stderr
     assert "ScaleFlow" in completed.stdout
     assert "run-mock" in completed.stdout
+    assert "run-vllm" in completed.stdout
 
 
 def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:
