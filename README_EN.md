@@ -166,23 +166,6 @@ JSONL records preserve full token logprobs, the confidence method, latency, GPU-
 
 GSM8K records keep `correct`, `incorrect`, `parse_failure`, and `inference_failure` separate; parse failures are not hidden inside answer errors. The confidence-correctness relationship on 64 samples is exploratory only and is not a formal statistical conclusion.
 
-## Status
-
-The project skeleton, deterministic Mock scheduling flow, fixed GSM8K-64 baselines for all four Qwen3.5 models, and generic multi-model offline alignment are implemented. Real multi-model cascades, cloud fallback, concurrent queues, and resource-aware scheduling are not yet implemented.
-
-| Model | Correct | incorrect / parse / inference | Mean / P50 / P95 latency (ms) | Aggregate tokens/s | NVML peak (MiB) |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Qwen3.5-0.8B | 33/64 | 28 / 3 / 0 | 3761.83 / 3389.28 / 7101.28 | 41.52 | 6882.06 |
-| Qwen3.5-2B | 40/64 | 20 / 4 / 0 | 2723.27 / 2486.30 / 4174.76 | 40.52 | 6992.06 |
-| Qwen3.5-4B | 59/64 | 4 / 1 / 0 | 3878.75 / 3457.85 / 7103.72 | 30.87 | 11664.06 |
-| Qwen3.5-9B | 60/64 | 3 / 1 / 0 | 4468.68 / 3892.32 / 8284.06 | 31.34 | 22678.06 |
-
-The 4B model rescued 20 of the 24 requests that 2B did not answer correctly (83.33%): 16/20 `incorrect`, 4/4 `parse_failure`, and 0/0 `inference_failure`. The two-model oracle was 49/64 (76.56%); adding 4B raised it to 60/64 (93.75%), an increment of 11 samples or 17.19 percentage points. Non-monotonic cases included nine where 2B was not correct but 0.8B was correct, and one where 4B was not correct but 2B was correct; the latter was also the only 4B failure rescued by either smaller model. These are offline upper-bound results, not an executed cascade.
-
-The 0.8B/2B runs used `gpu_memory_utilization=0.25`, 4B used `0.45`, and 9B used `0.90`. The 9B BF16 single-GPU run was stable: vLLM reported about 16.8 GiB for weights and 3.34 GiB for reserved KV cache, with an NVML peak of about 22678 MiB. The 9B confidence-correctness point-biserial correlation was 0.3320, or 0.2472 after excluding parse failures. All accuracy, latency, and confidence observations on these fixed 64 samples are exploratory, not formal performance or statistical conclusions.
-
-In the four-model offline comparison, 9B rescued 2 of the 5 requests that 4B did not answer correctly (40.00%): 2/4 `incorrect`, 0/1 `parse_failure`, and 0/0 `inference_failure`. The three-model oracle was 60/64 (93.75%); adding 9B raised it to 62/64 (96.875%), an increment of 2 samples or 3.125 percentage points. All 16 four-model correctness combinations and sample IDs are retained in the offline result. The non-monotonic samples where 9B was not correct but at least one smaller model was correct are `gsm8k-test-0928` and `gsm8k-test-0093`. These rescue rates and oracle values are offline upper-bound analyses, not an executed cascade.
-
 ## License
 
 Copyright 2026 Pengfei_He. Licensed under the [Apache License 2.0](LICENSE).
