@@ -27,6 +27,7 @@ The project does not implement a new low-level inference runtime and does not tr
 - text-only, non-thinking Qwen3.5-0.8B inference through vLLM;
 - real output-token logprobs, length-normalized confidence, latency, and GPU-memory readings;
 - complete decision traces with direct JSONL output;
+- a fixed GSM8K test set, 64 sample IDs, warmup procedure, and automatic scoring baseline;
 - CPU-only unit and CLI integration tests.
 
 The current local model path is:
@@ -45,6 +46,7 @@ ScaleFlow/
 ├── src/scaleflow/
 │   ├── backends/            # MockBackend and VLLMBackend
 │   ├── scheduler/           # Policies and synchronous execution
+│   ├── baseline.py          # GSM8K scoring, statistics, and output
 │   ├── schemas.py           # Shared data structures
 │   ├── config.py            # YAML loading
 │   └── cli.py               # Command-line entry point
@@ -92,6 +94,18 @@ CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
 
 Select the GPU with `CUDA_VISIBLE_DEVICES`. Model ID, revision, and generation parameters come from YAML; a download endpoint can be selected with the `HF_ENDPOINT` environment variable.
 
+Run the fixed GSM8K-64 single-model baseline:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
+  python -m scaleflow run-gsm8k \
+  --config configs/qwen35_0_8b_gsm8k.yaml \
+  --output results/qwen35_0_8b_gsm8k_64.jsonl \
+  --summary results/qwen35_0_8b_gsm8k_64_summary.json
+```
+
+The first run downloads and verifies the official GSM8K `test` data. Raw data, per-sample JSONL, and the aggregate JSON are Git-ignored.
+
 Run all tests:
 
 ```bash
@@ -102,6 +116,9 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 
 - `configs/mock_qwen35.yaml` defines the deterministic four-scale Qwen3.5 Mock cascade;
 - `configs/qwen35_0_8b_vllm.yaml` pins the Qwen3.5-0.8B revision, BF16 dtype, non-thinking mode, and deterministic sampling parameters.
+- `configs/qwen35_0_8b_gsm8k.yaml` pins the GSM8K commit, SHA256, 64 sample indices, prompt, eight warmup requests, and generation parameters.
+
+The GSM8K baseline uses the OpenAI test-set commit `3101c7d5072418e28b9008a6636bde82a006892c` and verifies SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`. Future model-size runs should reuse the same sample indices and prompt.
 
 For the conditional logprob `l_i` of each generated token, confidence is currently defined as:
 
@@ -111,11 +128,13 @@ confidence = exp(mean(output_token_logprobs))
 
 JSONL records preserve full token logprobs, the confidence method, latency, GPU-memory readings, and decision records. This confidence has not been calibrated as the probability of answer correctness.
 
+GSM8K records keep `correct`, `incorrect`, `parse_failure`, and `inference_failure` separate; parse failures are not hidden inside answer errors. The confidence-correctness relationship on 64 samples is exploratory only and is not a formal statistical conclusion.
+
 ## Status
 
-The project skeleton, deterministic Mock scheduling flow, and real Qwen3.5-0.8B single-model inference path are implemented. Real multi-model cascades, labeled-dataset evaluation, cloud fallback, concurrent queues, and resource-aware scheduling are not yet implemented.
+The project skeleton, deterministic Mock scheduling flow, real Qwen3.5-0.8B single-model inference path, and fixed GSM8K-64 baseline are implemented. Real multi-model cascades, cloud fallback, concurrent queues, and resource-aware scheduling are not yet implemented.
 
-Published results should record the configuration, random seed, model revision, runtime environment, and code version. Smoke-test observations are not presented as benchmark conclusions.
+One fixed run produced 33/64 correct answers, 28 incorrect answers, and three format parse failures. The configuration reduces `gpu_memory_utilization` from 0.4 in the earlier smoke test to 0.25; current vLLM logs report about 1.53 GiB of weights and 3.36 GiB of reserved KV cache, while NVML reports about 6.27 GiB of loaded-memory growth. Total GPU memory also includes activations and runtime overhead, so it is not the model-weight size. Eight warmup requests exclude model loading and the main Triton JIT effect. Accuracy, latency, and confidence observations are exploratory only, not formal performance or statistical conclusions.
 
 ## License
 

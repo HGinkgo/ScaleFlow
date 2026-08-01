@@ -1,7 +1,15 @@
+from hashlib import sha256
+import json
 import os
 from pathlib import Path
 import subprocess
 import sys
+
+import yaml
+
+from scaleflow.backends import MockBackend
+from scaleflow import cli
+from scaleflow.config import load_config
 
 
 MODEL_08 = "Qwen/Qwen3.5-0.8B"
@@ -29,6 +37,7 @@ def test_module_cli_help_starts() -> None:
     assert "ScaleFlow" in completed.stdout
     assert "run-mock" in completed.stdout
     assert "run-vllm" in completed.stdout
+    assert "run-gsm8k" in completed.stdout
 
 
 def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:
@@ -67,8 +76,6 @@ def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:
         encoding="utf-8"
     )
 
-    import json
-
     records = [
         json.loads(line) for line in first_output.read_text(encoding="utf-8").splitlines()
     ]
@@ -93,3 +100,83 @@ def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:
     ]
     assert all(record["success"] is True for record in records)
     assert all(record["error"] is None for record in records)
+
+
+def test_run_gsm8k_cli_writes_records_and_summary_without_real_model(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    dataset = tmp_path / "test.jsonl"
+    dataset.write_text(
+        '{"question":"What is 2 + 2?","answer":"reason\\n#### 4"}\n',
+        encoding="utf-8",
+    )
+    dataset_sha256 = sha256(dataset.read_bytes()).hexdigest()
+    config = {
+        "project": {"name": "ScaleFlow", "seed": 42},
+        "dataset": {
+            "name": "openai/grade-school-math",
+            "split": "test",
+            "commit": "test-commit",
+            "source_url": dataset.as_uri(),
+            "local_path": str(dataset),
+            "sha256": dataset_sha256,
+            "expected_record_count": 1,
+            "selection_method": "explicit_indices",
+            "selection_seed": 42,
+            "sample_indices": [0],
+        },
+        "prompt": {"template": "Problem:\n{question}\n"},
+        "warmup": {"prompts": ["1 + 1"]},
+        "backend": {"model_id": MODEL_08},
+        "sampling": {"max_tokens": 8},
+    }
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
+    backend = MockBackend(
+        model_id=MODEL_08,
+        responses={
+            "warmup-01": {
+                "text": "#### 2",
+                "confidence": 0.8,
+                "latency_ms": 1.0,
+            },
+            "gsm8k-test-0000": {
+                "text": "reason\n#### 4",
+                "confidence": 0.9,
+                "latency_ms": 2.0,
+            },
+        },
+    )
+    monkeypatch.setattr(cli, "_build_vllm_backend", lambda loaded: backend)
+    output_path = tmp_path / "results" / "records.jsonl"
+    summary_path = tmp_path / "results" / "summary.json"
+
+    exit_code = cli.run_gsm8k(config_path, output_path, summary_path)
+
+    assert exit_code == 0
+    record = json.loads(output_path.read_text(encoding="utf-8"))
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert record["sample_id"] == "gsm8k-test-0000"
+    assert record["outcome"] == "correct"
+    assert summary["request_count"] == 1
+    assert summary["dataset"]["sample_ids"] == ["gsm8k-test-0000"]
+    assert summary["warmup"]["request_count"] == 1
+    assert summary["model_info"]["backend"] == "mock"
+
+
+def test_gsm8k_backend_disables_prefix_caching(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def capture_backend(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    monkeypatch.setattr(cli, "VLLMBackend", capture_backend)
+    config = load_config("configs/qwen35_0_8b_gsm8k.yaml")
+
+    cli._build_vllm_backend(config)
+
+    assert captured["enable_prefix_caching"] is False
+    assert captured["gpu_memory_utilization"] == 0.25
+    assert captured["max_model_len"] == 2048

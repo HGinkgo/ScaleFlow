@@ -1,0 +1,121 @@
+project:
+  name: ScaleFlow
+  seed: 42
+
+dataset:
+  name: openai/grade-school-math
+  split: test
+  commit: 3101c7d5072418e28b9008a6636bde82a006892c
+  source_url: https://raw.githubusercontent.com/openai/grade-school-math/3101c7d5072418e28b9008a6636bde82a006892c/grade_school_math/data/test.jsonl
+  local_path: data/gsm8k/test.jsonl
+  sha256: 3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14
+  expected_record_count: 1319
+  selection_method: python_random_sample
+  selection_seed: 42
+  sample_indices:
+    - 1309
+    - 228
+    - 51
+    - 563
+    - 501
+    - 457
+    - 285
+    - 209
+    - 1116
+    - 178
+    - 1209
+    - 864
+    - 65
+    - 61
+    - 191
+    - 447
+    - 476
+    - 1034
+    - 1232
+    - 54
+    - 1149
+    - 407
+    - 859
+    - 451
+    - 919
+    - 1206
+    - 569
+    - 13
+    - 326
+    - 865
+    - 696
+    - 318
+    - 440
+    - 689
+    - 189
+    - 778
+    - 198
+    - 735
+    - 704
+    - 1236
+    - 541
+    - 88
+    - 940
+    - 1098
+    - 255
+    - 775
+    - 161
+    - 1130
+    - 600
+    - 1287
+    - 1266
+    - 740
+    - 1182
+    - 393
+    - 142
+    - 93
+    - 466
+    - 592
+    - 163
+    - 206
+    - 928
+    - 1301
+    - 747
+    - 333
+
+prompt:
+  template: |
+    Solve the following grade school math problem. Show concise reasoning.
+    End with exactly one final line in this format:
+    #### <number>
+    Do not include units or other text after the number.
+
+    Problem:
+    {question}
+
+warmup:
+  prompts:
+    - "Compute 2 + 3. Show concise reasoning and end with exactly: #### 5"
+    - "Compute 7 * 8. Show concise reasoning and end with exactly: #### 56"
+    - "A box has 12 items and receives 4 more. Find the total and end with exactly: #### 16"
+    - "Sam has 20 coins and spends 7. Find the remainder and end with exactly: #### 13"
+    - "Three bags contain 6 apples each. Find the total and end with exactly: #### 18"
+    - "A 24 meter rope is cut into 4 equal pieces. Find each length and end with exactly: #### 6"
+    - "A shop sells 5 pens at 3 dollars each. Find the cost and end with exactly: #### 15"
+    - "A train travels 40 miles per hour for 3 hours. Find the distance and end with exactly: #### 120"
+
+backend:
+  type: vllm
+  model_id: Qwen/Qwen3.5-0.8B
+  revision: 2fc06364715b967f1860aea9cf38778875588b17
+  language_model_only: true
+  enable_thinking: false
+  dtype: bfloat16
+  max_model_len: 2048
+  gpu_memory_utilization: 0.25
+  enforce_eager: true
+  enable_prefix_caching: false
+
+sampling:
+  temperature: 0.0
+  top_p: 1.0
+  top_k: 0
+  min_p: 0.0
+  presence_penalty: 0.0
+  max_tokens: 384
+  logprobs: 1

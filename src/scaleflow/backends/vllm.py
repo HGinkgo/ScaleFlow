@@ -82,6 +82,7 @@ class VLLMBackend(Backend):
         max_model_len: int = 4096,
         gpu_memory_utilization: float = 0.4,
         enforce_eager: bool = True,
+        enable_prefix_caching: bool = True,
         seed: int = 42,
         temperature: float = 0.0,
         top_p: float = 1.0,
@@ -111,6 +112,11 @@ class VLLMBackend(Backend):
         self._model_id = model_id
         self._revision = revision
         self._vllm_version = vllm.__version__
+        self._dtype = dtype
+        self._max_model_len = max_model_len
+        self._gpu_memory_utilization = gpu_memory_utilization
+        self._enforce_eager = enforce_eager
+        self._enable_prefix_caching = enable_prefix_caching
         self._last_latency_ms: float | None = None
         self._gpu_memory_before_mb = _gpu_memory_used_mb()
 
@@ -124,6 +130,7 @@ class VLLMBackend(Backend):
             max_model_len=max_model_len,
             gpu_memory_utilization=gpu_memory_utilization,
             enforce_eager=enforce_eager,
+            enable_prefix_caching=enable_prefix_caching,
             seed=seed,
         )
         self._model_load_latency_ms = (perf_counter() - load_started) * 1000
@@ -200,6 +207,11 @@ class VLLMBackend(Backend):
             "available": True,
             "language_model_only": True,
             "enable_thinking": False,
+            "dtype": self._dtype,
+            "max_model_len": self._max_model_len,
+            "gpu_memory_utilization": self._gpu_memory_utilization,
+            "enforce_eager": self._enforce_eager,
+            "enable_prefix_caching": self._enable_prefix_caching,
             "model_load_latency_ms": self._model_load_latency_ms,
             "gpu_memory_before_mb": self._gpu_memory_before_mb,
             "gpu_memory_loaded_mb": self._gpu_memory_loaded_mb,

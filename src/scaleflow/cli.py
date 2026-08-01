@@ -6,6 +6,16 @@ import sys
 from typing import Any
 
 from scaleflow import __version__
+from scaleflow.baseline import (
+    ensure_dataset,
+    load_gsm8k_jsonl,
+    run_baseline_samples,
+    select_samples,
+    summarize_baseline,
+    warmup_backend,
+    write_records_jsonl,
+    write_summary_json,
+)
 from scaleflow.backends import MockBackend, VLLMBackend
 from scaleflow.config import ConfigError, load_config
 from scaleflow.scheduler.policies import AlwaysModelPolicy, ConfidenceCascadePolicy
@@ -55,6 +65,28 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         required=True,
         help="path to the output JSONL file",
+    )
+    run_gsm8k_parser = subparsers.add_parser(
+        "run-gsm8k",
+        help="run the fixed Qwen3.5-0.8B GSM8K single-model baseline",
+    )
+    run_gsm8k_parser.add_argument(
+        "--config",
+        type=Path,
+        required=True,
+        help="path to the GSM8K baseline YAML configuration",
+    )
+    run_gsm8k_parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="path to the per-sample JSONL output",
+    )
+    run_gsm8k_parser.add_argument(
+        "--summary",
+        type=Path,
+        required=True,
+        help="path to the aggregate JSON summary",
     )
     return parser
 
@@ -119,6 +151,7 @@ def _build_vllm_backend(config: dict[str, Any]) -> VLLMBackend:
         max_model_len=backend["max_model_len"],
         gpu_memory_utilization=backend["gpu_memory_utilization"],
         enforce_eager=backend["enforce_eager"],
+        enable_prefix_caching=backend.get("enable_prefix_caching", True),
         seed=config["project"]["seed"],
         temperature=sampling["temperature"],
         top_p=sampling["top_p"],
@@ -158,6 +191,65 @@ def run_vllm(config_path: Path, output_path: Path) -> int:
     return 0
 
 
+def run_gsm8k(
+    config_path: Path,
+    output_path: Path,
+    summary_path: Path,
+) -> int:
+    config = load_config(config_path)
+    dataset_config = config["dataset"]
+    dataset_path = ensure_dataset(
+        dataset_config["local_path"],
+        dataset_config["source_url"],
+        dataset_config["sha256"],
+    )
+    dataset_records = load_gsm8k_jsonl(dataset_path)
+    expected_record_count = dataset_config["expected_record_count"]
+    if len(dataset_records) != expected_record_count:
+        raise ConfigError(
+            "GSM8K record count mismatch: "
+            f"expected {expected_record_count}, got {len(dataset_records)}"
+        )
+    samples = select_samples(dataset_records, dataset_config["sample_indices"])
+
+    backend = _build_vllm_backend(config)
+    warmup = warmup_backend(backend, config["warmup"]["prompts"])
+    records = run_baseline_samples(
+        samples,
+        backend,
+        config["prompt"]["template"],
+        max_tokens=config["sampling"]["max_tokens"],
+    )
+    write_records_jsonl(output_path, records)
+
+    summary = summarize_baseline(records)
+    summary.update(
+        {
+            "project_seed": config["project"]["seed"],
+            "dataset": {
+                "name": dataset_config["name"],
+                "split": dataset_config["split"],
+                "commit": dataset_config["commit"],
+                "sha256": dataset_config["sha256"],
+                "record_count": len(dataset_records),
+                "selection_method": dataset_config["selection_method"],
+                "selection_seed": dataset_config["selection_seed"],
+                "sample_indices": list(dataset_config["sample_indices"]),
+                "sample_ids": [sample["sample_id"] for sample in samples],
+            },
+            "prompt_template": config["prompt"]["template"],
+            "generation_config": dict(config["sampling"]),
+            "backend_config": dict(config["backend"]),
+            "warmup": warmup,
+            "model_info": backend.get_model_info(),
+            "output": str(output_path),
+        }
+    )
+    write_summary_json(summary_path, summary)
+    print(json.dumps(summary, ensure_ascii=False))
+    return 1 if summary["inference_failure_count"] else 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -165,5 +257,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_mock(args.config, args.output)
     if args.command == "run-vllm":
         return run_vllm(args.config, args.output)
+    if args.command == "run-gsm8k":
+        return run_gsm8k(args.config, args.output, args.summary)
     parser.print_help()
     return 0
