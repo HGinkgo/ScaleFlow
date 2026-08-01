@@ -50,10 +50,9 @@ Phase 2 currently includes:
 - synchronous single-model text inference with `Qwen/Qwen3.5-0.8B` on stable vLLM;
 - explicit text-only, non-thinking execution with a pinned model revision;
 - real selected-token logprobs, length-normalized confidence, end-to-end inference latency, and NVML GPU-memory readings;
-- five fixed real-model smoke requests defined in YAML;
-- an unimplemented SGLang placeholder.
+- five fixed real-model smoke requests defined in YAML.
 
-The 2B, 4B, and 9B models, SGLang, DeepSeek API access, real multi-model cascades, concurrent queues, resource-aware scheduling, dataset evaluation, network simulation, formal benchmarks, plotting, and learning-based policies are not implemented yet.
+The 2B, 4B, and 9B models, DeepSeek API access, real multi-model cascades, concurrent queues, resource-aware scheduling, dataset evaluation, network simulation, formal benchmarks, plotting, and learning-based policies are not implemented yet.
 
 ## Repository Layout
 
@@ -66,7 +65,6 @@ ScaleFlow/
 │   ├── backends/
 │   │   ├── base.py
 │   │   ├── mock.py
-│   │   ├── sglang.py
 │   │   └── vllm.py
 │   ├── scheduler/
 │   │   ├── policies.py
@@ -198,4 +196,4 @@ The Mock scenario is fully defined in YAML, with fixed request order, responses,
 
 ## License Status
 
-This project is currently under private research. An open-source license will be selected before public release.
+No open-source license has been selected. All rights are reserved until an explicit license is added to the repository.

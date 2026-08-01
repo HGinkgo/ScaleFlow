@@ -1,8 +1,17 @@
 from importlib import import_module
 
-import pytest
-
 from scaleflow.schemas import InferenceRequest, ModelResponse
+
+
+def test_backend_exports_only_supported_backends() -> None:
+    backends = import_module("scaleflow.backends")
+
+    assert backends.__all__ == [
+        "Backend",
+        "BackendUnavailableError",
+        "MockBackend",
+        "VLLMBackend",
+    ]
 
 
 def test_mock_backend_returns_configured_result() -> None:
@@ -56,15 +65,3 @@ def test_mock_backend_can_simulate_failure() -> None:
 
     assert response.success is False
     assert response.error == "simulated failure"
-
-
-def test_sglang_backend_placeholder_reports_unavailable() -> None:
-    backends = import_module("scaleflow.backends")
-    backend_type = getattr(backends, "SGLangBackend")
-    unavailable_error = getattr(backends, "BackendUnavailableError")
-    backend = backend_type(model_id="not-loaded")
-
-    assert backend.health_check() is False
-    assert backend.get_model_info()["available"] is False
-    with pytest.raises(unavailable_error):
-        backend.generate(InferenceRequest("request-1", "prompt"))
