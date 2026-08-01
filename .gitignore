@@ -1,0 +1,55 @@
+# Local agent memory and editor state
+.agent/
+.vscode/
+.idea/
+*.swp
+*~
+
+# Secrets and local environment variables
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Python caches, builds, and local environments
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+.venv/
+venv/
+env/
+.conda/
+
+# Models, caches, and datasets
+models/
+checkpoints/
+quantized/
+data/
+datasets/
+.cache/
+*.safetensors
+*.gguf
+*.ggml
+*.ckpt
+*.pt
+*.pth
+*.onnx
+
+# Logs, temporary files, and generated experiment artifacts
+*.log
+*.tmp
+*.temp
+results/
+outputs/
+artifacts/
+*.jsonl
+*.csv
+*.parquet

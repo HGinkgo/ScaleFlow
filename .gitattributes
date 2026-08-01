@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.py text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+
+*.safetensors binary
+*.gguf binary
+*.ggml binary
+*.ckpt binary
+*.pt binary
+*.pth binary
+*.onnx binary

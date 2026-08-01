@@ -1,0 +1,108 @@
+project:
+  name: ScaleFlow
+  seed: 42
+
+scheduler:
+  policy: confidence_cascade
+  confidence_threshold: 0.8
+  model_order:
+    - Qwen/Qwen3.5-0.8B
+    - Qwen/Qwen3.5-2B
+    - Qwen/Qwen3.5-4B
+    - Qwen/Qwen3.5-9B
+
+requests:
+  - request_id: easy
+    prompt: "What is 2 + 2?"
+    metadata:
+      difficulty: easy
+  - request_id: medium
+    prompt: "A store discounts an 80 yuan item by 25%. What is the final price?"
+    metadata:
+      difficulty: medium
+  - request_id: hard
+    prompt: "A number leaves remainder 2 when divided by 3 and remainder 3 when divided by 5. Find the smallest positive value."
+    metadata:
+      difficulty: hard
+
+models:
+  - model_id: Qwen/Qwen3.5-0.8B
+    responses:
+      easy:
+        text: "4"
+        confidence: 0.93
+        latency_ms: 12.0
+        success: true
+        error: null
+      medium:
+        text: "The final price is 60 yuan."
+        confidence: 0.55
+        latency_ms: 14.0
+        success: true
+        error: null
+      hard:
+        text: "8"
+        confidence: 0.25
+        latency_ms: 16.0
+        success: true
+        error: null
+  - model_id: Qwen/Qwen3.5-2B
+    responses:
+      easy:
+        text: "4"
+        confidence: 0.96
+        latency_ms: 24.0
+        success: true
+        error: null
+      medium:
+        text: "The final price is 60 yuan."
+        confidence: 0.86
+        latency_ms: 26.0
+        success: true
+        error: null
+      hard:
+        text: "8"
+        confidence: 0.48
+        latency_ms: 29.0
+        success: true
+        error: null
+  - model_id: Qwen/Qwen3.5-4B
+    responses:
+      easy:
+        text: "4"
+        confidence: 0.98
+        latency_ms: 40.0
+        success: true
+        error: null
+      medium:
+        text: "The final price is 60 yuan."
+        confidence: 0.92
+        latency_ms: 44.0
+        success: true
+        error: null
+      hard:
+        text: "8"
+        confidence: 0.72
+        latency_ms: 49.0
+        success: true
+        error: null
+  - model_id: Qwen/Qwen3.5-9B
+    responses:
+      easy:
+        text: "4"
+        confidence: 0.99
+        latency_ms: 75.0
+        success: true
+        error: null
+      medium:
+        text: "The final price is 60 yuan."
+        confidence: 0.97
+        latency_ms: 82.0
+        success: true
+        error: null
+      hard:
+        text: "8"
+        confidence: 0.79
+        latency_ms: 91.0
+        success: true
+        error: null
