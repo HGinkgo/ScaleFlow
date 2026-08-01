@@ -10,8 +10,6 @@
     <a href="https://pypi.org/project/vllm/0.26.0/"><img alt="vLLM 0.26.0" src="https://img.shields.io/badge/vLLM-0.26.0-4B8BBE"></a>
     <a href="https://huggingface.co/Qwen/Qwen3.5-0.8B"><img alt="Qwen3.5" src="https://img.shields.io/badge/Model-Qwen3.5-7C3AED"></a>
     <a href="LICENSE"><img alt="Apache-2.0 License" src="https://img.shields.io/badge/License-Apache%202.0-D22128?logo=apache"></a>
-    <a href="https://github.com/HGinkgo/ScaleFlow/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/HGinkgo/ScaleFlow?style=flat&logo=github"></a>
-    <a href="https://github.com/HGinkgo/ScaleFlow/commits/main"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/HGinkgo/ScaleFlow?style=flat"></a>
   </p>
 </div>
 
