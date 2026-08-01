@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 
+import pytest
 import yaml
 
 from scaleflow.backends import MockBackend
@@ -16,6 +17,39 @@ MODEL_08 = "Qwen/Qwen3.5-0.8B"
 MODEL_2 = "Qwen/Qwen3.5-2B"
 MODEL_4 = "Qwen/Qwen3.5-4B"
 MODEL_9 = "Qwen/Qwen3.5-9B"
+
+
+def test_all_records_selection_uses_original_order_and_ignores_seed() -> None:
+    indices = cli._resolve_sample_indices(
+        {
+            "selection_method": "all_records",
+            "selection_seed": 999,
+            "expected_record_count": 4,
+        },
+        record_count=4,
+    )
+
+    assert indices == [0, 1, 2, 3]
+
+
+def test_missing_selection_method_keeps_explicit_index_selection() -> None:
+    indices = cli._resolve_sample_indices(
+        {"sample_indices": [2, 0], "expected_record_count": 3},
+        record_count=3,
+    )
+
+    assert indices == [2, 0]
+
+
+def test_all_records_rejects_unexpected_dataset_count() -> None:
+    with pytest.raises(cli.ConfigError, match="all_records"):
+        cli._resolve_sample_indices(
+            {
+                "selection_method": "all_records",
+                "expected_record_count": 4,
+            },
+            record_count=3,
+        )
 
 
 def test_module_cli_help_starts() -> None:

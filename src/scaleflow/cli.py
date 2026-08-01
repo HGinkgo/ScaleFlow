@@ -251,6 +251,30 @@ def _experiment_fingerprint(experiment_config: dict[str, Any]) -> str:
     return sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def _resolve_sample_indices(
+    dataset_config: dict[str, Any],
+    *,
+    record_count: int,
+) -> list[int]:
+    selection_method = dataset_config.get("selection_method")
+    if selection_method == "all_records":
+        expected_record_count = dataset_config["expected_record_count"]
+        if record_count != expected_record_count:
+            raise ConfigError(
+                "all_records requires the verified dataset size: "
+                f"expected {expected_record_count}, got {record_count}"
+            )
+        return list(range(record_count))
+
+    sample_indices = dataset_config.get("sample_indices")
+    if not isinstance(sample_indices, list):
+        raise ConfigError(
+            "dataset.sample_indices is required unless "
+            "selection_method is all_records"
+        )
+    return list(sample_indices)
+
+
 def run_vllm(config_path: Path, output_path: Path) -> int:
     config = load_config(config_path)
     backend = _build_vllm_backend(config)
@@ -298,7 +322,11 @@ def run_gsm8k(
             "GSM8K record count mismatch: "
             f"expected {expected_record_count}, got {len(dataset_records)}"
         )
-    samples = select_samples(dataset_records, dataset_config["sample_indices"])
+    sample_indices = _resolve_sample_indices(
+        dataset_config,
+        record_count=len(dataset_records),
+    )
+    samples = select_samples(dataset_records, sample_indices)
 
     backend = _build_vllm_backend(config)
     warmup = warmup_backend(backend, config["warmup"]["prompts"])
@@ -327,9 +355,11 @@ def run_gsm8k(
                 "commit": dataset_config["commit"],
                 "sha256": dataset_config["sha256"],
                 "record_count": len(dataset_records),
-                "selection_method": dataset_config["selection_method"],
-                "selection_seed": dataset_config["selection_seed"],
-                "sample_indices": list(dataset_config["sample_indices"]),
+                "selection_method": dataset_config.get(
+                    "selection_method", "explicit_indices"
+                ),
+                "selection_seed": dataset_config.get("selection_seed"),
+                "sample_indices": sample_indices,
                 "sample_ids": [sample["sample_id"] for sample in samples],
             },
             "prompt_template": config["prompt"]["template"],

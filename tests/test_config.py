@@ -153,3 +153,53 @@ def test_qwen35_9b_config_reuses_the_exact_gsm8k_experiment_contract() -> None:
         "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
     )
     assert candidate["backend"]["gpu_memory_utilization"] == 0.90
+
+
+def test_full_gsm8k_configs_use_all_records_and_preserve_model_contracts() -> None:
+    config_module = import_module("scaleflow.config")
+    load_config = getattr(config_module, "load_config")
+    model_files = (
+        ("0_8b", "Qwen/Qwen3.5-0.8B"),
+        ("2b", "Qwen/Qwen3.5-2B"),
+        ("4b", "Qwen/Qwen3.5-4B"),
+        ("9b", "Qwen/Qwen3.5-9B"),
+    )
+
+    for suffix, model_id in model_files:
+        baseline = load_config(Path(f"configs/qwen35_{suffix}_gsm8k.yaml"))
+        full = load_config(Path(f"configs/qwen35_{suffix}_gsm8k_full.yaml"))
+
+        assert full["dataset"]["selection_method"] == "all_records"
+        assert "selection_seed" not in full["dataset"]
+        assert "sample_indices" not in full["dataset"]
+        assert full["dataset"]["expected_record_count"] == 1319
+        for field in (
+            "name",
+            "split",
+            "commit",
+            "source_url",
+            "local_path",
+            "sha256",
+            "expected_record_count",
+        ):
+            assert full["dataset"][field] == baseline["dataset"][field]
+        assert full["backend"]["model_id"] == model_id
+        assert full["backend"] == baseline["backend"]
+        for section in ("project", "prompt", "warmup", "sampling"):
+            assert full[section] == baseline[section]
+
+
+def test_existing_gsm8k_64_experiment_fingerprint_is_unchanged() -> None:
+    cli_module = import_module("scaleflow.cli")
+    config_module = import_module("scaleflow.config")
+    config = getattr(config_module, "load_config")(
+        Path("configs/qwen35_0_8b_gsm8k.yaml")
+    )
+    experiment_config = getattr(cli_module, "_common_experiment_config")(config)
+    fingerprint = getattr(cli_module, "_experiment_fingerprint")(
+        experiment_config
+    )
+
+    assert fingerprint == (
+        "559d16675569b089f98f8cd453b88936f4b183e43ebc5938585c994a20bc1554"
+    )
