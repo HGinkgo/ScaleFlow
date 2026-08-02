@@ -193,7 +193,7 @@ GSM8K records keep `correct`, `incorrect`, `parse_failure`, and `inference_failu
 
 The full evaluation uses all 1,319 test records in their original order. The prompt, model revisions, BF16, non-thinking mode, generation parameters, and eight warmup requests are unchanged from the 64-sample baseline. Each model ran in a separate process on one RTX 3090; data and generated results remain Git-ignored.
 
-| Model | Accuracy | incorrect | parse | inference | Mean ms | P50 ms | P95 ms |
+| Model | Accuracy | incorrect | parse_failure | inference_failure | Mean ms | P50 ms | P95 ms |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Qwen3.5-0.8B | 52.24% | 540 | 90 | 0 | 3962.16 | 3376.18 | 8968.62 |
 | Qwen3.5-2B | 64.59% | 389 | 78 | 0 | 2954.64 | 2611.49 | 6165.59 |

@@ -193,7 +193,7 @@ GSM8K 结果将 `correct`、`incorrect`、`parse_failure` 和 `inference_failure
 
 本次全量评测使用上述 1319 条测试记录的原始顺序，保持 64 条基线的 Prompt、模型 revision、BF16、非思考模式、生成参数和 8 条预热请求不变；四个模型在同一张 RTX 3090 上分别运行，结果和数据均不提交 Git。
 
-| 模型 | 正确率 | incorrect | parse | inference | 平均时延 ms | P50 ms | P95 ms |
+| 模型 | 正确率 | incorrect | parse_failure | inference_failure | 平均时延 ms | P50 ms | P95 ms |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Qwen3.5-0.8B | 52.24% | 540 | 90 | 0 | 3962.16 | 3376.18 | 8968.62 |
 | Qwen3.5-2B | 64.59% | 389 | 78 | 0 | 2954.64 | 2611.49 | 6165.59 |
