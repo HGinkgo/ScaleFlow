@@ -218,7 +218,7 @@ The bit order for correctness combinations is `0.8B, 2B, 4B, 9B`:
 1100:4   1101:8   1110:3   1111:535
 ```
 
-Progressive post-hoc oracle accuracy is 52.24% for 0.8B (689 correct), 75.13% after adding 2B (991, +302), 92.87% after adding 4B (1,225, +234), and 96.74% after adding 9B (1,276, +51). The full GSM8K split separates all four models reliably. 4B and 9B remain close, but their full-set gap is 3.33 percentage points, larger than the gap seen on 64 samples. GSM8K is relatively easy for the larger models and should not be treated as fully saturated; a harder, separately specified evaluation set is recommended for finer scheduling analysis. The confidence correlations above are exploratory observations for this fixed run, not calibration or formal statistical conclusions.
+Progressive post-hoc oracle accuracy is 52.24% for 0.8B (689 correct), 75.13% after adding 2B (991, +302), 92.87% after adding 4B (1,225, +234), and 96.74% after adding 9B (1,276, +51). The full GSM8K split separates all four models reliably. 4B and 9B remain close, but their full-set gap is 3.34 percentage points, larger than the gap seen on 64 samples. GSM8K is relatively easy for the larger models and should not be treated as fully saturated; a harder, separately specified evaluation set is recommended for finer scheduling analysis. The confidence correlations above are exploratory observations for this fixed run, not calibration or formal statistical conclusions.
 
 ## License
 
