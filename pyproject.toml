@@ -17,6 +17,8 @@ dev = [
     "pytest>=8,<9",
 ]
 vllm = [
+    "aiohttp>=3.10,<4",
+    "nvidia-ml-py>=13.580,<14",
     "vllm==0.26.0",
 ]
 

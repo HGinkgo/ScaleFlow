@@ -89,6 +89,35 @@ def test_module_cli_help_starts() -> None:
     assert "analyze-gsm8k-confidence" in completed.stdout
     assert "search-gsm8k-cascade" in completed.stdout
     assert "evaluate-gsm8k-cascade" in completed.stdout
+    assert "run-gsm8k-concurrency" in completed.stdout
+
+
+def test_concurrency_cli_parses_required_artifact_paths() -> None:
+    args = cli.build_parser().parse_args(
+        [
+            "run-gsm8k-concurrency",
+            "--config",
+            "configs/qwen35_gsm8k_concurrency.yaml",
+            "--model-id",
+            MODEL_08,
+            "--reference",
+            "results/reference.jsonl",
+            "--reference-summary",
+            "results/reference_summary.json",
+            "--output",
+            "results/performance.jsonl",
+            "--summary",
+            "results/performance_summary.json",
+            "--server-log",
+            "results/server.log",
+            "--preflight-only",
+        ]
+    )
+
+    assert args.command == "run-gsm8k-concurrency"
+    assert args.model_id == MODEL_08
+    assert args.preflight_only is True
+    assert args.server_log == Path("results/server.log")
 
 
 def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:

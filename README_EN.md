@@ -30,6 +30,7 @@ The project does not implement a new low-level inference runtime and does not tr
 - fixed GSM8K configurations for both 64 samples and all 1,319 test records, with warmup and automatic scoring;
 - strict offline comparison of two or more ordered model results, including pairwise rescue and progressive-oracle analysis;
 - deterministic holdout confidence validation, Pareto threshold search, and offline cascade replay;
+- real closed-loop concurrency benchmarking with a vLLM OpenAI server and an asynchronous streaming client;
 - CPU-only unit and CLI integration tests.
 
 The current local model path is:
@@ -50,6 +51,7 @@ ScaleFlow/
 │   ├── scheduler/           # Policies and synchronous execution
 │   ├── baseline.py          # GSM8K scoring, statistics, and output
 │   ├── offline.py           # Confidence analysis and offline cascade replay
+│   ├── performance.py       # Closed-loop load and streaming timing
 │   ├── schemas.py           # Shared data structures
 │   ├── config.py            # YAML loading
 │   └── cli.py               # Command-line entry point
@@ -189,6 +191,19 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
 
 Thresholds are selected only on 660 development records. The 659-record holdout is evaluated once after freezing the policy; a `.evaluated` marker next to the policy rejects repeated execution. These commands do not load models or use a GPU.
 
+Run one closed-loop serving benchmark (run the four models sequentially):
+
+```bash
+CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow python -m scaleflow \
+  run-gsm8k-concurrency --config configs/qwen35_gsm8k_concurrency.yaml \
+  --model-id Qwen/Qwen3.5-0.8B \
+  --reference results/qwen35_0_8b_gsm8k_full.jsonl \
+  --reference-summary results/qwen35_0_8b_gsm8k_full_summary.json \
+  --output results/phase9_qwen35_0_8b_concurrency.jsonl \
+  --summary results/phase9_qwen35_0_8b_concurrency_summary.json \
+  --server-log results/phase9_qwen35_0_8b_concurrency_server.log
+```
+
 Run all tests:
 
 ```bash
@@ -205,6 +220,7 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 - `configs/qwen35_9b_gsm8k.yaml` preserves the same experiment contract, pins the 9B BF16 revision, and uses `gpu_memory_utilization=0.90` for one GPU.
 - `configs/qwen35_*_gsm8k_full.yaml` uses the same dataset commit, prompt, generation settings, and warmup procedure, selecting all 1,319 records in original order.
 - `configs/qwen35_gsm8k_offline.yaml` fixes the holdout split, confidence bootstrap, threshold grid, and random-acceptance seed set.
+- `configs/qwen35_gsm8k_concurrency.yaml` fixes 128 requests, all four revisions, a shared `gpu_memory_utilization=0.90`, warmups, and five concurrency levels.
 
 The GSM8K baseline uses the OpenAI test-set commit `3101c7d5072418e28b9008a6636bde82a006892c` and verifies SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`. Future model-size runs should reuse the same sample indices and prompt.
 
@@ -260,6 +276,37 @@ The frozen policy scores 611/659 (92.72%) on the holdout, below standalone 9B at
 A confidence-independent baseline over 1,000 fixed seeds matches the per-stage acceptance and 9B invocation rates. Its mean accuracy is 90.74%, with a randomization interval of 89.38% to 92.11%. Confidence improves accuracy by 1.97 percentage points on average, with a randomization-difference interval of 0.61 to 3.34 points. Confidence ranking is therefore informative, but this threshold policy neither preserves 9B holdout accuracy nor reduces sequential end-to-end latency.
 
 Cascade latency is an offline sum of recorded single-model latencies. It excludes model loading, switching, queueing, and concurrency effects. Randomization intervals describe fixed-holdout policy variation, not population-level statistical confidence intervals.
+
+## Concurrent Serving Evaluation
+
+The benchmark deterministically selects the same 128 GSM8K requests with `seed=42` and runs each model separately on one RTX 3090. It performs eight startup warmups and one unmeasured wave at each concurrency before closed-loop levels 1, 2, 4, 8, and 16. Generation stops naturally at EOS; `max_tokens=384` is only a safety cap. TTFT starts at the first non-empty text token observed by the client. TPOT is a client-observed mean that includes local HTTP streaming and event-processing overhead.
+
+| Model | C1 req/s | C2 | C4 | C8 | C16 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Qwen3.5-0.8B | 0.259 | 0.483 | 0.878 | 1.725 | 3.063 |
+| Qwen3.5-2B | 0.364 | 0.700 | 1.340 | 2.568 | 4.502 |
+| Qwen3.5-4B | 0.251 | 0.474 | 0.948 | 1.783 | 3.037 |
+| Qwen3.5-9B | 0.215 | 0.413 | 0.780 | 1.472 | 2.635 |
+
+| Model at C16 | Output tok/s | Mean latency ms | P95 ms | TTFT P95 ms | Mean TPOT ms | Parsed-answer consistency |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen3.5-0.8B | 489.9 | 4403 | 8344 | 132 | 27.08 | 87.50% |
+| Qwen3.5-2B | 521.4 | 3279 | 5964 | 182 | 27.60 | 88.28% |
+| Qwen3.5-4B | 372.5 | 4534 | 10058 | 326 | 35.98 | 97.66% |
+| Qwen3.5-9B | 377.7 | 5173 | 9964 | 541 | 35.12 | 97.66% |
+
+| Model | Weights GiB | KV Cache GiB | KV Cache tokens | Peak NVML MiB |
+| --- | ---: | ---: | ---: | ---: |
+| Qwen3.5-0.8B | 1.53 | 18.68 | 877714 | 22807 |
+| Qwen3.5-2B | 3.63 | 16.57 | 778532 | 22819 |
+| Qwen3.5-4B | 7.99 | 12.21 | 221476 | 22883 |
+| Qwen3.5-9B | 16.80 | 3.39 | 61440 | 22747 |
+
+All 2,560 measured requests succeeded without OOM, KV-cache exhaustion, or queued requests. Maximum logged KV-cache use was 2.1%/2.4%/8.5%/30.6% for 0.8B/2B/4B/9B. With the same memory utilization target, vLLM allocates memory left after weights to the KV cache and runtime workspace, so the roughly 22.2 GiB NVML peaks are not model-weight sizes.
+
+2B beats 0.8B in request throughput and mean latency at every tested concurrency. Combined with full-GSM8K quality, 0.8B has no practical serving advantage within C1-C16. 4B delivers about 15%-21% more request throughput than 9B while retaining close quality, making it the primary edge quality tier; 9B remains the local high-quality fallback. At C16, 9B TTFT P95 reaches 541 ms, but there is no waiting queue or KV-cache pressure, which points to compute contention under batching. The recommended core chain is `2B -> 4B -> 9B`, with 0.8B retained only as a control baseline.
+
+At C1, parsed answers and full text both match the single-model baseline exactly. At higher concurrency, GPU batching changes numerical execution paths enough to reduce exact-text consistency even with greedy parameters and a fixed seed. Parsed final-answer consistency is therefore the primary reproducibility metric; full-text consistency remains the strict metric.
 
 ## License
 

@@ -1,6 +1,7 @@
 import argparse
 from collections.abc import Sequence
 from hashlib import sha256
+from importlib.metadata import PackageNotFoundError, version
 import json
 from pathlib import Path
 import sys
@@ -31,6 +32,12 @@ from scaleflow.offline import (
     replay_cascade,
     search_pareto_thresholds,
     split_sample_ids,
+)
+from scaleflow.performance import (
+    run_performance_experiment,
+    select_model_config,
+    validate_performance_config,
+    validate_reference_contract,
 )
 from scaleflow.scheduler.policies import AlwaysModelPolicy, ConfidenceCascadePolicy
 from scaleflow.scheduler.runner import run_requests, write_results_jsonl
@@ -180,6 +187,32 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_parser.add_argument("--policy", type=Path, required=True)
     evaluate_parser.add_argument("--inputs", type=Path, nargs="+", required=True)
     evaluate_parser.add_argument("--output", type=Path, required=True)
+    concurrency_parser = subparsers.add_parser(
+        "run-gsm8k-concurrency",
+        help="benchmark one vLLM model with closed-loop streaming concurrency",
+    )
+    concurrency_parser.add_argument("--config", type=Path, required=True)
+    concurrency_parser.add_argument("--model-id", required=True)
+    concurrency_parser.add_argument(
+        "--reference",
+        type=Path,
+        required=True,
+        help="Phase 7 full GSM8K JSONL for the selected model",
+    )
+    concurrency_parser.add_argument(
+        "--reference-summary",
+        type=Path,
+        required=True,
+        help="Phase 7 full GSM8K summary JSON for the selected model",
+    )
+    concurrency_parser.add_argument("--output", type=Path, required=True)
+    concurrency_parser.add_argument("--summary", type=Path, required=True)
+    concurrency_parser.add_argument("--server-log", type=Path, required=True)
+    concurrency_parser.add_argument(
+        "--preflight-only",
+        action="store_true",
+        help="stop after startup warmup and the concurrency-1 contract check",
+    )
     return parser
 
 
@@ -869,6 +902,72 @@ def evaluate_gsm8k_cascade(
     return 0
 
 
+def run_gsm8k_concurrency(
+    config_path: Path,
+    model_id: str,
+    reference_path: Path,
+    reference_summary_path: Path,
+    output_path: Path,
+    summary_path: Path,
+    server_log_path: Path,
+    *,
+    preflight_only: bool,
+) -> int:
+    config = load_config(config_path)
+    validate_performance_config(config)
+    model = select_model_config(config, model_id)
+    try:
+        installed_vllm = version("vllm")
+    except PackageNotFoundError as error:
+        raise ConfigError("vLLM is not installed in the active environment") from error
+    expected_vllm = config["server"]["vllm_version"]
+    if installed_vllm != expected_vllm:
+        raise ConfigError(
+            f"vLLM version mismatch: expected {expected_vllm}, got {installed_vllm}"
+        )
+
+    dataset_config = config["dataset"]
+    dataset_path = ensure_dataset(
+        dataset_config["local_path"],
+        dataset_config["source_url"],
+        dataset_config["sha256"],
+    )
+    dataset_records = load_gsm8k_jsonl(dataset_path)
+    if len(dataset_records) != dataset_config["expected_record_count"]:
+        raise ConfigError(
+            "GSM8K record count mismatch: "
+            f"expected {dataset_config['expected_record_count']}, "
+            f"got {len(dataset_records)}"
+        )
+    samples = select_samples(dataset_records, dataset_config["sample_indices"])
+    reference_records = load_records_jsonl(reference_path)
+    reference_summary = _load_json_object(
+        reference_summary_path,
+        "Phase 7 reference summary",
+    )
+    aligned_references = validate_reference_contract(
+        config,
+        model,
+        samples,
+        reference_records,
+        reference_summary,
+    )
+    return run_performance_experiment(
+        config,
+        model,
+        samples,
+        aligned_references,
+        reference_path=reference_path,
+        reference_summary_path=reference_summary_path,
+        output_path=output_path,
+        summary_path=summary_path,
+        server_log_path=server_log_path,
+        preflight_only=preflight_only,
+        reference_sha256=file_sha256(reference_path),
+        reference_summary_sha256=file_sha256(reference_summary_path),
+    )
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -897,6 +996,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.policy,
             args.inputs,
             args.output,
+        )
+    if args.command == "run-gsm8k-concurrency":
+        return run_gsm8k_concurrency(
+            args.config,
+            args.model_id,
+            args.reference,
+            args.reference_summary,
+            args.output,
+            args.summary,
+            args.server_log,
+            preflight_only=args.preflight_only,
         )
     parser.print_help()
     return 0

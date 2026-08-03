@@ -30,6 +30,7 @@ ScaleFlow 是一个轻量、配置驱动的语言模型推理实验框架，用�
 - 固定 GSM8K 测试集、64 条小样本和 1319 条全量评测配置，包含预热流程和自动评分基线；
 - 支持任意两个及以上有序模型结果的严格离线对齐、模型对挽救分析和逐级 oracle 统计；
 - 基于确定性留出集的 confidence 验证、Pareto 阈值搜索和离线级联重放；
+- 基于 vLLM OpenAI 服务和异步流式客户端的真实闭环并发压测；
 - 不使用 GPU 的单元测试与 CLI 集成测试。
 
 当前本地模型路线为：
@@ -50,6 +51,7 @@ ScaleFlow/
 │   ├── scheduler/           # 调度策略与同步执行流程
 │   ├── baseline.py          # GSM8K 评分、统计与结果写入
 │   ├── offline.py           # Confidence 分析与离线级联重放
+│   ├── performance.py       # 闭环并发压测与流式时延测量
 │   ├── schemas.py           # 共享数据结构
 │   ├── config.py            # YAML 配置读取
 │   └── cli.py               # 命令行入口
@@ -189,6 +191,19 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
 
 阈值只在660条开发集上选择；659条留出集只用于冻结策略的一次评估。评估完成后会在策略文件旁写入 `.evaluated` 标记，重复执行会被拒绝。以上命令不加载模型，也不使用 GPU。
 
+运行单模型闭环并发实验（四个模型需依次执行）：
+
+```bash
+CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow python -m scaleflow \
+  run-gsm8k-concurrency --config configs/qwen35_gsm8k_concurrency.yaml \
+  --model-id Qwen/Qwen3.5-0.8B \
+  --reference results/qwen35_0_8b_gsm8k_full.jsonl \
+  --reference-summary results/qwen35_0_8b_gsm8k_full_summary.json \
+  --output results/phase9_qwen35_0_8b_concurrency.jsonl \
+  --summary results/phase9_qwen35_0_8b_concurrency_summary.json \
+  --server-log results/phase9_qwen35_0_8b_concurrency_server.log
+```
+
 运行全部测试：
 
 ```bash
@@ -205,6 +220,7 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 - `configs/qwen35_9b_gsm8k.yaml`：保持相同实验契约，固定 9B BF16 revision，单卡运行时显存比例为 `0.90`。
 - `configs/qwen35_*_gsm8k_full.yaml`：使用同一数据 commit、Prompt、生成参数和预热流程，按原始顺序选择完整 1319 条测试记录。
 - `configs/qwen35_gsm8k_offline.yaml`：固定留出划分、confidence bootstrap、阈值候选步长和随机接受基线种子集合。
+- `configs/qwen35_gsm8k_concurrency.yaml`：固定128条请求、四个模型 revision、统一 `gpu_memory_utilization=0.90`、预热和五档并发协议。
 
 GSM8K 基线使用 OpenAI 官方测试集 commit `3101c7d5072418e28b9008a6636bde82a006892c`，并校验 SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`。后续不同规模模型应复用同一配置中的样本索引和 Prompt。
 
@@ -260,6 +276,37 @@ GSM8K 结果将 `correct`、`incorrect`、`parse_failure` 和 `inference_failure
 固定1000个种子的随机接受基线使用近似相同的逐级接受率和9B调用率，平均准确率为90.74%，随机化区间为89.38%至92.11%。confidence 级联相对其平均提升1.97个百分点，差值随机化区间为0.61至3.34个百分点。这说明 confidence 排序提供了有效信息，但当前阈值策略没有在留出集保持9B质量，也没有降低串行端到端时延。
 
 上述时延是已有单模型记录的离线求和，不包含模型加载、切换、排队和并发干扰；随机化区间只描述固定留出集上的随机策略波动，不是总体性能的统计置信区间。
+
+## 并发服务评测
+
+从GSM8K测试集以 `seed=42` 固定选择同一组128条请求，四个模型在单张RTX 3090上依次运行。服务启动后先执行8条预热，每档并发再执行一轮同并发度预热；正式测试使用闭环并发1、2、4、8、16，正常生成至EOS，`max_tokens=384`仅作为安全上限。TTFT从客户端收到首个非空文本token计时，TPOT为包含本机HTTP流式传输和事件处理开销的客户端观测均值。
+
+| 模型 | 并发1 req/s | 并发2 | 并发4 | 并发8 | 并发16 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Qwen3.5-0.8B | 0.259 | 0.483 | 0.878 | 1.725 | 3.063 |
+| Qwen3.5-2B | 0.364 | 0.700 | 1.340 | 2.568 | 4.502 |
+| Qwen3.5-4B | 0.251 | 0.474 | 0.948 | 1.783 | 3.037 |
+| Qwen3.5-9B | 0.215 | 0.413 | 0.780 | 1.472 | 2.635 |
+
+| 模型（并发16） | 输出 tok/s | 平均时延 ms | P95 ms | TTFT P95 ms | TPOT均值 ms | 解析答案一致率 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen3.5-0.8B | 489.9 | 4403 | 8344 | 132 | 27.08 | 87.50% |
+| Qwen3.5-2B | 521.4 | 3279 | 5964 | 182 | 27.60 | 88.28% |
+| Qwen3.5-4B | 372.5 | 4534 | 10058 | 326 | 35.98 | 97.66% |
+| Qwen3.5-9B | 377.7 | 5173 | 9964 | 541 | 35.12 | 97.66% |
+
+| 模型 | 权重 GiB | KV Cache GiB | KV Cache tokens | NVML峰值 MiB |
+| --- | ---: | ---: | ---: | ---: |
+| Qwen3.5-0.8B | 1.53 | 18.68 | 877714 | 22807 |
+| Qwen3.5-2B | 3.63 | 16.57 | 778532 | 22819 |
+| Qwen3.5-4B | 7.99 | 12.21 | 221476 | 22883 |
+| Qwen3.5-9B | 16.80 | 3.39 | 61440 | 22747 |
+
+全部2560条正式请求成功，未出现OOM、KV Cache不足或服务排队；日志中最高KV Cache使用率为0.8B/2B/4B/9B的2.1%/2.4%/8.5%/30.6%。统一的显存利用率会让vLLM把权重之外的显存用于KV Cache及运行时空间，因此约22.2 GiB的NVML峰值不能直接解释为模型权重。
+
+2B在所有并发档位的请求吞吐和平均时延上均优于0.8B，结合全量GSM8K质量结果，0.8B在本次并发范围内没有实际服务优势。4B相对9B具有约15%至21%的请求吞吐优势，同时保持接近的质量，适合作为主要边缘质量层；9B适合作为本地高质量兜底。并发16时9B的TTFT P95升至541 ms，但没有等待队列或KV Cache压力，当前瓶颈更接近批处理下的计算竞争。建议核心链保留 `2B -> 4B -> 9B`，0.8B仅保留为对照基线。
+
+并发1的解析答案和全文均与单模型基线完全一致。并发大于1时，即使贪心参数和固定seed不变，GPU批处理数值路径仍使完整文本一致率下降；因此主要复现指标采用解析后的最终答案一致率，全文一致率作为严格指标。
 
 ## 许可证
 
