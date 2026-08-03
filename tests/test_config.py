@@ -203,3 +203,69 @@ def test_existing_gsm8k_64_experiment_fingerprint_is_unchanged() -> None:
     assert fingerprint == (
         "559d16675569b089f98f8cd453b88936f4b183e43ebc5938585c994a20bc1554"
     )
+
+
+def test_phase10_routing_config_freezes_models_split_and_lightweight_baselines() -> None:
+    config_module = import_module("scaleflow.config")
+    load_config = getattr(config_module, "load_config")
+    config = load_config(Path("configs/qwen35_gsm8k_routing.yaml"))
+
+    assert config["project"] == {"name": "ScaleFlow", "seed": 42}
+    assert config["phase8_split"] == {
+        "report_path": "results/phase8_confidence_development.json",
+        "method": "sha256_seed_sample_id",
+        "seed": 42,
+        "development_count": 660,
+        "evaluation_count": 659,
+    }
+    assert config["models"] == [
+        {
+            "model_id": "Qwen/Qwen3.5-2B",
+            "label": "2B",
+        },
+        {
+            "model_id": "Qwen/Qwen3.5-4B",
+            "label": "4B",
+        },
+        {
+            "model_id": "Qwen/Qwen3.5-9B",
+            "label": "9B",
+        },
+    ]
+    assert config["rule"]["weights"] == {
+        "char_count": 0.01,
+        "word_count": 1.0,
+        "number_count": 4.0,
+        "operator_count": 2.0,
+        "keyword_count": 3.0,
+    }
+    assert config["rule"]["threshold_quantiles"] == [
+        0.50,
+        0.55,
+        0.60,
+        0.65,
+        0.70,
+        0.75,
+        0.80,
+        0.85,
+        0.90,
+        0.95,
+    ]
+    assert config["tfidf"] == {
+        "ngram_range": [1, 2],
+        "min_df": 2,
+        "max_features": 5000,
+        "sublinear_tf": True,
+        "lowercase": True,
+    }
+    assert config["logistic_regression"] == {
+        "C": 1.0,
+        "class_weight": "balanced",
+        "max_iter": 1000,
+        "solver": "lbfgs",
+        "random_state": 42,
+    }
+    assert config["random_baseline"] == {
+        "seed_start": 1000,
+        "seed_count": 1000,
+    }

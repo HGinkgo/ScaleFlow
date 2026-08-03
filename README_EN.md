@@ -30,6 +30,7 @@ The project does not implement a new low-level inference runtime and does not tr
 - fixed GSM8K configurations for both 64 samples and all 1,319 test records, with warmup and automatic scoring;
 - strict offline comparison of two or more ordered model results, including pairwise rescue and progressive-oracle analysis;
 - deterministic holdout confidence validation, Pareto threshold search, and offline cascade replay;
+- CPU-only offline routing analysis using a manual rule and TF-IDF/logistic regression from request text;
 - real closed-loop concurrency benchmarking with a vLLM OpenAI server and an asynchronous streaming client;
 - CPU-only unit and CLI integration tests.
 
@@ -51,6 +52,7 @@ ScaleFlow/
 │   ├── scheduler/           # Policies and synchronous execution
 │   ├── baseline.py          # GSM8K scoring, statistics, and output
 │   ├── offline.py           # Confidence analysis and offline cascade replay
+│   ├── routing.py           # CPU-only pre-inference text routing analysis
 │   ├── performance.py       # Closed-loop load and streaming timing
 │   ├── schemas.py           # Shared data structures
 │   ├── config.py            # YAML loading
@@ -69,6 +71,12 @@ ScaleFlow uses Python 3.12 in an isolated conda environment:
 ```bash
 conda env create -f environment.yml
 conda run -n scaleflow python -m pip install -e '.[dev]'
+```
+
+Install the lightweight analysis dependency for Phase 10:
+
+```bash
+conda run -n scaleflow python -m pip install -e '.[analysis,dev]'
 ```
 
 Install the pinned vLLM version for real-model execution:
@@ -204,6 +212,21 @@ CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow python -m scaleflow \
   --server-log results/phase9_qwen35_0_8b_concurrency_server.log
 ```
 
+Run the one-shot pre-inference text-routing analysis using the Phase 8 split and the Phase 7 full results:
+
+```bash
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
+  analyze-gsm8k-routing \
+  --config configs/qwen35_gsm8k_routing.yaml \
+  --split-report results/phase8_confidence_development.json \
+  --inputs results/phase7_persistent_qwen35_2b_gsm8k_full.jsonl \
+           results/phase7_persistent_qwen35_4b_gsm8k_full.jsonl \
+           results/phase7_persistent_qwen35_9b_gsm8k_full.jsonl \
+  --output results/phase10_text_routing.json
+```
+
+The command fits both lightweight routers on 660 development records, freezes them, and evaluates once on the 659-record exploratory split already used in Phase 8. Results stay Git-ignored; do not rerun or tune against the evaluation split.
+
 Run all tests:
 
 ```bash
@@ -221,6 +244,7 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 - `configs/qwen35_*_gsm8k_full.yaml` uses the same dataset commit, prompt, generation settings, and warmup procedure, selecting all 1,319 records in original order.
 - `configs/qwen35_gsm8k_offline.yaml` fixes the holdout split, confidence bootstrap, threshold grid, and random-acceptance seed set.
 - `configs/qwen35_gsm8k_concurrency.yaml` fixes 128 requests, all four revisions, a shared `gpu_memory_utilization=0.90`, warmups, and five concurrency levels.
+- `configs/qwen35_gsm8k_routing.yaml` fixes the Phase 8 SHA256 split, text features, rule threshold grid, TF-IDF/logistic-regression parameters, and matched-random seeds.
 
 The GSM8K baseline uses the OpenAI test-set commit `3101c7d5072418e28b9008a6636bde82a006892c` and verifies SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`. Future model-size runs should reuse the same sample indices and prompt.
 
@@ -307,6 +331,23 @@ All 2,560 measured requests succeeded without OOM, KV-cache exhaustion, or queue
 2B beats 0.8B in request throughput and mean latency at every tested concurrency. Combined with full-GSM8K quality, 0.8B has no practical serving advantage within C1-C16. 4B delivers about 15%-21% more request throughput than 9B while retaining close quality, making it the primary edge quality tier; 9B remains the local high-quality fallback. At C16, 9B TTFT P95 reaches 541 ms, but there is no waiting queue or KV-cache pressure, which points to compute contention under batching. The recommended core chain is `2B -> 4B -> 9B`, with 0.8B retained only as a control baseline.
 
 At C1, parsed answers and full text both match the single-model baseline exactly. At higher concurrency, GPU batching changes numerical execution paths enough to reduce exact-text consistency even with greedy parameters and a fixed seed. Parsed final-answer consistency is therefore the primary reproducibility metric; full-text consistency remains the strict metric.
+
+## Pre-inference Text Routing (Phase 10, Exploratory)
+
+This analysis does not run models. It reads the Phase 7 full 2B/4B/9B results and reuses the exact Phase 8 `SHA256(seed=42, sample_id)` split: 660 development records and 659 exploratory evaluation records. The evaluation records were already used in Phase 8, so these are exploratory offline results, not an independent test. Router inputs contain only question text and character, word, number, operator, and keyword counts; outputs, confidence, correctness, and measured latency are excluded.
+
+| Method | Accuracy | incorrect / parse / inference | none_correct | 2B / 4B / 9B calls | Historical mean / P50 / P95 ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Always 2B | 62.67% | 207 / 39 / 0 | 24 | 100 / 0 / 0% | 3053 / 2679 / 6864 |
+| Always 4B | 89.83% | 58 / 9 / 0 | 24 | 0 / 100 / 0% | 3987 / 3361 / 8115 |
+| Always 9B | 93.93% | 29 / 11 / 0 | 24 | 0 / 0 / 100% | 4611 / 4154 / 8912 |
+| Manual rule | 81.34% | 101 / 22 / 0 | 24 | 50.53 / 4.40 / 45.07% | 3915 / 3367 / 8580 |
+| TF-IDF + logistic regression | 70.71% | 164 / 29 / 0 | 24 | 73.14 / 23.07 / 3.79% | 3361 / 2933 / 7356 |
+| Post-hoc lowest correct model | 96.36% | 17 / 7 / 0 | 24 | 62.67 / 29.44 / 7.89% | 3545 / 2954 / 7868 |
+
+Historical latency replays only the selected model's natural-completion latency. Adding measured router prediction cost gives 3915.41 ms mean for the manual rule (0.032 ms prediction overhead) and 3361.47 ms for TF-IDF (0.547 ms overhead). Training took 43.9 ms and 10.42 s respectively. Neither router meets the pre-set quality target of no more than a one-point drop from 9B on evaluation: manual routing is -12.59 points and TF-IDF is -23.22 points.
+
+For 1,000 fixed-seed matched-quota random baselines, the manual rule's random accuracy mean is 77.93% (76.02%–79.82% interval); the rule is +3.40 points with a +1.52 to +5.31 point difference interval. TF-IDF's matched random mean is 70.11% (68.44%–71.78%), with a +0.60 point difference and an interval of -1.06 to +2.28. The manual rule has a weak useful ranking signal but insufficient quality; TF-IDF falls from 96.52% on development to 70.71% on evaluation, showing unstable generalization. No evaluation retuning was performed. Requests where all three models were incorrect are reported separately as `none_correct`. The conclusion is that lightweight routing from request text alone is insufficient to replace the quality baseline.
 
 ## License
 

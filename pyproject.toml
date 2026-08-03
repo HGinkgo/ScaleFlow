@@ -16,6 +16,9 @@ dependencies = [
 dev = [
     "pytest>=8,<9",
 ]
+analysis = [
+    "scikit-learn==1.9.0",
+]
 vllm = [
     "aiohttp>=3.10,<4",
     "nvidia-ml-py>=13.580,<14",

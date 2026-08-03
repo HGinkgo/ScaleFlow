@@ -90,6 +90,7 @@ def test_module_cli_help_starts() -> None:
     assert "search-gsm8k-cascade" in completed.stdout
     assert "evaluate-gsm8k-cascade" in completed.stdout
     assert "run-gsm8k-concurrency" in completed.stdout
+    assert "analyze-gsm8k-routing" in completed.stdout
 
 
 def test_concurrency_cli_parses_required_artifact_paths() -> None:
@@ -118,6 +119,34 @@ def test_concurrency_cli_parses_required_artifact_paths() -> None:
     assert args.model_id == MODEL_08
     assert args.preflight_only is True
     assert args.server_log == Path("results/server.log")
+
+
+def test_routing_cli_parses_three_model_inputs_and_split_report() -> None:
+    args = cli.build_parser().parse_args(
+        [
+            "analyze-gsm8k-routing",
+            "--config",
+            "configs/qwen35_gsm8k_routing.yaml",
+            "--split-report",
+            "results/phase8_confidence_development.json",
+            "--inputs",
+            "results/2b.jsonl",
+            "results/4b.jsonl",
+            "results/9b.jsonl",
+            "--output",
+            "results/phase10_text_routing.json",
+        ]
+    )
+
+    assert args.command == "analyze-gsm8k-routing"
+    assert args.inputs == [
+        Path("results/2b.jsonl"),
+        Path("results/4b.jsonl"),
+        Path("results/9b.jsonl"),
+    ]
+    assert args.split_report == Path(
+        "results/phase8_confidence_development.json"
+    )
 
 
 def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:

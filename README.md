@@ -30,6 +30,7 @@ ScaleFlow 是一个轻量、配置驱动的语言模型推理实验框架，用�
 - 固定 GSM8K 测试集、64 条小样本和 1319 条全量评测配置，包含预热流程和自动评分基线；
 - 支持任意两个及以上有序模型结果的严格离线对齐、模型对挽救分析和逐级 oracle 统计；
 - 基于确定性留出集的 confidence 验证、Pareto 阈值搜索和离线级联重放；
+- 只使用请求文本的人工规则与 TF-IDF/逻辑回归离线路由分析；
 - 基于 vLLM OpenAI 服务和异步流式客户端的真实闭环并发压测；
 - 不使用 GPU 的单元测试与 CLI 集成测试。
 
@@ -51,6 +52,7 @@ ScaleFlow/
 │   ├── scheduler/           # 调度策略与同步执行流程
 │   ├── baseline.py          # GSM8K 评分、统计与结果写入
 │   ├── offline.py           # Confidence 分析与离线级联重放
+│   ├── routing.py           # CPU-only 推理前文本路由分析
 │   ├── performance.py       # 闭环并发压测与流式时延测量
 │   ├── schemas.py           # 共享数据结构
 │   ├── config.py            # YAML 配置读取
@@ -69,6 +71,12 @@ ScaleFlow 使用 Python 3.12 和独立 conda 环境：
 ```bash
 conda env create -f environment.yml
 conda run -n scaleflow python -m pip install -e '.[dev]'
+```
+
+运行 Phase 10 的 CPU 文本路由分析还需要安装轻量分析依赖：
+
+```bash
+conda run -n scaleflow python -m pip install -e '.[analysis,dev]'
 ```
 
 运行真实模型时安装固定版本的 vLLM：
@@ -204,6 +212,21 @@ CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow python -m scaleflow \
   --server-log results/phase9_qwen35_0_8b_concurrency_server.log
 ```
 
+使用 Phase 8 已保存的划分，对 Phase 7 的 2B、4B、9B 全量结果执行一次推理前文本路由分析：
+
+```bash
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
+  analyze-gsm8k-routing \
+  --config configs/qwen35_gsm8k_routing.yaml \
+  --split-report results/phase8_confidence_development.json \
+  --inputs results/phase7_persistent_qwen35_2b_gsm8k_full.jsonl \
+           results/phase7_persistent_qwen35_4b_gsm8k_full.jsonl \
+           results/phase7_persistent_qwen35_9b_gsm8k_full.jsonl \
+  --output results/phase10_text_routing.json
+```
+
+该命令只在 660 条开发集拟合人工规则和 TF-IDF/逻辑回归，随后冻结两者并对 659 条已在 Phase 8 使用过的探索性评估集执行一次。结果文件位于 Git 忽略目录，不重复运行或依据评估集调参。
+
 运行全部测试：
 
 ```bash
@@ -221,6 +244,7 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 - `configs/qwen35_*_gsm8k_full.yaml`：使用同一数据 commit、Prompt、生成参数和预热流程，按原始顺序选择完整 1319 条测试记录。
 - `configs/qwen35_gsm8k_offline.yaml`：固定留出划分、confidence bootstrap、阈值候选步长和随机接受基线种子集合。
 - `configs/qwen35_gsm8k_concurrency.yaml`：固定128条请求、四个模型 revision、统一 `gpu_memory_utilization=0.90`、预热和五档并发协议。
+- `configs/qwen35_gsm8k_routing.yaml`：固定 Phase 8 的 SHA256 划分、文本特征、规则阈值候选、TF-IDF/逻辑回归参数和匹配比例随机种子。
 
 GSM8K 基线使用 OpenAI 官方测试集 commit `3101c7d5072418e28b9008a6636bde82a006892c`，并校验 SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`。后续不同规模模型应复用同一配置中的样本索引和 Prompt。
 
@@ -307,6 +331,23 @@ GSM8K 结果将 `correct`、`incorrect`、`parse_failure` 和 `inference_failure
 2B在所有并发档位的请求吞吐和平均时延上均优于0.8B，结合全量GSM8K质量结果，0.8B在本次并发范围内没有实际服务优势。4B相对9B具有约15%至21%的请求吞吐优势，同时保持接近的质量，适合作为主要边缘质量层；9B适合作为本地高质量兜底。并发16时9B的TTFT P95升至541 ms，但没有等待队列或KV Cache压力，当前瓶颈更接近批处理下的计算竞争。建议核心链保留 `2B -> 4B -> 9B`，0.8B仅保留为对照基线。
 
 并发1的解析答案和全文均与单模型基线完全一致。并发大于1时，即使贪心参数和固定seed不变，GPU批处理数值路径仍使完整文本一致率下降；因此主要复现指标采用解析后的最终答案一致率，全文一致率作为严格指标。
+
+## 推理前文本路由（Phase 10，探索性）
+
+本分析不重新运行模型，只使用 Phase 7 的 2B、4B、9B 全量结果。样本按 Phase 8 已保存的 `SHA256(seed=42, sample_id)` 划分为 660 条开发集和 659 条评估集；评估集已在 Phase 8 使用，因此以下仅是探索性离线结果，不是独立测试结论。输入只包含问题文本及字符数、词数、数字数、运算符数和关键词数，不使用输出、confidence、正确性或实际时延。
+
+| 方法 | 准确率 | incorrect / parse / inference | none_correct | 2B / 4B / 9B 调用比例 | 历史时延均值 / P50 / P95 ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 始终 2B | 62.67% | 207 / 39 / 0 | 24 | 100 / 0 / 0% | 3053 / 2679 / 6864 |
+| 始终 4B | 89.83% | 58 / 9 / 0 | 24 | 0 / 100 / 0% | 3987 / 3361 / 8115 |
+| 始终 9B | 93.93% | 29 / 11 / 0 | 24 | 0 / 0 / 100% | 4611 / 4154 / 8912 |
+| 人工规则 | 81.34% | 101 / 22 / 0 | 24 | 50.53 / 4.40 / 45.07% | 3915 / 3367 / 8580 |
+| TF-IDF + 逻辑回归 | 70.71% | 164 / 29 / 0 | 24 | 73.14 / 23.07 / 3.79% | 3361 / 2933 / 7356 |
+| 事后理想最低正确模型 | 96.36% | 17 / 7 / 0 | 24 | 62.67 / 29.44 / 7.89% | 3545 / 2954 / 7868 |
+
+时延表中的“历史”只重放被选模型的自然完成时延；加入实测路由器开销后，人工规则均值为 3915.41 ms（预测开销均值 0.032 ms），TF-IDF 均值为 3361.47 ms（预测开销均值 0.547 ms）。训练耗时分别为 43.9 ms 和 10.42 s。两种路由均未达到预设的“评估集准确率不低于 9B 下降 1 个百分点”标准：人工规则比 9B 低 12.59 个百分点，TF-IDF 低 23.22 个百分点。
+
+匹配调用比例的 1000 个固定种子随机基线中，人工规则对应随机准确率均值 77.93%（区间 76.02%–79.82%），人工规则提升 3.40 个百分点，差值区间 1.52–5.31 个百分点；TF-IDF 对应随机均值 70.11%（68.44%–71.78%），提升 0.60 个百分点，差值区间 -1.06–2.28 个百分点。人工规则有有限的排序信号，但质量仍不足；TF-IDF 在开发集 96.52% 而评估集降至 70.71%，说明泛化不稳定，不能据此继续调参。三模型均未正确的请求单独记为 `none_correct`，没有混入“错误选择 9B”。结论是：仅依赖请求文本的轻量路由不足以替代当前质量基线。
 
 ## 许可证
 

@@ -39,6 +39,7 @@ from scaleflow.performance import (
     validate_performance_config,
     validate_reference_contract,
 )
+from scaleflow.routing import analyze_routing
 from scaleflow.scheduler.policies import AlwaysModelPolicy, ConfidenceCascadePolicy
 from scaleflow.scheduler.runner import run_requests, write_results_jsonl
 from scaleflow.schemas import InferenceRequest
@@ -213,6 +214,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="stop after startup warmup and the concurrency-1 contract check",
     )
+    routing_parser = subparsers.add_parser(
+        "analyze-gsm8k-routing",
+        help="analyze exploratory pre-inference text routing",
+    )
+    routing_parser.add_argument("--config", type=Path, required=True)
+    routing_parser.add_argument("--split-report", type=Path, required=True)
+    routing_parser.add_argument("--inputs", type=Path, nargs=3, required=True)
+    routing_parser.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -968,6 +977,55 @@ def run_gsm8k_concurrency(
     )
 
 
+def analyze_gsm8k_routing(
+    config_path: Path,
+    split_report_path: Path,
+    input_paths: Sequence[Path],
+    output_path: Path,
+) -> int:
+    if output_path.exists():
+        raise ConfigError(f"routing output already exists: {output_path}")
+    config = load_config(config_path)
+    expected_models = config.get("models")
+    if not isinstance(expected_models, list) or len(expected_models) != 3:
+        raise ConfigError("routing config must contain exactly three models")
+    records_by_model_sequence = [load_records_jsonl(path) for path in input_paths]
+    if any(len(records) != 1319 for records in records_by_model_sequence):
+        raise ConfigError("Phase 10 inputs must each contain exactly 1319 records")
+    comparison = compare_model_records(records_by_model_sequence)
+    expected_model_ids = [model["model_id"] for model in expected_models]
+    if comparison["model_order"] != expected_model_ids:
+        raise ConfigError(
+            "Phase 10 input order/model IDs do not match the routing configuration"
+        )
+    label_by_model_id = {
+        model["model_id"]: model["label"] for model in expected_models
+    }
+    records_by_label = {
+        label_by_model_id[model_id]: records
+        for model_id, records in zip(
+            comparison["model_order"],
+            records_by_model_sequence,
+            strict=True,
+        )
+    }
+    split_report = _load_json_object(split_report_path, "Phase 8 split report")
+    report = analyze_routing(config, records_by_label, split_report)
+    report["config_fingerprint"] = sha256(
+        json.dumps(config, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    report["input_contract"] = {
+        "model_result_paths": [str(path) for path in input_paths],
+        "model_result_sha256": [file_sha256(path) for path in input_paths],
+        "phase8_split_report_path": str(split_report_path),
+        "phase8_split_report_sha256": file_sha256(split_report_path),
+        "phase7_experiment_config": comparison["experiment_config"],
+    }
+    write_summary_json(output_path, report)
+    print(f"wrote exploratory routing report to {output_path}")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -1007,6 +1065,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.summary,
             args.server_log,
             preflight_only=args.preflight_only,
+        )
+    if args.command == "analyze-gsm8k-routing":
+        return analyze_gsm8k_routing(
+            args.config,
+            args.split_report,
+            args.inputs,
+            args.output,
         )
     parser.print_help()
     return 0

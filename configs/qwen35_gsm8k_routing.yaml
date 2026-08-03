@@ -1,0 +1,45 @@
+project:
+  name: ScaleFlow
+  seed: 42
+
+phase8_split:
+  report_path: results/phase8_confidence_development.json
+  method: sha256_seed_sample_id
+  seed: 42
+  development_count: 660
+  evaluation_count: 659
+
+models:
+  - model_id: Qwen/Qwen3.5-2B
+    label: 2B
+  - model_id: Qwen/Qwen3.5-4B
+    label: 4B
+  - model_id: Qwen/Qwen3.5-9B
+    label: 9B
+
+rule:
+  weights:
+    char_count: 0.01
+    word_count: 1.0
+    number_count: 4.0
+    operator_count: 2.0
+    keyword_count: 3.0
+  threshold_quantiles: [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
+
+tfidf:
+  ngram_range: [1, 2]
+  min_df: 2
+  max_features: 5000
+  sublinear_tf: true
+  lowercase: true
+
+logistic_regression:
+  C: 1.0
+  class_weight: balanced
+  max_iter: 1000
+  solver: lbfgs
+  random_state: 42
+
+random_baseline:
+  seed_start: 1000
+  seed_count: 1000
