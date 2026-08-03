@@ -11,12 +11,24 @@ import yaml
 from scaleflow.backends import MockBackend
 from scaleflow import cli
 from scaleflow.config import load_config
+from scaleflow.offline import split_sample_ids
 
 
 MODEL_08 = "Qwen/Qwen3.5-0.8B"
 MODEL_2 = "Qwen/Qwen3.5-2B"
 MODEL_4 = "Qwen/Qwen3.5-4B"
 MODEL_9 = "Qwen/Qwen3.5-9B"
+
+
+def test_confidence_gate_removes_only_failed_intermediate_models() -> None:
+    indices, model_chain = cli._select_passed_chain(
+        [MODEL_08, MODEL_2, MODEL_4, MODEL_9],
+        [MODEL_08, MODEL_4],
+        MODEL_9,
+    )
+
+    assert indices == [0, 2, 3]
+    assert model_chain == [MODEL_08, MODEL_4, MODEL_9]
 
 
 def test_all_records_selection_uses_original_order_and_ignores_seed() -> None:
@@ -74,6 +86,9 @@ def test_module_cli_help_starts() -> None:
     assert "run-gsm8k" in completed.stdout
     assert "compare-gsm8k" in completed.stdout
     assert "compare-gsm8k-multi" in completed.stdout
+    assert "analyze-gsm8k-confidence" in completed.stdout
+    assert "search-gsm8k-cascade" in completed.stdout
+    assert "evaluate-gsm8k-cascade" in completed.stdout
 
 
 def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:
@@ -390,3 +405,318 @@ def test_compare_gsm8k_multi_cli_preserves_model_order_and_writes_report(
     stdout = json.loads(capsys.readouterr().out)
     assert stdout["output"] == str(output_path)
     assert stdout["model_order"] == model_ids
+
+
+def test_analyze_gsm8k_confidence_cli_writes_development_gate_report(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    config_path = tmp_path / "confidence.yaml"
+    config_path.write_text(
+        yaml.safe_dump(
+            {
+                "split": {
+                    "method": "sha256_seed_sample_id",
+                    "seed": 42,
+                    "development_count": 60,
+                },
+                "confidence_validation": {
+                    "low_confidence_fraction": 0.2,
+                    "bootstrap_iterations": 100,
+                    "bootstrap_seed": 42,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    model_paths = [tmp_path / "small.jsonl", tmp_path / "terminal.jsonl"]
+    for model_index, path in enumerate(model_paths):
+        records = []
+        for index in range(100):
+            correct = index >= 20
+            records.append(
+                {
+                    "sample_id": f"sample-{index:03d}",
+                    "dataset_index": index,
+                    "question": f"question {index}",
+                    "prompt": f"prompt {index}",
+                    "reference_answer": str(index),
+                    "model_id": f"model-{model_index}",
+                    "outcome": "correct" if correct else "incorrect",
+                    "correct": correct,
+                    "success": True,
+                    "confidence": 0.9 if correct else 0.1,
+                    "latency_ms": 10.0,
+                    "experiment_config": {"dataset": "fixture"},
+                }
+            )
+        path.write_text(
+            "".join(json.dumps(record) + "\n" for record in records),
+            encoding="utf-8",
+        )
+    output_path = tmp_path / "confidence.json"
+
+    exit_code = cli.main(
+        [
+            "analyze-gsm8k-confidence",
+            "--config",
+            str(config_path),
+            "--inputs",
+            *(str(path) for path in model_paths),
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert exit_code == 0
+    report = json.loads(output_path.read_text(encoding="utf-8"))
+    assert report["scope"] == "development_confidence_gate"
+    assert report["inputs"] == [str(path) for path in model_paths]
+    assert report["passed_intermediate_model_ids"] == ["model-0"]
+    assert report["input_files"] == [
+        {
+            "model_id": f"model-{index}",
+            "sha256": sha256(path.read_bytes()).hexdigest(),
+        }
+        for index, path in enumerate(model_paths)
+    ]
+    stdout = json.loads(capsys.readouterr().out)
+    assert stdout["passed_intermediate_model_ids"] == ["model-0"]
+
+
+def test_offline_cascade_cli_freezes_on_development_then_evaluates_holdout(
+    tmp_path: Path,
+) -> None:
+    sample_ids = [f"sample-{index:03d}" for index in range(20)]
+    development_ids, evaluation_ids = split_sample_ids(
+        sample_ids,
+        development_count=10,
+        seed=42,
+    )
+    config_path = tmp_path / "offline.yaml"
+    config_path.write_text(
+        yaml.safe_dump(
+            {
+                "split": {
+                    "method": "sha256_seed_sample_id",
+                    "seed": 42,
+                    "development_count": 10,
+                },
+                "confidence_validation": {
+                    "low_confidence_fraction": 0.2,
+                    "bootstrap_iterations": 20,
+                    "bootstrap_seed": 42,
+                },
+                "threshold_search": {"quantile_step": 0.5},
+                "random_baseline": {"seed_start": 1000, "seed_count": 50},
+            }
+        ),
+        encoding="utf-8",
+    )
+    model_ids = ["small", "medium", "terminal"]
+    input_paths = [tmp_path / f"{model_id}.jsonl" for model_id in model_ids]
+    for model_index, (model_id, path) in enumerate(
+        zip(model_ids, input_paths, strict=True)
+    ):
+        records = []
+        for index, sample_id in enumerate(sample_ids):
+            if model_id == "terminal":
+                correct = index != 19
+                confidence = 0.8
+                latency = 50.0
+            else:
+                correct = index % 4 != model_index
+                confidence = 0.9 if correct else 0.1
+                latency = 10.0 + model_index * 10.0
+            records.append(
+                {
+                    "sample_id": sample_id,
+                    "dataset_index": index,
+                    "question": f"question {index}",
+                    "prompt": f"prompt {index}",
+                    "reference_answer": str(index),
+                    "model_id": model_id,
+                    "outcome": "correct" if correct else "incorrect",
+                    "correct": correct,
+                    "success": True,
+                    "confidence": confidence,
+                    "latency_ms": latency,
+                    "experiment_config": {"dataset": "fixture"},
+                }
+            )
+        path.write_text(
+            "".join(json.dumps(record) + "\n" for record in records),
+            encoding="utf-8",
+        )
+    confidence_path = tmp_path / "confidence.json"
+    confidence_path.write_text(
+        json.dumps(
+            {
+                "scope": "development_confidence_gate",
+                "evaluation_outcomes_read": False,
+                "split": {
+                    "method": "sha256_seed_sample_id",
+                    "seed": 42,
+                    "development_count": 10,
+                    "evaluation_count": 10,
+                    "development_sample_ids": development_ids,
+                    "evaluation_sample_ids": evaluation_ids,
+                },
+                "intermediate_model_ids": model_ids[:-1],
+                "terminal_model_id": model_ids[-1],
+                "passed_intermediate_model_ids": model_ids[:-1],
+                "failed_intermediate_model_ids": [],
+                "all_intermediate_models_failed": False,
+                "input_files": [
+                    {
+                        "model_id": model_id,
+                        "sha256": sha256(path.read_bytes()).hexdigest(),
+                    }
+                    for model_id, path in zip(model_ids, input_paths, strict=True)
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    policy_path = tmp_path / "policy.json"
+    evaluation_path = tmp_path / "evaluation.json"
+
+    search_exit = cli.main(
+        [
+            "search-gsm8k-cascade",
+            "--config",
+            str(config_path),
+            "--confidence-report",
+            str(confidence_path),
+            "--inputs",
+            *(str(path) for path in input_paths),
+            "--output",
+            str(policy_path),
+        ]
+    )
+    evaluate_exit = cli.main(
+        [
+            "evaluate-gsm8k-cascade",
+            "--config",
+            str(config_path),
+            "--policy",
+            str(policy_path),
+            "--inputs",
+            *(str(path) for path in input_paths),
+            "--output",
+            str(evaluation_path),
+        ]
+    )
+
+    assert search_exit == 0
+    assert evaluate_exit == 0
+    policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    assert policy["scope"] == "development_threshold_search"
+    assert policy["evaluation_outcomes_read"] is False
+    assert policy["model_chain"] == model_ids
+    assert policy["selected_policy"]["correct_count"] >= policy["target"][
+        "correct_count"
+    ]
+    evaluation = json.loads(evaluation_path.read_text(encoding="utf-8"))
+    assert evaluation["scope"] == "single_use_holdout_evaluation"
+    assert evaluation["evaluation_sample_ids"] == evaluation_ids
+    assert evaluation["cascade"]["request_count"] == 10
+    assert evaluation["random_baseline"]["confidence_used"] is False
+    assert evaluation["full_dataset_confidence"]["used_for_method_selection"] is False
+    assert len(evaluation["full_dataset_confidence"]["models"]) == 3
+
+    with pytest.raises(cli.ConfigError, match="already been evaluated"):
+        cli.main(
+            [
+                "evaluate-gsm8k-cascade",
+                "--config",
+                str(config_path),
+                "--policy",
+                str(policy_path),
+                "--inputs",
+                *(str(path) for path in input_paths),
+                "--output",
+                str(tmp_path / "second-evaluation.json"),
+            ]
+        )
+
+
+def test_cascade_search_rejects_confidence_report_for_different_inputs(
+    tmp_path: Path,
+) -> None:
+    input_paths = [tmp_path / "small.jsonl", tmp_path / "terminal.jsonl"]
+    records_by_model = []
+    for model_id, path in zip(("small", "terminal"), input_paths, strict=True):
+        records = [
+            {
+                "sample_id": f"sample-{index:03d}",
+                "dataset_index": index,
+                "question": f"question {index}",
+                "prompt": f"prompt {index}",
+                "reference_answer": str(index),
+                "model_id": model_id,
+                "outcome": "correct" if index >= 2 else "incorrect",
+                "correct": index >= 2,
+                "success": True,
+                "confidence": 0.9 if index >= 2 else 0.1,
+                "latency_ms": 10.0,
+                "experiment_config": {"dataset": "fixture"},
+            }
+            for index in range(10)
+        ]
+        records_by_model.append(records)
+        path.write_text(
+            "".join(json.dumps(record) + "\n" for record in records),
+            encoding="utf-8",
+        )
+    development_ids, evaluation_ids = split_sample_ids(
+        [f"sample-{index:03d}" for index in range(10)],
+        development_count=6,
+        seed=42,
+    )
+    confidence_path = tmp_path / "confidence.json"
+    confidence_path.write_text(
+        json.dumps(
+            {
+                "scope": "development_confidence_gate",
+                "split": {
+                    "development_sample_ids": development_ids,
+                    "evaluation_sample_ids": evaluation_ids,
+                },
+                "terminal_model_id": "terminal",
+                "passed_intermediate_model_ids": ["small"],
+                "failed_intermediate_model_ids": [],
+                "all_intermediate_models_failed": False,
+                "input_files": [
+                    {"model_id": "small", "sha256": "wrong"},
+                    {
+                        "model_id": "terminal",
+                        "sha256": sha256(input_paths[1].read_bytes()).hexdigest(),
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    config_path = tmp_path / "offline.yaml"
+    config_path.write_text(
+        yaml.safe_dump(
+            {
+                "split": {
+                    "method": "sha256_seed_sample_id",
+                    "seed": 42,
+                    "development_count": 6,
+                },
+                "threshold_search": {"quantile_step": 0.5},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(cli.ConfigError, match="fingerprints"):
+        cli.search_gsm8k_cascade(
+            config_path,
+            confidence_path,
+            input_paths,
+            tmp_path / "policy.json",
+        )

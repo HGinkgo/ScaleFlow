@@ -11,8 +11,10 @@ from scaleflow.baseline import (
     compare_baseline_records,
     compare_model_records,
     ensure_dataset,
+    file_sha256,
     load_gsm8k_jsonl,
     load_records_jsonl,
+    percentile,
     run_baseline_samples,
     select_samples,
     summarize_baseline,
@@ -22,6 +24,14 @@ from scaleflow.baseline import (
 )
 from scaleflow.backends import MockBackend, VLLMBackend
 from scaleflow.config import ConfigError, load_config
+from scaleflow.offline import (
+    analyze_confidence,
+    analyze_confidence_models,
+    random_acceptance_baseline,
+    replay_cascade,
+    search_pareto_thresholds,
+    split_sample_ids,
+)
 from scaleflow.scheduler.policies import AlwaysModelPolicy, ConfidenceCascadePolicy
 from scaleflow.scheduler.runner import run_requests, write_results_jsonl
 from scaleflow.schemas import InferenceRequest
@@ -131,6 +141,45 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="path to the multi-model comparison JSON output",
     )
+    confidence_parser = subparsers.add_parser(
+        "analyze-gsm8k-confidence",
+        help="validate confidence on a deterministic development split",
+    )
+    confidence_parser.add_argument(
+        "--config",
+        type=Path,
+        required=True,
+        help="path to the offline analysis YAML configuration",
+    )
+    confidence_parser.add_argument(
+        "--inputs",
+        type=Path,
+        nargs="+",
+        required=True,
+        help="GSM8K JSONL paths in ascending model-capability order",
+    )
+    confidence_parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="path to the development confidence report",
+    )
+    search_parser = subparsers.add_parser(
+        "search-gsm8k-cascade",
+        help="freeze offline cascade thresholds on the development split",
+    )
+    search_parser.add_argument("--config", type=Path, required=True)
+    search_parser.add_argument("--confidence-report", type=Path, required=True)
+    search_parser.add_argument("--inputs", type=Path, nargs="+", required=True)
+    search_parser.add_argument("--output", type=Path, required=True)
+    evaluate_parser = subparsers.add_parser(
+        "evaluate-gsm8k-cascade",
+        help="evaluate one frozen offline cascade on the holdout split",
+    )
+    evaluate_parser.add_argument("--config", type=Path, required=True)
+    evaluate_parser.add_argument("--policy", type=Path, required=True)
+    evaluate_parser.add_argument("--inputs", type=Path, nargs="+", required=True)
+    evaluate_parser.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -428,6 +477,398 @@ def compare_gsm8k_multi(input_paths: Sequence[Path], output_path: Path) -> int:
     return 0
 
 
+def analyze_gsm8k_confidence(
+    config_path: Path,
+    input_paths: Sequence[Path],
+    output_path: Path,
+) -> int:
+    config = load_config(config_path)
+    split = config.get("split")
+    validation = config.get("confidence_validation")
+    if not isinstance(split, dict) or not isinstance(validation, dict):
+        raise ConfigError("offline config requires split and confidence_validation")
+    if split.get("method") != "sha256_seed_sample_id":
+        raise ConfigError("split.method must be sha256_seed_sample_id")
+
+    report = analyze_confidence_models(
+        [load_records_jsonl(path) for path in input_paths],
+        development_count=int(split["development_count"]),
+        split_seed=int(split["seed"]),
+        low_confidence_fraction=float(validation["low_confidence_fraction"]),
+        bootstrap_iterations=int(validation["bootstrap_iterations"]),
+        bootstrap_seed=int(validation["bootstrap_seed"]),
+    )
+    report["input_files"] = [
+        {
+            "model_id": model["model_id"],
+            "sha256": file_sha256(path),
+        }
+        for model, path in zip(report["models"], input_paths, strict=True)
+    ]
+    report["inputs"] = [str(path) for path in input_paths]
+    write_summary_json(output_path, report)
+    print(
+        json.dumps(
+            {
+                "output": str(output_path),
+                "passed_intermediate_model_ids": report[
+                    "passed_intermediate_model_ids"
+                ],
+                "failed_intermediate_model_ids": report[
+                    "failed_intermediate_model_ids"
+                ],
+                "development_count": report["split"]["development_count"],
+                "evaluation_outcomes_read": False,
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
+
+
+def _load_json_object(path: Path, label: str) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ConfigError(f"cannot load {label}: {path}") from error
+    if not isinstance(value, dict):
+        raise ConfigError(f"{label} must contain a JSON object")
+    return value
+
+
+def _offline_split_config(config: dict[str, Any]) -> dict[str, Any]:
+    split = config.get("split")
+    if not isinstance(split, dict) or split.get("method") != "sha256_seed_sample_id":
+        raise ConfigError("split.method must be sha256_seed_sample_id")
+    return split
+
+
+def _ordered_model_ids(
+    records_by_model: Sequence[Sequence[dict[str, Any]]],
+) -> list[str]:
+    model_ids: list[str] = []
+    for records in records_by_model:
+        if not records:
+            raise ConfigError("offline analysis cannot use an empty input")
+        ids = {record.get("model_id") for record in records}
+        if len(ids) != 1 or not isinstance(next(iter(ids)), str):
+            raise ConfigError("each input must contain exactly one model_id")
+        model_ids.append(next(iter(ids)))
+    if len(set(model_ids)) != len(model_ids):
+        raise ConfigError("input model_id values must be unique")
+    return model_ids
+
+
+def _input_fingerprints(
+    model_ids: Sequence[str],
+    input_paths: Sequence[Path],
+) -> list[dict[str, str]]:
+    return [
+        {"model_id": model_id, "sha256": file_sha256(path)}
+        for model_id, path in zip(model_ids, input_paths, strict=True)
+    ]
+
+
+def _select_passed_chain(
+    model_ids: Sequence[str],
+    passed_intermediate_model_ids: Sequence[str],
+    terminal_model_id: str,
+) -> tuple[list[int], list[str]]:
+    if not model_ids or model_ids[-1] != terminal_model_id:
+        raise ConfigError("terminal model does not match the input order")
+    chain_indices = [
+        index
+        for index, model_id in enumerate(model_ids[:-1])
+        if model_id in passed_intermediate_model_ids
+    ] + [len(model_ids) - 1]
+    chain_ids = [model_ids[index] for index in chain_indices]
+    if chain_ids[:-1] != list(passed_intermediate_model_ids):
+        raise ConfigError("passed model order does not match input order")
+    return chain_indices, chain_ids
+
+
+def search_gsm8k_cascade(
+    config_path: Path,
+    confidence_report_path: Path,
+    input_paths: Sequence[Path],
+    output_path: Path,
+) -> int:
+    config = load_config(config_path)
+    split_config = _offline_split_config(config)
+    search_config = config.get("threshold_search")
+    if not isinstance(search_config, dict):
+        raise ConfigError("offline config requires threshold_search")
+    confidence_report = _load_json_object(
+        confidence_report_path,
+        "confidence report",
+    )
+    if confidence_report.get("scope") != "development_confidence_gate":
+        raise ConfigError("confidence report has the wrong scope")
+    if confidence_report.get("all_intermediate_models_failed") is True:
+        raise ConfigError("all intermediate models failed the confidence gate")
+
+    records_by_model = [load_records_jsonl(path) for path in input_paths]
+    model_ids = _ordered_model_ids(records_by_model)
+    input_fingerprints = _input_fingerprints(model_ids, input_paths)
+    if confidence_report.get("input_files") != input_fingerprints:
+        raise ConfigError("confidence report input fingerprints do not match")
+    passed_ids = confidence_report.get("passed_intermediate_model_ids")
+    if not isinstance(passed_ids, list) or not all(
+        isinstance(model_id, str) for model_id in passed_ids
+    ):
+        raise ConfigError("confidence report has invalid passed model IDs")
+    chain_indices, chain_ids = _select_passed_chain(
+        model_ids,
+        passed_ids,
+        str(confidence_report.get("terminal_model_id")),
+    )
+
+    sample_ids = [record["sample_id"] for record in records_by_model[0]]
+    development_ids, evaluation_ids = split_sample_ids(
+        sample_ids,
+        development_count=int(split_config["development_count"]),
+        seed=int(split_config["seed"]),
+    )
+    report_split = confidence_report.get("split")
+    if not isinstance(report_split, dict) or (
+        report_split.get("development_sample_ids") != development_ids
+        or report_split.get("evaluation_sample_ids") != evaluation_ids
+    ):
+        raise ConfigError("confidence report split does not match current inputs")
+
+    chain_records = [records_by_model[index] for index in chain_indices]
+    search = search_pareto_thresholds(
+        chain_records,
+        development_ids,
+        quantile_step=float(search_config["quantile_step"]),
+    )
+    selected = search["selected"]
+    development_replay = replay_cascade(
+        chain_records,
+        development_ids,
+        selected["thresholds"],
+    )
+    report = {
+        "scope": "development_threshold_search",
+        "evaluation_outcomes_read": False,
+        "selection_rule": (
+            "minimize mean cumulative latency subject to cascade correct count "
+            "being at least the terminal-model correct count on development data"
+        ),
+        "model_chain": chain_ids,
+        "excluded_intermediate_model_ids": confidence_report.get(
+            "failed_intermediate_model_ids",
+            [],
+        ),
+        "split": report_split,
+        "input_files": input_fingerprints,
+        "target": {
+            "model_id": search["target_model_id"],
+            "correct_count": search["target_correct_count"],
+            "accuracy": search["target_accuracy"],
+        },
+        "selected_policy": selected,
+        "search": {
+            key: value
+            for key, value in search.items()
+            if key not in {"selected", "target_model_id", "target_correct_count", "target_accuracy"}
+        },
+        "development_replay": development_replay,
+    }
+    write_summary_json(output_path, report)
+    print(
+        json.dumps(
+            {
+                "output": str(output_path),
+                "model_chain": chain_ids,
+                "thresholds": selected["thresholds"],
+                "development_accuracy": selected["accuracy"],
+                "target_accuracy": search["target_accuracy"],
+                "evaluation_outcomes_read": False,
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
+
+
+def _direct_model_summary(
+    records: Sequence[dict[str, Any]],
+    sample_ids: Sequence[str],
+) -> dict[str, Any]:
+    indexed = {record["sample_id"]: record for record in records}
+    selected = [indexed[sample_id] for sample_id in sample_ids]
+    latency = [float(record["latency_ms"]) for record in selected]
+    correct_count = sum(bool(record["correct"]) for record in selected)
+    return {
+        "model_id": selected[0]["model_id"],
+        "correct_count": correct_count,
+        "accuracy": correct_count / len(selected),
+        "latency_ms": {
+            "mean": sum(latency) / len(latency),
+            "p50": percentile(latency, 50),
+            "p95": percentile(latency, 95),
+        },
+    }
+
+
+def evaluate_gsm8k_cascade(
+    config_path: Path,
+    policy_path: Path,
+    input_paths: Sequence[Path],
+    output_path: Path,
+) -> int:
+    config = load_config(config_path)
+    split_config = _offline_split_config(config)
+    random_config = config.get("random_baseline")
+    if not isinstance(random_config, dict):
+        raise ConfigError("offline config requires random_baseline")
+    policy = _load_json_object(policy_path, "frozen cascade policy")
+    if policy.get("scope") != "development_threshold_search":
+        raise ConfigError("cascade policy has the wrong scope")
+    marker_path = policy_path.with_name(policy_path.name + ".evaluated")
+    if marker_path.exists():
+        raise ConfigError("this frozen cascade policy has already been evaluated")
+    if output_path.exists():
+        raise ConfigError("holdout evaluation output already exists")
+
+    records_by_model = [load_records_jsonl(path) for path in input_paths]
+    model_ids = _ordered_model_ids(records_by_model)
+    expected_files = policy.get("input_files")
+    actual_files = _input_fingerprints(model_ids, input_paths)
+    if expected_files != actual_files:
+        raise ConfigError("frozen policy input fingerprints do not match")
+
+    sample_ids = [record["sample_id"] for record in records_by_model[0]]
+    development_ids, evaluation_ids = split_sample_ids(
+        sample_ids,
+        development_count=int(split_config["development_count"]),
+        seed=int(split_config["seed"]),
+    )
+    policy_split = policy.get("split")
+    if not isinstance(policy_split, dict) or (
+        policy_split.get("development_sample_ids") != development_ids
+        or policy_split.get("evaluation_sample_ids") != evaluation_ids
+    ):
+        raise ConfigError("frozen policy split does not match current inputs")
+
+    model_chain = policy.get("model_chain")
+    if not isinstance(model_chain, list):
+        raise ConfigError("frozen policy has no model chain")
+    chain_indices = [model_ids.index(model_id) for model_id in model_chain]
+    chain_records = [records_by_model[index] for index in chain_indices]
+    selected_policy = policy.get("selected_policy")
+    if not isinstance(selected_policy, dict) or not isinstance(
+        selected_policy.get("thresholds"),
+        list,
+    ):
+        raise ConfigError("frozen policy has no thresholds")
+
+    try:
+        with marker_path.open("x", encoding="utf-8") as stream:
+            stream.write(
+                json.dumps(
+                    {"status": "evaluation_reserved", "output": output_path.name},
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
+    except FileExistsError as error:
+        raise ConfigError(
+            "this frozen cascade policy has already been evaluated"
+        ) from error
+
+    cascade = replay_cascade(
+        chain_records,
+        evaluation_ids,
+        selected_policy["thresholds"],
+    )
+    seed_start = int(random_config["seed_start"])
+    seed_count = int(random_config["seed_count"])
+    random_baseline = random_acceptance_baseline(
+        chain_records,
+        evaluation_ids,
+        acceptance_rates=cascade["stage_acceptance_rates"],
+        seeds=range(seed_start, seed_start + seed_count),
+    )
+    accuracy_gain = cascade["accuracy"] - random_baseline["accuracy"]["mean"]
+    accuracy_gain_interval = {
+        "lower": cascade["accuracy"] - random_baseline["accuracy"]["upper"],
+        "upper": cascade["accuracy"] - random_baseline["accuracy"]["lower"],
+    }
+    validation_config = config.get("confidence_validation")
+    if not isinstance(validation_config, dict):
+        raise ConfigError("offline config requires confidence_validation")
+    full_confidence = {
+        "scope": "full_dataset_descriptive_only",
+        "used_for_method_selection": False,
+        "models": [],
+    }
+    for model_id, records in zip(model_ids, records_by_model, strict=True):
+        analysis = analyze_confidence(
+            records,
+            low_confidence_fraction=float(
+                validation_config["low_confidence_fraction"]
+            ),
+            bootstrap_iterations=int(validation_config["bootstrap_iterations"]),
+            bootstrap_seed=int(validation_config["bootstrap_seed"]),
+        )
+        analysis["model_id"] = model_id
+        full_confidence["models"].append(analysis)
+    report = {
+        "scope": "single_use_holdout_evaluation",
+        "policy_frozen_before_evaluation": True,
+        "evaluation_sample_ids": evaluation_ids,
+        "model_chain": model_chain,
+        "selected_thresholds": selected_policy["thresholds"],
+        "cascade": cascade,
+        "random_baseline": random_baseline,
+        "confidence_vs_random": {
+            "accuracy_gain_over_random_mean": accuracy_gain,
+            "accuracy_gain_interval_95": accuracy_gain_interval,
+            "gain_ci_lower_above_zero": accuracy_gain_interval["lower"] > 0,
+        },
+        "standalone_models": [
+            _direct_model_summary(records, evaluation_ids)
+            for records in records_by_model
+        ],
+        "full_dataset_confidence": full_confidence,
+        "latency_scope": "offline_replay_estimate",
+        "latency_exclusions": [
+            "model_loading",
+            "model_switching",
+            "queueing",
+            "concurrency_interference",
+        ],
+    }
+    write_summary_json(output_path, report)
+    marker_path.write_text(
+        json.dumps(
+            {
+                "status": "evaluation_completed",
+                "output": output_path.name,
+                "output_sha256": file_sha256(output_path),
+            },
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    print(
+        json.dumps(
+            {
+                "output": str(output_path),
+                "evaluation_count": len(evaluation_ids),
+                "cascade_accuracy": cascade["accuracy"],
+                "random_accuracy_mean": random_baseline["accuracy"]["mean"],
+                "terminal_invocation_rate": cascade["terminal_invocation_rate"],
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -441,5 +882,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         return compare_gsm8k(args.baseline, args.candidate, args.output)
     if args.command == "compare-gsm8k-multi":
         return compare_gsm8k_multi(args.inputs, args.output)
+    if args.command == "analyze-gsm8k-confidence":
+        return analyze_gsm8k_confidence(args.config, args.inputs, args.output)
+    if args.command == "search-gsm8k-cascade":
+        return search_gsm8k_cascade(
+            args.config,
+            args.confidence_report,
+            args.inputs,
+            args.output,
+        )
+    if args.command == "evaluate-gsm8k-cascade":
+        return evaluate_gsm8k_cascade(
+            args.config,
+            args.policy,
+            args.inputs,
+            args.output,
+        )
     parser.print_help()
     return 0

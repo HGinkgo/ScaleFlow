@@ -29,6 +29,7 @@ ScaleFlow 是一个轻量、配置驱动的语言模型推理实验框架，用�
 - 完整决策轨迹和直接 JSONL 结果输出；
 - 固定 GSM8K 测试集、64 条小样本和 1319 条全量评测配置，包含预热流程和自动评分基线；
 - 支持任意两个及以上有序模型结果的严格离线对齐、模型对挽救分析和逐级 oracle 统计；
+- 基于确定性留出集的 confidence 验证、Pareto 阈值搜索和离线级联重放；
 - 不使用 GPU 的单元测试与 CLI 集成测试。
 
 当前本地模型路线为：
@@ -48,6 +49,7 @@ ScaleFlow/
 │   ├── backends/            # MockBackend 与 VLLMBackend
 │   ├── scheduler/           # 调度策略与同步执行流程
 │   ├── baseline.py          # GSM8K 评分、统计与结果写入
+│   ├── offline.py           # Confidence 分析与离线级联重放
 │   ├── schemas.py           # 共享数据结构
 │   ├── config.py            # YAML 配置读取
 │   └── cli.py               # 命令行入口
@@ -121,7 +123,7 @@ CUDA_VISIBLE_DEVICES=0 conda run -n scaleflow \
 
 ```bash
 CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
-  python -m scalaflow compare-gsm8k-multi \
+  python -m scaleflow compare-gsm8k-multi \
   --inputs results/qwen35_0_8b_gsm8k_full.jsonl \
            results/qwen35_2b_gsm8k_full.jsonl \
            results/qwen35_4b_gsm8k_full.jsonl \
@@ -161,6 +163,32 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
 
 各模型应在独立进程中依次运行，不同时驻留显存。`--inputs` 顺序表示模型能力顺序；比较器校验样本、Prompt、参考答案和公共实验配置，并保留全部正确性组合与样本 ID。`compare-gsm8k` 继续作为双模型兼容入口。比较命令不执行实际级联。
 
+使用已有四组全量结果完成 confidence 验证、开发集阈值搜索和一次性留出集评估：
+
+```bash
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
+  analyze-gsm8k-confidence --config configs/qwen35_gsm8k_offline.yaml \
+  --inputs results/qwen35_0_8b_gsm8k_full.jsonl results/qwen35_2b_gsm8k_full.jsonl \
+           results/qwen35_4b_gsm8k_full.jsonl results/qwen35_9b_gsm8k_full.jsonl \
+  --output results/qwen35_gsm8k_confidence_development.json
+
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
+  search-gsm8k-cascade --config configs/qwen35_gsm8k_offline.yaml \
+  --confidence-report results/qwen35_gsm8k_confidence_development.json \
+  --inputs results/qwen35_0_8b_gsm8k_full.jsonl results/qwen35_2b_gsm8k_full.jsonl \
+           results/qwen35_4b_gsm8k_full.jsonl results/qwen35_9b_gsm8k_full.jsonl \
+  --output results/qwen35_gsm8k_cascade_policy.json
+
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
+  evaluate-gsm8k-cascade --config configs/qwen35_gsm8k_offline.yaml \
+  --policy results/qwen35_gsm8k_cascade_policy.json \
+  --inputs results/qwen35_0_8b_gsm8k_full.jsonl results/qwen35_2b_gsm8k_full.jsonl \
+           results/qwen35_4b_gsm8k_full.jsonl results/qwen35_9b_gsm8k_full.jsonl \
+  --output results/qwen35_gsm8k_cascade_evaluation.json
+```
+
+阈值只在660条开发集上选择；659条留出集只用于冻结策略的一次评估。评估完成后会在策略文件旁写入 `.evaluated` 标记，重复执行会被拒绝。以上命令不加载模型，也不使用 GPU。
+
 运行全部测试：
 
 ```bash
@@ -176,6 +204,7 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 - `configs/qwen35_4b_gsm8k.yaml`：保持相同实验契约，固定 4B 模型 revision，并使用独立的运行时显存配置。
 - `configs/qwen35_9b_gsm8k.yaml`：保持相同实验契约，固定 9B BF16 revision，单卡运行时显存比例为 `0.90`。
 - `configs/qwen35_*_gsm8k_full.yaml`：使用同一数据 commit、Prompt、生成参数和预热流程，按原始顺序选择完整 1319 条测试记录。
+- `configs/qwen35_gsm8k_offline.yaml`：固定留出划分、confidence bootstrap、阈值候选步长和随机接受基线种子集合。
 
 GSM8K 基线使用 OpenAI 官方测试集 commit `3101c7d5072418e28b9008a6636bde82a006892c`，并校验 SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`。后续不同规模模型应复用同一配置中的样本索引和 Prompt。
 
@@ -219,6 +248,18 @@ GSM8K 结果将 `correct`、`incorrect`、`parse_failure` 和 `inference_failure
 ```
 
 逐级加入模型的事后 Oracle 正确率为：0.8B 52.24%（689 条）、加入 2B 后 75.13%（991 条，增量 302）、加入 4B 后 92.87%（1225 条，增量 234）、加入 9B 后 96.74%（1276 条，增量 51）。因此完整 GSM8K 能稳定区分四个模型；4B 与 9B 仍较接近，但全量数据的 3.34 个百分点差距明显大于 64 条样本上的小差距。GSM8K 对高规模模型相对容易，尚不能视为完全饱和；后续若要检验更细的调度收益，应加入难度更高且协议独立的评测集。上述 confidence 相关性仅为本次固定评测上的探索性观察，不构成校准或正式统计结论。
+
+## 离线 Confidence 级联
+
+1319条结果按 `SHA256(seed=42, sample_id)` 固定划分为660条开发集和659条留出集。0.8B、2B、4B在开发集上的 AUROC 分别为0.701、0.743和0.779，95% bootstrap 区间下界均高于0.5；最低 confidence 的20%样本未正确率增量及 AURC 改善的区间下界也均高于0，因此三个模型均保留在候选链中。
+
+51个候选点包含“始终接受”和“始终升级”边界。132,651组阈值中有120组达到开发集9B准确率，最低累计均值时延的阈值为0.9256、0.9414和0.9421。该策略在开发集与9B同为607/660正确。
+
+冻结策略在留出集上得到611/659正确（92.72%），低于9B单模型的619/659（93.93%）；最终失败为39条 `incorrect`、9条 `parse_failure` 和0条 `inference_failure`。9B调用率为65.86%，相当于减少34.14%的9B调用，但串行累计时延为13,744/12,189/27,033 ms（平均/P50/P95），明显高于9B单模型的4,611/4,154/8,912 ms。
+
+固定1000个种子的随机接受基线使用近似相同的逐级接受率和9B调用率，平均准确率为90.74%，随机化区间为89.38%至92.11%。confidence 级联相对其平均提升1.97个百分点，差值随机化区间为0.61至3.34个百分点。这说明 confidence 排序提供了有效信息，但当前阈值策略没有在留出集保持9B质量，也没有降低串行端到端时延。
+
+上述时延是已有单模型记录的离线求和，不包含模型加载、切换、排队和并发干扰；随机化区间只描述固定留出集上的随机策略波动，不是总体性能的统计置信区间。
 
 ## 许可证
 

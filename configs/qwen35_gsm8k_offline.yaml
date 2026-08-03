@@ -1,0 +1,16 @@
+split:
+  method: sha256_seed_sample_id
+  seed: 42
+  development_count: 660
+
+confidence_validation:
+  low_confidence_fraction: 0.2
+  bootstrap_iterations: 2000
+  bootstrap_seed: 42
+
+threshold_search:
+  quantile_step: 0.02
+
+random_baseline:
+  seed_start: 1000
+  seed_count: 1000

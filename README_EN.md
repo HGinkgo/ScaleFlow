@@ -29,6 +29,7 @@ The project does not implement a new low-level inference runtime and does not tr
 - complete decision traces with direct JSONL output;
 - fixed GSM8K configurations for both 64 samples and all 1,319 test records, with warmup and automatic scoring;
 - strict offline comparison of two or more ordered model results, including pairwise rescue and progressive-oracle analysis;
+- deterministic holdout confidence validation, Pareto threshold search, and offline cascade replay;
 - CPU-only unit and CLI integration tests.
 
 The current local model path is:
@@ -48,6 +49,7 @@ ScaleFlow/
 │   ├── backends/            # MockBackend and VLLMBackend
 │   ├── scheduler/           # Policies and synchronous execution
 │   ├── baseline.py          # GSM8K scoring, statistics, and output
+│   ├── offline.py           # Confidence analysis and offline cascade replay
 │   ├── schemas.py           # Shared data structures
 │   ├── config.py            # YAML loading
 │   └── cli.py               # Command-line entry point
@@ -121,7 +123,7 @@ Replace the configuration and output names with `qwen35_2b_gsm8k_full.yaml`, `qw
 
 ```bash
 CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
-  python -m scalaflow compare-gsm8k-multi \
+  python -m scaleflow compare-gsm8k-multi \
   --inputs results/qwen35_0_8b_gsm8k_full.jsonl \
            results/qwen35_2b_gsm8k_full.jsonl \
            results/qwen35_4b_gsm8k_full.jsonl \
@@ -161,6 +163,32 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow \
 
 Run each model in a separate process so they never reside in GPU memory together. The `--inputs` order defines ascending model capability. The comparator validates samples, prompts, reference answers, and shared experiment settings, and retains every correctness combination with sample IDs. `compare-gsm8k` remains available as the two-model compatibility entry point. Comparison is offline only and does not execute a cascade.
 
+Validate confidence, search thresholds on the development split, and evaluate the frozen policy once on the holdout split:
+
+```bash
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
+  analyze-gsm8k-confidence --config configs/qwen35_gsm8k_offline.yaml \
+  --inputs results/qwen35_0_8b_gsm8k_full.jsonl results/qwen35_2b_gsm8k_full.jsonl \
+           results/qwen35_4b_gsm8k_full.jsonl results/qwen35_9b_gsm8k_full.jsonl \
+  --output results/qwen35_gsm8k_confidence_development.json
+
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
+  search-gsm8k-cascade --config configs/qwen35_gsm8k_offline.yaml \
+  --confidence-report results/qwen35_gsm8k_confidence_development.json \
+  --inputs results/qwen35_0_8b_gsm8k_full.jsonl results/qwen35_2b_gsm8k_full.jsonl \
+           results/qwen35_4b_gsm8k_full.jsonl results/qwen35_9b_gsm8k_full.jsonl \
+  --output results/qwen35_gsm8k_cascade_policy.json
+
+CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m scaleflow \
+  evaluate-gsm8k-cascade --config configs/qwen35_gsm8k_offline.yaml \
+  --policy results/qwen35_gsm8k_cascade_policy.json \
+  --inputs results/qwen35_0_8b_gsm8k_full.jsonl results/qwen35_2b_gsm8k_full.jsonl \
+           results/qwen35_4b_gsm8k_full.jsonl results/qwen35_9b_gsm8k_full.jsonl \
+  --output results/qwen35_gsm8k_cascade_evaluation.json
+```
+
+Thresholds are selected only on 660 development records. The 659-record holdout is evaluated once after freezing the policy; a `.evaluated` marker next to the policy rejects repeated execution. These commands do not load models or use a GPU.
+
 Run all tests:
 
 ```bash
@@ -176,6 +204,7 @@ CUDA_VISIBLE_DEVICES="" conda run -n scaleflow python -m pytest -q
 - `configs/qwen35_4b_gsm8k.yaml` preserves the same experiment contract while pinning the 4B revision and its runtime memory settings.
 - `configs/qwen35_9b_gsm8k.yaml` preserves the same experiment contract, pins the 9B BF16 revision, and uses `gpu_memory_utilization=0.90` for one GPU.
 - `configs/qwen35_*_gsm8k_full.yaml` uses the same dataset commit, prompt, generation settings, and warmup procedure, selecting all 1,319 records in original order.
+- `configs/qwen35_gsm8k_offline.yaml` fixes the holdout split, confidence bootstrap, threshold grid, and random-acceptance seed set.
 
 The GSM8K baseline uses the OpenAI test-set commit `3101c7d5072418e28b9008a6636bde82a006892c` and verifies SHA256 `3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14`. Future model-size runs should reuse the same sample indices and prompt.
 
@@ -219,6 +248,18 @@ The bit order for correctness combinations is `0.8B, 2B, 4B, 9B`:
 ```
 
 Progressive post-hoc oracle accuracy is 52.24% for 0.8B (689 correct), 75.13% after adding 2B (991, +302), 92.87% after adding 4B (1,225, +234), and 96.74% after adding 9B (1,276, +51). The full GSM8K split separates all four models reliably. 4B and 9B remain close, but their full-set gap is 3.34 percentage points, larger than the gap seen on 64 samples. GSM8K is relatively easy for the larger models and should not be treated as fully saturated; a harder, separately specified evaluation set is recommended for finer scheduling analysis. The confidence correlations above are exploratory observations for this fixed run, not calibration or formal statistical conclusions.
+
+## Offline Confidence Cascade
+
+The 1,319 records are deterministically split into 660 development and 659 holdout records with `SHA256(seed=42, sample_id)`. Development AUROC is 0.701, 0.743, and 0.779 for 0.8B, 2B, and 4B. Every 95% bootstrap lower bound exceeds 0.5; the lower bounds for the bottom-20% error lift and AURC improvement are also positive, so all three intermediate models remain in the chain.
+
+Each stage has 51 candidates, including explicit always-accept and always-escalate boundaries. Of 132,651 threshold combinations, 120 match or exceed development-set 9B accuracy. The minimum-mean-latency feasible thresholds are 0.9256, 0.9414, and 0.9421, giving the same 607/660 development accuracy as 9B.
+
+The frozen policy scores 611/659 (92.72%) on the holdout, below standalone 9B at 619/659 (93.93%). Final failures are 39 `incorrect`, 9 `parse_failure`, and 0 `inference_failure`. It invokes 9B for 65.86% of requests, reducing 9B calls by 34.14%, but estimated sequential latency is 13,744/12,189/27,033 ms (mean/P50/P95), versus 4,611/4,154/8,912 ms for standalone 9B.
+
+A confidence-independent baseline over 1,000 fixed seeds matches the per-stage acceptance and 9B invocation rates. Its mean accuracy is 90.74%, with a randomization interval of 89.38% to 92.11%. Confidence improves accuracy by 1.97 percentage points on average, with a randomization-difference interval of 0.61 to 3.34 points. Confidence ranking is therefore informative, but this threshold policy neither preserves 9B holdout accuracy nor reduces sequential end-to-end latency.
+
+Cascade latency is an offline sum of recorded single-model latencies. It excludes model loading, switching, queueing, and concurrency effects. Randomization intervals describe fixed-holdout policy variation, not population-level statistical confidence intervals.
 
 ## License
 
