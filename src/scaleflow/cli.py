@@ -188,6 +188,13 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_parser.add_argument("--policy", type=Path, required=True)
     evaluate_parser.add_argument("--inputs", type=Path, nargs="+", required=True)
     evaluate_parser.add_argument("--output", type=Path, required=True)
+    three_offline_parser = subparsers.add_parser(
+        "cascade-gsm8k-three-offline",
+        help="search and evaluate the 2B-4B-9B cascade offline",
+    )
+    three_offline_parser.add_argument("--config", type=Path, required=True)
+    three_offline_parser.add_argument("--inputs", type=Path, nargs=3, required=True)
+    three_offline_parser.add_argument("--output", type=Path, required=True)
     concurrency_parser = subparsers.add_parser(
         "run-gsm8k-concurrency",
         help="benchmark one vLLM model with closed-loop streaming concurrency",
@@ -734,6 +741,137 @@ def search_gsm8k_cascade(
     return 0
 
 
+def cascade_gsm8k_three_offline(
+    config_path: Path,
+    input_paths: Sequence[Path],
+    output_path: Path,
+) -> int:
+    if output_path.exists():
+        raise ConfigError(f"cascade output already exists: {output_path}")
+    config = load_config(config_path)
+    split_config = _offline_split_config(config)
+    search_config = config.get("threshold_search")
+    if not isinstance(search_config, dict):
+        raise ConfigError("offline config requires threshold_search")
+    tolerance = float(search_config.get("quality_tolerance", 0.01))
+    records_by_model = [load_records_jsonl(path) for path in input_paths]
+    if len(records_by_model) != 3 or any(len(records) != 1319 for records in records_by_model):
+        raise ConfigError("three-model cascade requires three 1319-record JSONL files")
+    comparison = compare_model_records(records_by_model)
+    model_ids = comparison["model_order"]
+    if model_ids != [
+        "Qwen/Qwen3.5-2B",
+        "Qwen/Qwen3.5-4B",
+        "Qwen/Qwen3.5-9B",
+    ]:
+        raise ConfigError("inputs must be ordered 2B, 4B, 9B")
+    sample_ids = [record["sample_id"] for record in records_by_model[0]]
+    development_ids, evaluation_ids = split_sample_ids(
+        sample_ids,
+        development_count=int(split_config["development_count"]),
+        seed=int(split_config["seed"]),
+    )
+    target_records = records_by_model[-1]
+    searches = {}
+    policies = {
+        "cascade-2B-4B": ([records_by_model[0], records_by_model[1]], "2B-4B"),
+        "cascade-2B-4B-9B": (records_by_model, "2B-4B-9B"),
+    }
+    for name, (chain_records, _) in policies.items():
+        search = search_pareto_thresholds(
+            chain_records,
+            development_ids,
+            target_records=target_records,
+            quality_tolerance=tolerance,
+            quantile_step=float(search_config["quantile_step"]),
+        )
+        searches[name] = search
+
+    def strategy_report(name: str, chain_records: Sequence[Sequence[dict[str, Any]]], search: dict[str, Any]) -> dict[str, Any]:
+        selected = search["selected"] or search["representative"]
+        if selected is None:
+            raise ConfigError(f"no representative threshold for {name}")
+        dev = replay_cascade(chain_records, development_ids, selected["thresholds"])
+        evaluation = replay_cascade(chain_records, evaluation_ids, selected["thresholds"])
+        return {
+            "strategy": name,
+            "thresholds": selected["thresholds"],
+            "selection_feasible": search["selected"] is not None,
+            "search": search,
+            "development": dev,
+            "evaluation": evaluation,
+        }
+
+    reports = {
+        "always-2B": replay_cascade([records_by_model[0]], evaluation_ids, []),
+        "always-4B": replay_cascade([records_by_model[1]], evaluation_ids, []),
+        "always-9B": replay_cascade([records_by_model[2]], evaluation_ids, []),
+        "cascade-2B-4B": strategy_report(
+            "cascade-2B-4B", [records_by_model[0], records_by_model[1]], searches["cascade-2B-4B"]
+        ),
+        "cascade-2B-4B-9B": strategy_report(
+            "cascade-2B-4B-9B", records_by_model, searches["cascade-2B-4B-9B"]
+        ),
+    }
+    baseline_9b = reports["always-9B"]
+    baseline_4b = reports["always-4B"]
+    indexed_inputs = [
+        {record["sample_id"]: record for record in records}
+        for records in records_by_model
+    ]
+    evaluation_records = [
+        [indexed[sample_id] for sample_id in evaluation_ids]
+        for indexed in indexed_inputs
+    ]
+    evaluation_comparison = compare_model_records(evaluation_records)
+    oracle_progression = evaluation_comparison["oracle_progression"]
+    oracle_accuracy = oracle_progression[-1]["oracle_accuracy"]
+    for report in reports.values():
+        evaluation = report["evaluation"] if "evaluation" in report else report
+        evaluation_model_ids = evaluation["model_order"]
+        evaluation_9b_rate = (
+            evaluation["model_invocation_rates"][evaluation_model_ids.index("Qwen/Qwen3.5-9B")]
+            if "Qwen/Qwen3.5-9B" in evaluation_model_ids
+            else 0.0
+        )
+        evaluation["relative_to_always_9B"] = {
+            "accuracy_delta_percentage_points": (evaluation["accuracy"] - baseline_9b["accuracy"]) * 100,
+            "mean_latency_delta_ms": evaluation["latency_ms"]["mean"] - baseline_9b["latency_ms"]["mean"],
+            "nine_b_call_reduction_percentage_points": (1.0 - evaluation_9b_rate) * 100,
+        }
+        evaluation["relative_to_always_4B"] = {
+            "accuracy_delta_percentage_points": (evaluation["accuracy"] - baseline_4b["accuracy"]) * 100,
+            "mean_latency_delta_ms": evaluation["latency_ms"]["mean"] - baseline_4b["latency_ms"]["mean"],
+        }
+        evaluation["relative_to_three_model_oracle"] = {
+            "oracle_accuracy": oracle_accuracy,
+            "accuracy_gap_percentage_points": (oracle_accuracy - evaluation["accuracy"]) * 100,
+        }
+    report = {
+        "scope": "exploratory_offline_replay_estimate",
+        "evaluation_reused_from_phase8": True,
+        "method_selection_uses_evaluation": False,
+        "split": {
+            "method": "sha256_seed_sample_id",
+            "seed": int(split_config["seed"]),
+            "development_count": len(development_ids),
+            "evaluation_count": len(evaluation_ids),
+            "development_sample_ids": development_ids,
+            "evaluation_sample_ids": evaluation_ids,
+        },
+        "model_order": model_ids,
+        "input_files": _input_fingerprints(model_ids, input_paths),
+        "quality_rule": f"development accuracy >= 9B accuracy - {tolerance:.4f}",
+        "strategies": reports,
+        "oracle": oracle_progression,
+        "latency_scope": "offline_replay_estimate",
+        "latency_exclusions": ["model_loading", "model_switching", "queueing", "concurrency_interference", "network_transfer"],
+    }
+    write_summary_json(output_path, report)
+    print(json.dumps({"output": str(output_path), "scope": report["scope"], "evaluation_count": len(evaluation_ids)}, ensure_ascii=False))
+    return 0
+
+
 def _direct_model_summary(
     records: Sequence[dict[str, Any]],
     sample_ids: Sequence[str],
@@ -1052,6 +1190,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         return evaluate_gsm8k_cascade(
             args.config,
             args.policy,
+            args.inputs,
+            args.output,
+        )
+    if args.command == "cascade-gsm8k-three-offline":
+        return cascade_gsm8k_three_offline(
+            args.config,
             args.inputs,
             args.output,
         )

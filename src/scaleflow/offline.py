@@ -462,8 +462,8 @@ def _index_replay_records(
     records_by_model: Sequence[Sequence[dict[str, Any]]],
     sample_ids: Sequence[str],
 ) -> tuple[list[dict[str, dict[str, Any]]], list[str]]:
-    if len(records_by_model) < 2:
-        raise ValueError("cascade replay requires at least two models")
+    if not records_by_model:
+        raise ValueError("cascade replay requires at least one model")
     if len(set(sample_ids)) != len(sample_ids):
         raise ValueError("cascade sample_id values must be unique")
     expected = set(sample_ids)
@@ -509,6 +509,14 @@ def _accepts_threshold(record: dict[str, Any], threshold: Threshold) -> bool:
     if not isinstance(threshold, (int, float)) or isinstance(threshold, bool):
         raise ValueError(f"invalid threshold candidate: {threshold}")
     return float(record["confidence"]) >= float(threshold)
+
+
+def _cascade_decision_reason(record: dict[str, Any]) -> str:
+    if record.get("outcome") in {"parse_failure", "inference_failure"}:
+        return "operational_failure"
+    if not _is_valid_confidence(record):
+        return "invalid_confidence"
+    return "confidence_below_threshold"
 
 
 def replay_cascade(
@@ -557,11 +565,7 @@ def replay_cascade(
                 )
                 final_index = model_index
                 break
-            reason = (
-                "operational_failure"
-                if not _can_be_accepted(record) or not _is_valid_confidence(record)
-                else "confidence_below_threshold"
-            )
+            reason = _cascade_decision_reason(record)
             decisions.append(
                 {
                     "model_id": model_ids[model_index],
@@ -624,6 +628,16 @@ def replay_cascade(
         ],
         "model_returns": model_returns,
         "model_return_rates": [count / len(sample_ids) for count in model_returns],
+        "final_model_source_rates": {
+            model_id: count / len(sample_ids)
+            for model_id, count in zip(model_ids, model_returns, strict=True)
+        },
+        "escalation_count_distribution": {
+            str(count): sum(
+                item["escalation_count"] == count for item in per_request
+            )
+            for count in range(len(model_ids))
+        },
         "stage_eligible_counts": eligible_counts,
         "stage_accepted_counts": accepted_counts,
         "stage_acceptance_rates": [
@@ -653,7 +667,9 @@ def build_threshold_candidates(
     quantile_step: float,
 ) -> list[Threshold]:
     if not confidence:
-        raise ValueError("threshold candidates require confidence values")
+        # Invalid or missing confidence is always escalated at replay time;
+        # retain both boundary policies so threshold search remains defined.
+        return [ALWAYS_ACCEPT, ALWAYS_ESCALATE]
     if not 0 < quantile_step < 1:
         raise ValueError("quantile_step must be between 0 and 1")
     values = [float(value) for value in confidence]
@@ -699,8 +715,22 @@ def search_pareto_thresholds(
     sample_ids: Sequence[str],
     *,
     quantile_step: float,
+    target_records: Sequence[dict[str, Any]] | None = None,
+    quality_tolerance: float = 0.0,
 ) -> dict[str, Any]:
+    if not 0 <= quality_tolerance <= 1:
+        raise ValueError("quality_tolerance must be between 0 and 1")
     indexed_models, model_ids = _index_replay_records(records_by_model, sample_ids)
+    if target_records is None:
+        target_indexed = indexed_models[-1]
+        target_model_id = model_ids[-1]
+    else:
+        target_indexed_list, target_ids = _index_replay_records(
+            [target_records],
+            sample_ids,
+        )
+        target_indexed = target_indexed_list[0]
+        target_model_id = target_ids[0]
     candidate_sets = [
         build_threshold_candidates(
             [
@@ -714,9 +744,11 @@ def search_pareto_thresholds(
         for indexed in indexed_models[:-1]
     ]
     target_correct_count = sum(
-        bool(indexed_models[-1][sample_id]["correct"])
+        bool(target_indexed[sample_id]["correct"])
         for sample_id in sample_ids
     )
+    target_accuracy = target_correct_count / len(sample_ids)
+    quality_floor = target_accuracy - quality_tolerance
     frontier: list[dict[str, Any]] = []
     selected: dict[str, Any] | None = None
     feasible_count = 0
@@ -747,7 +779,7 @@ def search_pareto_thresholds(
             "terminal_invocation_count": terminal_invocations,
             "terminal_invocation_rate": terminal_invocations / len(sample_ids),
         }
-        if correct_count >= target_correct_count:
+        if correct_count / len(sample_ids) >= quality_floor:
             feasible_count += 1
             selection_key = (
                 candidate["total_cumulative_latency_ms"],
@@ -773,9 +805,18 @@ def search_pareto_thresholds(
         ):
             frontier.append(candidate)
 
-    if selected is None:
-        raise ValueError("no threshold combination preserves terminal-model accuracy")
-    selected.pop("_selection_key")
+    representative_candidates = frontier
+    representative = min(
+        representative_candidates,
+        key=lambda item: (
+            -item["accuracy"],
+            item["mean_cumulative_latency_ms"],
+            item["terminal_invocation_rate"],
+            tuple(_threshold_sort_key(value) for value in item["thresholds"]),
+        ),
+    ) if representative_candidates else None
+    if selected is not None:
+        selected.pop("_selection_key")
     frontier.sort(
         key=lambda item: (
             item["mean_cumulative_latency_ms"],
@@ -788,11 +829,14 @@ def search_pareto_thresholds(
         "quantile_step": quantile_step,
         "candidate_counts_per_stage": [len(values) for values in candidate_sets],
         "candidate_combination_count": prod(len(values) for values in candidate_sets),
-        "target_model_id": model_ids[-1],
+        "target_model_id": target_model_id,
         "target_correct_count": target_correct_count,
-        "target_accuracy": target_correct_count / len(sample_ids),
+        "target_accuracy": target_accuracy,
+        "quality_tolerance": quality_tolerance,
+        "quality_floor": quality_floor,
         "feasible_candidate_count": feasible_count,
         "selected": selected,
+        "representative": representative,
         "pareto_frontier": frontier,
     }
 

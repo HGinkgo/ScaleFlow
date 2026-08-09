@@ -1,0 +1,8 @@
+split:
+  method: sha256_seed_sample_id
+  seed: 42
+  development_count: 660
+
+threshold_search:
+  quantile_step: 0.02
+  quality_tolerance: 0.01

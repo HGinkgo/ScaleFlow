@@ -89,6 +89,7 @@ def test_module_cli_help_starts() -> None:
     assert "analyze-gsm8k-confidence" in completed.stdout
     assert "search-gsm8k-cascade" in completed.stdout
     assert "evaluate-gsm8k-cascade" in completed.stdout
+    assert "cascade-gsm8k-three-offline" in completed.stdout
     assert "run-gsm8k-concurrency" in completed.stdout
     assert "analyze-gsm8k-routing" in completed.stdout
 
@@ -119,6 +120,102 @@ def test_concurrency_cli_parses_required_artifact_paths() -> None:
     assert args.model_id == MODEL_08
     assert args.preflight_only is True
     assert args.server_log == Path("results/server.log")
+
+
+def test_three_model_cascade_cli_parses_fixed_inputs() -> None:
+    args = cli.build_parser().parse_args(
+        [
+            "cascade-gsm8k-three-offline",
+            "--config",
+            "configs/qwen35_gsm8k_three_cascade.yaml",
+            "--inputs",
+            "results/2b.jsonl",
+            "results/4b.jsonl",
+            "results/9b.jsonl",
+            "--output",
+            "results/phase11.json",
+        ]
+    )
+
+    assert args.command == "cascade-gsm8k-three-offline"
+    assert args.inputs == [
+        Path("results/2b.jsonl"),
+        Path("results/4b.jsonl"),
+        Path("results/9b.jsonl"),
+    ]
+
+
+def test_three_model_cascade_cli_replays_forced_failure_and_latency(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "cascade.yaml"
+    config_path.write_text(
+        yaml.safe_dump(
+            {
+                "split": {
+                    "method": "sha256_seed_sample_id",
+                    "seed": 42,
+                    "development_count": 660,
+                },
+                "threshold_search": {
+                    "quantile_step": 0.5,
+                    "quality_tolerance": 0.01,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    model_ids = [MODEL_2, MODEL_4, MODEL_9]
+    input_paths = [tmp_path / f"model-{index}.jsonl" for index in range(3)]
+    experiment_config = {"dataset": "fixture", "temperature": 0.0}
+    for model_id, path in zip(model_ids, input_paths, strict=True):
+        records = []
+        for index in range(1319):
+            is_small = model_id == MODEL_2
+            records.append(
+                {
+                    "sample_id": f"sample-{index:04d}",
+                    "dataset_index": index,
+                    "question": f"question {index}",
+                    "prompt": f"prompt {index}",
+                    "reference_answer": str(index),
+                    "model_id": model_id,
+                    "outcome": "parse_failure" if is_small else "correct",
+                    "correct": not is_small,
+                    "success": not is_small,
+                    "confidence": None if is_small else 0.9,
+                    "latency_ms": 10.0 if is_small else (20.0 if model_id == MODEL_4 else 50.0),
+                    "experiment_config": experiment_config,
+                }
+            )
+        path.write_text(
+            "".join(json.dumps(record) + "\n" for record in records),
+            encoding="utf-8",
+        )
+
+    output_path = tmp_path / "cascade.json"
+    assert cli.main(
+        [
+            "cascade-gsm8k-three-offline",
+            "--config",
+            str(config_path),
+            "--inputs",
+            *(str(path) for path in input_paths),
+            "--output",
+            str(output_path),
+        ]
+    ) == 0
+
+    report = json.loads(output_path.read_text(encoding="utf-8"))
+    evaluation = report["strategies"]["cascade-2B-4B"]["evaluation"]
+    assert evaluation["accuracy"] == pytest.approx(1.0)
+    assert evaluation["model_invocations"] == [659, 659]
+    assert evaluation["latency_ms"]["mean"] == pytest.approx(30.0)
+    assert all(
+        request["decisions"][0]["reason"] == "operational_failure"
+        for request in evaluation["per_request"]
+    )
+    assert report["oracle"][-1]["oracle_correct_count"] == 659
 
 
 def test_routing_cli_parses_three_model_inputs_and_split_report() -> None:

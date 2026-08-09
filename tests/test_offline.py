@@ -326,6 +326,115 @@ def test_replay_cascade_escalates_low_confidence_and_operational_failures() -> N
     ]
     assert report["model_invocations"] == [3, 2, 1]
     assert report["accuracy"] == 1.0
+    assert report["per_request"][2]["decisions"][0]["reason"] == "operational_failure"
+    assert report["per_request"][2]["decisions"][1]["reason"] == "operational_failure"
+
+
+def test_pareto_search_uses_external_terminal_quality_floor() -> None:
+    sample_ids = [f"sample-{index:03d}" for index in range(4)]
+    small = [
+        {
+            **_record(
+                index,
+                model_id="2B",
+                confidence=0.9 if index < 3 else 0.1,
+                correct=index < 3,
+            ),
+            "latency_ms": 10.0,
+        }
+        for index in range(4)
+    ]
+    medium = [
+        {
+            **_record(index, model_id="4B", confidence=0.8, correct=index < 3),
+            "latency_ms": 20.0,
+        }
+        for index in range(4)
+    ]
+    terminal = [
+        {
+            **_record(index, model_id="9B", confidence=0.8, correct=index < 2),
+            "latency_ms": 50.0,
+        }
+        for index in range(4)
+    ]
+
+    search = search_pareto_thresholds(
+        [small, medium],
+        sample_ids,
+        target_records=terminal,
+        quality_tolerance=0.25,
+        quantile_step=0.5,
+    )
+
+    assert search["target_model_id"] == "9B"
+    assert search["target_accuracy"] == pytest.approx(0.5)
+    assert search["quality_floor"] == pytest.approx(0.25)
+    assert search["selected"] is not None
+    assert search["selected"]["accuracy"] >= search["quality_floor"]
+
+
+def test_pareto_search_reports_representative_when_quality_floor_is_infeasible() -> None:
+    sample_ids = [f"sample-{index:03d}" for index in range(4)]
+    small = [
+        {
+            **_record(index, model_id="2B", confidence=0.9, correct=False),
+            "latency_ms": 10.0,
+        }
+        for index in range(4)
+    ]
+    terminal = [
+        {
+            **_record(index, model_id="9B", confidence=0.8, correct=True),
+            "latency_ms": 50.0,
+        }
+        for index in range(4)
+    ]
+
+    search = search_pareto_thresholds(
+        [small],
+        sample_ids,
+        target_records=terminal,
+        quality_tolerance=0.0,
+        quantile_step=0.5,
+    )
+
+    assert search["selected"] is None
+    assert search["representative"]["accuracy"] == 0.0
+    assert search["feasible_candidate_count"] == 0
+
+
+def test_three_model_replay_reports_sources_rates_and_escalation_distribution() -> None:
+    sample_ids = [f"sample-{index:03d}" for index in range(3)]
+    models = []
+    for model_id, latency in (("2B", 10.0), ("4B", 20.0), ("9B", 50.0)):
+        models.append(
+            [
+                {
+                    **_record(
+                        index,
+                        model_id=model_id,
+                        confidence=(
+                            0.9
+                            if index == 0 or (model_id == "4B" and index == 1)
+                            else 0.1
+                        ),
+                        correct=(model_id == "9B" or index == 0),
+                    ),
+                    "latency_ms": latency,
+                }
+                for index in range(3)
+            ]
+        )
+
+    report = replay_cascade(models, sample_ids, [0.5, 0.5])
+
+    assert report["model_invocations"] == [3, 2, 1]
+    assert report["final_model_source_rates"] == pytest.approx(
+        {"2B": 1 / 3, "4B": 1 / 3, "9B": 1 / 3}
+    )
+    assert report["escalation_count_distribution"] == {"0": 1, "1": 1, "2": 1}
+    assert report["latency_ms"]["mean"] == pytest.approx((10 + 30 + 80) / 3)
 
 
 def test_threshold_candidates_include_both_boundary_modes() -> None:
