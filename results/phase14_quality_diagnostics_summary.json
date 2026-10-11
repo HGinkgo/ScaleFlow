@@ -1,0 +1,368 @@
+{
+  "phase": 14,
+  "result_type": "offline_quality_diagnostics_of_existing_phase13_results",
+  "new_model_calls": 0,
+  "input": {
+    "path": "results/phase13_rag_measurements.jsonl",
+    "sha256": "d58b13ee0dbaf7772f0c3dba8948452eca95198eb798d408dc28cf4c7ffd6876"
+  },
+  "task_record_count": 72,
+  "unique_question_count": 24,
+  "method": {
+    "primary_metric": "Unchanged Phase 13 normalized exact match gated by pipeline success; exact match remains the main indicator.",
+    "normalization": "Reuse Phase 13 lowercase, ASCII punctuation deletion, English article removal, whitespace collapse.",
+    "token_score": "Multiset word tokens from the same normalized saved predicted/gold answers; F1=2*overlap/(predicted_count+gold_count). Empty answers score 0. Not model/subword tokens.",
+    "failure_priority": [
+      "pipeline_failure",
+      "query_generation_failure",
+      "retrieval_miss",
+      "missing_final_answer",
+      "output_budget_reached",
+      "exact_match_only_failure",
+      "genuinely_wrong_answer"
+    ],
+    "priority_contract": "Pipeline failure first; existing successful tasks stay successful. Failed tasks receive the first applicable label. Raw flags may overlap but are not summed as failure categories.",
+    "category_rules": {
+      "pipeline_failure": "Saved pipeline_success is false; stage success consistency is validated.",
+      "query_generation_failure": "RAG query stage failed or required recorded JSON-query fallback; does not assess the semantic quality of a well-formed query.",
+      "retrieval_miss": "RAG retrieved zero distinct URLs from the question's recorded reference URLs. Direct answering is not applicable.",
+      "missing_final_answer": "Answer raw output has no nonempty FINAL answer on the same physical line.",
+      "output_budget_reached": "Saved answer generated_token_count >= 256. Count-based budget diagnostic, not a known vLLM finish reason or proof of truncation.",
+      "exact_match_only_failure": "Possible wording/unit candidate only: F1 >= threshold, one normalized token multiset is contained in the other, and numeric tokens from raw answers agree. Requires human review; not confirmed correct.",
+      "genuinely_wrong_answer": "Residual wrong/unsupported answer candidate after preceding checks; includes unknown/abstentions. Name is a diagnostic bucket, not semantic certification."
+    },
+    "candidate_f1_threshold": 0.6666666666666666,
+    "answer_token_budget": 256,
+    "retrieval_hit_definition": "Distinct exact URL intersection, identical to Phase 13. Document-level hit/complete reference coverage does not establish answer-bearing passage sufficiency.",
+    "stage_latency": "Means of saved real service measurements only; absent direct query/retrieval stages are null, not zero-time measured stages."
+  },
+  "notes": [
+    "exact match 仍然是主指标；保留原始字段和已有评分，不提升或重写成功率。",
+    "token-level 分数仅用于诊断，不能替代官方评分。高 overlap 或 exact_match_only_failure 不代表语义正确；部分列表、顺序和否定可能误导词项匹配。",
+    "本任务只分析已有 Phase 13 结果，没有调用模型、重新检索或进行新的调度实验，不产生新的模型实验结论。",
+    "失败标签按优先级互斥；重叠的原始异常仅作为检查线索。参考文档命中并不证明证据充分，单轮日志不能确定检索、推理与评分的因果贡献。"
+  ],
+  "metrics": {
+    "direct": {
+      "task_count": 24,
+      "pipeline_execution_success_rate": 1.0,
+      "normalized_exact_match_success_rate": 0.08333333333333333,
+      "answer_text_exact_match_rate": 0.08333333333333333,
+      "token_level_diagnostics": {
+        "mean_f1": 0.1793677727501257,
+        "mean_precision": 0.1783939014202172,
+        "mean_recall": 0.18898809523809523
+      },
+      "success_count": 2,
+      "failed_task_count": 22,
+      "failure_categories": {
+        "pipeline_failure": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "query_generation_failure": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "retrieval_miss": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "missing_final_answer": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "output_budget_reached": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "exact_match_only_failure": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "genuinely_wrong_answer": {
+          "count": 22,
+          "proportion_of_all_tasks": 0.9166666666666666
+        }
+      },
+      "retrieved_reference_document_count_mean": 0.0,
+      "retrieval_applicable_task_count": 0,
+      "reference_document_hit_count": 0,
+      "all_reference_documents_hit_count": 0,
+      "raw_observable_flag_counts_nonexclusive": {
+        "missing_final_line": 0,
+        "answer_output_budget_reached": 0,
+        "query_output_budget_reached": 0,
+        "query_fallback": 0,
+        "reference_document_miss": 0,
+        "unknown_answer": 0
+      },
+      "stage_compute_ms_mean": {
+        "query": null,
+        "retrieval": null,
+        "answer": 396.69772115303203
+      },
+      "sample_ids_by_failure_category": {
+        "success": [
+          "114",
+          "228"
+        ],
+        "pipeline_failure": [],
+        "query_generation_failure": [],
+        "retrieval_miss": [],
+        "missing_final_answer": [],
+        "output_budget_reached": [],
+        "exact_match_only_failure": [],
+        "genuinely_wrong_answer": [
+          "25",
+          "27",
+          "30",
+          "32",
+          "89",
+          "95",
+          "104",
+          "142",
+          "223",
+          "238",
+          "250",
+          "281",
+          "432",
+          "517",
+          "558",
+          "604",
+          "616",
+          "654",
+          "692",
+          "754",
+          "758",
+          "759"
+        ]
+      }
+    },
+    "single_node_rag": {
+      "task_count": 24,
+      "pipeline_execution_success_rate": 1.0,
+      "normalized_exact_match_success_rate": 0.041666666666666664,
+      "answer_text_exact_match_rate": 0.041666666666666664,
+      "token_level_diagnostics": {
+        "mean_f1": 0.04826946675591254,
+        "mean_precision": 0.045206847143466865,
+        "mean_recall": 0.10416666666666667
+      },
+      "success_count": 1,
+      "failed_task_count": 23,
+      "failure_categories": {
+        "pipeline_failure": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "query_generation_failure": {
+          "count": 1,
+          "proportion_of_all_tasks": 0.041666666666666664
+        },
+        "retrieval_miss": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "missing_final_answer": {
+          "count": 5,
+          "proportion_of_all_tasks": 0.20833333333333334
+        },
+        "output_budget_reached": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "exact_match_only_failure": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "genuinely_wrong_answer": {
+          "count": 17,
+          "proportion_of_all_tasks": 0.7083333333333334
+        }
+      },
+      "retrieved_reference_document_count_mean": 2.0833333333333335,
+      "retrieval_applicable_task_count": 24,
+      "reference_document_hit_count": 24,
+      "all_reference_documents_hit_count": 10,
+      "raw_observable_flag_counts_nonexclusive": {
+        "missing_final_line": 5,
+        "answer_output_budget_reached": 5,
+        "query_output_budget_reached": 0,
+        "query_fallback": 1,
+        "reference_document_miss": 0,
+        "unknown_answer": 13
+      },
+      "stage_compute_ms_mean": {
+        "query": 1290.0095765362494,
+        "retrieval": 258.51288352472085,
+        "answer": 5167.182087413191
+      },
+      "sample_ids_by_failure_category": {
+        "success": [
+          "114"
+        ],
+        "pipeline_failure": [],
+        "query_generation_failure": [
+          "517"
+        ],
+        "retrieval_miss": [],
+        "missing_final_answer": [
+          "25",
+          "604",
+          "654",
+          "754",
+          "759"
+        ],
+        "output_budget_reached": [],
+        "exact_match_only_failure": [],
+        "genuinely_wrong_answer": [
+          "27",
+          "30",
+          "32",
+          "89",
+          "95",
+          "104",
+          "142",
+          "223",
+          "228",
+          "238",
+          "250",
+          "281",
+          "432",
+          "558",
+          "616",
+          "692",
+          "758"
+        ]
+      }
+    },
+    "multi_model_rag": {
+      "task_count": 24,
+      "pipeline_execution_success_rate": 1.0,
+      "normalized_exact_match_success_rate": 0.08333333333333333,
+      "answer_text_exact_match_rate": 0.08333333333333333,
+      "token_level_diagnostics": {
+        "mean_f1": 0.17209336604663547,
+        "mean_precision": 0.19508150482415187,
+        "mean_recall": 0.23611111111111113
+      },
+      "success_count": 2,
+      "failed_task_count": 22,
+      "failure_categories": {
+        "pipeline_failure": {
+          "count": 0,
+          "proportion_of_all_tasks": 0.0
+        },
+        "query_generation_failure": {
+          "count": 4,
+          "proportion_of_all_tasks": 0.16666666666666666
+        },
+        "retrieval_miss": {
+          "count": 1,
+          "proportion_of_all_tasks": 0.041666666666666664
+        },
+        "missing_final_answer": {
+          "count": 5,
+          "proportion_of_all_tasks": 0.20833333333333334
+        },
+        "output_budget_reached": {
+          "count": 1,
+          "proportion_of_all_tasks": 0.041666666666666664
+        },
+        "exact_match_only_failure": {
+          "count": 2,
+          "proportion_of_all_tasks": 0.08333333333333333
+        },
+        "genuinely_wrong_answer": {
+          "count": 9,
+          "proportion_of_all_tasks": 0.375
+        }
+      },
+      "retrieved_reference_document_count_mean": 2.125,
+      "retrieval_applicable_task_count": 24,
+      "reference_document_hit_count": 23,
+      "all_reference_documents_hit_count": 12,
+      "raw_observable_flag_counts_nonexclusive": {
+        "missing_final_line": 5,
+        "answer_output_budget_reached": 6,
+        "query_output_budget_reached": 0,
+        "query_fallback": 4,
+        "reference_document_miss": 1,
+        "unknown_answer": 11
+      },
+      "stage_compute_ms_mean": {
+        "query": 1921.5465328112866,
+        "retrieval": 289.30781298549846,
+        "answer": 5006.722779595293
+      },
+      "sample_ids_by_failure_category": {
+        "success": [
+          "114",
+          "142"
+        ],
+        "pipeline_failure": [],
+        "query_generation_failure": [
+          "27",
+          "30",
+          "250",
+          "281"
+        ],
+        "retrieval_miss": [
+          "558"
+        ],
+        "missing_final_answer": [
+          "25",
+          "89",
+          "432",
+          "654",
+          "759"
+        ],
+        "output_budget_reached": [
+          "754"
+        ],
+        "exact_match_only_failure": [
+          "95",
+          "104"
+        ],
+        "genuinely_wrong_answer": [
+          "32",
+          "223",
+          "228",
+          "238",
+          "517",
+          "604",
+          "616",
+          "692",
+          "758"
+        ]
+      }
+    }
+  },
+  "manual_review": {
+    "csv_path": "results/phase14_quality_review.csv",
+    "jsonl_path": "results/phase14_quality_diagnostics.jsonl",
+    "csv_order": "sample_id then direct/single_node_rag/multi_model_rag; full answers retained, no truncation",
+    "jsonl_contract": "Every original field/stage is retained; only quality_diagnostics is added. Full raw answer/query and evidence remain available.",
+    "filter_columns": [
+      "failure_category",
+      "possible_correct_but_exact_match_rejected",
+      "has_final_line",
+      "reference_document_hit",
+      "all_reference_documents_hit",
+      "answer_output_budget_reached",
+      "query_fallback"
+    ]
+  },
+  "outputs": {
+    "diagnostics": {
+      "path": "results/phase14_quality_diagnostics.jsonl",
+      "sha256": "332e63fb4a099c806f6b9a73abfa826c80806bd03afaf34ccfcb5fb4dd45f62b"
+    },
+    "review": {
+      "path": "results/phase14_quality_review.csv",
+      "sha256": "3ef4a74d75808cd26a3896967554078771bba04f6fe6968b0abebbef9b4251b4"
+    }
+  },
+  "run_command": "python -m scaleflow.quality_diagnostics --inputs results/phase13_rag_measurements.jsonl --output results/phase14_quality_diagnostics.jsonl --summary results/phase14_quality_diagnostics_summary.json --review results/phase14_quality_review.csv --candidate-f1-threshold 0.6666666666666666"
+}

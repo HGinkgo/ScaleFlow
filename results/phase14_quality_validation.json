@@ -1,0 +1,88 @@
+{
+  "phase": 14,
+  "result_type": "validation_of_offline_quality_diagnostics",
+  "source_commit": "72ae56baadf2978ead31bb9f893164d6a9ec192d",
+  "source_measurements_sha256": "d58b13ee0dbaf7772f0c3dba8948452eca95198eb798d408dc28cf4c7ffd6876",
+  "conda_environment": "scaleflow",
+  "new_model_calls": 0,
+  "new_retrieval_calls": 0,
+  "new_simulation_runs": 0,
+  "source_task_records": 72,
+  "source_unique_questions": 24,
+  "all_original_fields_preserved": true,
+  "all_original_tracked_files_unchanged": true,
+  "original_tracked_file_count": 66,
+  "deterministic_replay": {
+    "jsonl_byte_identical": true,
+    "review_csv_byte_identical": true
+  },
+  "tests": {
+    "targeted_command": "python -m pytest tests/test_quality_diagnostics.py -q",
+    "targeted_passed": 61,
+    "full_command": "python -m pytest -q",
+    "full_passed": 199,
+    "failed": 0
+  },
+  "review_findings": {
+    "possible_exact_match_only_candidates": [
+      {
+        "mode": "multi_model_rag",
+        "sample_id": "95",
+        "gold": "74 years",
+        "prediction": "74",
+        "token_f1": 0.6666666666666666
+      },
+      {
+        "mode": "multi_model_rag",
+        "sample_id": "104",
+        "gold": "103",
+        "prediction": "103 years",
+        "token_f1": 0.6666666666666666
+      }
+    ],
+    "missing_final_ids_single_node_rag": [
+      "25",
+      "604",
+      "654",
+      "754",
+      "759"
+    ],
+    "missing_final_ids_multi_model_rag": [
+      "25",
+      "89",
+      "432",
+      "654",
+      "759"
+    ],
+    "all_ten_missing_final_rag_answers_reached_256_tokens": true,
+    "additional_multi_model_budget_reached_with_final_id": "754",
+    "zero_reference_hit_multi_model_id": "558",
+    "query_fallback_ids_single_node_rag": [
+      "517"
+    ],
+    "query_fallback_ids_multi_model_rag": [
+      "27",
+      "30",
+      "250",
+      "281"
+    ],
+    "unknown_answer_counts": {
+      "direct": 0,
+      "single_node_rag": 13,
+      "multi_model_rag": 11
+    },
+    "document_hit_is_not_passage_sufficiency": true
+  },
+  "next_priorities": [
+    "下一次模型实验先验证答案输出约束：10 条 RAG 回答缺失 FINAL 且均触及 256 token 上限。优先尝试短最终答案或调整输出预算；本任务没有执行这些改动，不能承诺其提高正确率。",
+    "人工检查保存的 evidence 是否含有解题所需事实及多跳连接信息，再区分检索片段不足与答案生成失败。单节点/多模型完整参考文档覆盖仅为 10/24、12/24；命中文档不足以判断证据充分。",
+    "随后检查 5 条 query fallback 的原始输出与解析兼容性。仅有 2 条保守的 exact-match 差异候选，不应通过更换主评分来宣称质量改善。"
+  ],
+  "limitations": [
+    "失败标签是按优先级互斥的日志诊断，不是已证实的因果根因。genuinely_wrong_answer 包含错误、未知和证据不足的剩余候选。",
+    "query_generation_failure 只识别执行或格式 fallback，不判断有效 JSON 查询的语义质量。",
+    "token F1 为词项重叠，可能受部分列表、词序、否定和单位影响，只能用于人工检查；exact match 保持主指标。",
+    "256 token 到达是计数边界，不是已保存的 vLLM finish reason，也不是所有回答必然截断的证明。",
+    "已有日志不能完全分离检索内容质量、模型推理能力与输出预算的因果贡献；没有新增实验结论。"
+  ]
+}
