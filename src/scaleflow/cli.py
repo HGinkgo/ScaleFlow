@@ -40,6 +40,11 @@ from scaleflow.performance import (
     validate_reference_contract,
 )
 from scaleflow.routing import analyze_routing
+from scaleflow.queueing import (
+    QueueingConfigError,
+    run_queue_experiment,
+    write_queue_outputs,
+)
 from scaleflow.scheduler.policies import AlwaysModelPolicy, ConfidenceCascadePolicy
 from scaleflow.scheduler.runner import run_requests, write_results_jsonl
 from scaleflow.schemas import InferenceRequest
@@ -229,6 +234,19 @@ def build_parser() -> argparse.ArgumentParser:
     routing_parser.add_argument("--split-report", type=Path, required=True)
     routing_parser.add_argument("--inputs", type=Path, nargs=3, required=True)
     routing_parser.add_argument("--output", type=Path, required=True)
+    queue_parser = subparsers.add_parser(
+        "simulate-queue-aware",
+        help="simulate fixed, quality-only, and queue-aware collaborative routing",
+    )
+    queue_parser.add_argument("--config", type=Path, required=True)
+    queue_parser.add_argument(
+        "--inputs",
+        type=Path,
+        nargs="+",
+        help="optional historical model JSONL files in the configured model order",
+    )
+    queue_parser.add_argument("--output", type=Path, required=True)
+    queue_parser.add_argument("--summary", type=Path, required=True)
     return parser
 
 
@@ -1164,6 +1182,102 @@ def analyze_gsm8k_routing(
     return 0
 
 
+def simulate_queue_aware(
+    config_path: Path,
+    input_paths: Sequence[Path] | None,
+    output_path: Path,
+    summary_path: Path,
+) -> int:
+    """Run the queue-aware simulation using historical or synthetic inputs."""
+
+    if output_path.exists():
+        raise ConfigError(f"queueing output already exists: {output_path}")
+    if summary_path.exists():
+        raise ConfigError(f"queueing summary already exists: {summary_path}")
+    config = load_config(config_path)
+    model_items = config.get("models")
+    if not isinstance(model_items, list) or not model_items:
+        raise ConfigError("queueing config must contain a non-empty models list")
+    model_ids = [item.get("model_id", item.get("id")) for item in model_items]
+    if any(not isinstance(model_id, str) or not model_id for model_id in model_ids):
+        raise ConfigError("every queueing model must have a model_id")
+
+    benchmark = config.get("benchmark", {})
+    if not isinstance(benchmark, dict):
+        raise ConfigError("benchmark must be an object when present")
+    concurrency_paths = benchmark.get("concurrency_summary_paths", {})
+    concurrency_contract: dict[str, Any] = {"paths": [], "reference_level": None}
+    if concurrency_paths:
+        if not isinstance(concurrency_paths, dict):
+            raise ConfigError("benchmark.concurrency_summary_paths must be an object")
+        reference_level = benchmark.get("concurrency_reference_level", 1)
+        if isinstance(reference_level, bool) or not isinstance(reference_level, int):
+            raise ConfigError("benchmark.concurrency_reference_level must be an integer")
+        for item, model_id in zip(model_items, model_ids, strict=True):
+            path_value = concurrency_paths.get(model_id)
+            if path_value is None:
+                raise ConfigError(f"missing concurrency summary for {model_id}")
+            path = Path(path_value)
+            summary = _load_json_object(path, f"Phase 9 concurrency summary for {model_id}")
+            levels = summary.get("levels")
+            if not isinstance(levels, list):
+                raise ConfigError(f"Phase 9 summary has no levels: {path}")
+            matches = [level for level in levels if level.get("concurrency") == reference_level]
+            if len(matches) != 1 or not isinstance(matches[0].get("latency_ms"), dict):
+                raise ConfigError(
+                    f"Phase 9 summary has no unique latency level {reference_level}: {path}"
+                )
+            mean_latency = matches[0]["latency_ms"].get("mean")
+            if not isinstance(mean_latency, (int, float)):
+                raise ConfigError(f"Phase 9 summary latency mean is invalid: {path}")
+            item["concurrency_reference_ms"] = float(mean_latency)
+            concurrency_contract["paths"].append(str(path))
+        concurrency_contract["reference_level"] = reference_level
+
+    resolved_paths: list[Path] = list(input_paths or [])
+    if not resolved_paths:
+        configured_paths = benchmark.get("record_paths", {})
+        if isinstance(configured_paths, dict):
+            resolved_paths = [Path(configured_paths[model_id]) for model_id in model_ids if model_id in configured_paths]
+    if resolved_paths and len(resolved_paths) != len(model_ids):
+        raise ConfigError(
+            "queueing historical inputs must contain exactly one JSONL file per configured model"
+        )
+    model_records = None
+    input_contract: dict[str, Any] = {"mode": "synthetic_config", "paths": []}
+    if resolved_paths:
+        model_records = {
+            model_id: load_records_jsonl(path)
+            for model_id, path in zip(model_ids, resolved_paths, strict=True)
+        }
+        input_contract = {
+            "mode": "historical_replay",
+            "paths": [str(path) for path in resolved_paths],
+            "sha256": [file_sha256(path) for path in resolved_paths],
+            "record_counts": {model_id: len(records) for model_id, records in model_records.items()},
+        }
+    input_contract["concurrency_reference"] = concurrency_contract
+    try:
+        report = run_queue_experiment(config, model_records)
+    except QueueingConfigError as error:
+        raise ConfigError(str(error)) from error
+    report["metadata"]["input_contract"] = input_contract
+    write_queue_outputs(report, output_path, summary_path)
+    print(
+        json.dumps(
+            {
+                "output": str(output_path),
+                "summary": str(summary_path),
+                "request_records": len(report["per_request"]),
+                "scenarios": len(report["scenarios"]),
+                "input_mode": input_contract["mode"],
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -1216,6 +1330,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.split_report,
             args.inputs,
             args.output,
+        )
+    if args.command == "simulate-queue-aware":
+        return simulate_queue_aware(
+            args.config,
+            args.inputs,
+            args.output,
+            args.summary,
         )
     parser.print_help()
     return 0

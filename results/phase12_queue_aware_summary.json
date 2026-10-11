@@ -1,0 +1,1375 @@
+{
+  "metadata": {
+    "kind": "queue_aware_collaborative_inference_simulation",
+    "result_type": "simulation_or_historical_replay",
+    "online_vllm_measurement": false,
+    "seed": 42,
+    "model_profiles": {
+      "Qwen/Qwen3.5-2B": {
+        "quality": 0.6459438968915845,
+        "mean_service_time_ms": 2750.0938724988373,
+        "historical_observation_scale": 0.9307710200492437,
+        "source": "historical_phase7_jsonl_calibrated_by_phase9_concurrency"
+      },
+      "Qwen/Qwen3.5-4B": {
+        "quality": 0.8961334344200151,
+        "mean_service_time_ms": 3979.392643101164,
+        "historical_observation_scale": 1.005689086362636,
+        "source": "historical_phase7_jsonl_calibrated_by_phase9_concurrency"
+      },
+      "Qwen/Qwen3.5-9B": {
+        "quality": 0.9294920394238059,
+        "mean_service_time_ms": 4661.133358502411,
+        "historical_observation_scale": 0.9921248852175847,
+        "source": "historical_phase7_jsonl_calibrated_by_phase9_concurrency"
+      }
+    },
+    "nodes": [
+      {
+        "node_id": "edge-a",
+        "capacity": 2,
+        "model_ids": [
+          "Qwen/Qwen3.5-2B",
+          "Qwen/Qwen3.5-4B"
+        ],
+        "transmission_ms_one_way": 4.0,
+        "propagation_ms_one_way": 1.0
+      },
+      {
+        "node_id": "cloud-a",
+        "capacity": 2,
+        "model_ids": [
+          "Qwen/Qwen3.5-4B",
+          "Qwen/Qwen3.5-9B"
+        ],
+        "transmission_ms_one_way": 35.0,
+        "propagation_ms_one_way": 25.0
+      }
+    ],
+    "network_scenarios": [
+      "baseline-links",
+      "high-cloud-transfer"
+    ],
+    "delay_definition": {
+      "transmission_ms": "round_trip (twice configured one-way link value)",
+      "propagation_ms": "round_trip (twice configured one-way link value)",
+      "queue_wait_ms": "time from node arrival until a server starts computation",
+      "compute_ms": "historical per-request latency or synthetic service_time_ms",
+      "total_latency_ms": "queue_wait + compute + transmission + propagation"
+    },
+    "input_contract": {
+      "mode": "historical_replay",
+      "paths": [
+        "results/phase7_persistent_qwen35_2b_gsm8k_full.jsonl",
+        "results/phase7_persistent_qwen35_4b_gsm8k_full.jsonl",
+        "results/phase7_persistent_qwen35_9b_gsm8k_full.jsonl"
+      ],
+      "sha256": [
+        "83fb7b2a045da65eb19c302e80488eb978f39af89889dc0c4c56bb095ca05f5e",
+        "4d0b1a3b8ca58865c15044268272f852411e7bee316a31837d08394b1e86d176",
+        "d45ffc724c440ac7348a22c20b0af351941fff74b9c1effeed7ea568a84b1d0e"
+      ],
+      "record_counts": {
+        "Qwen/Qwen3.5-2B": 1319,
+        "Qwen/Qwen3.5-4B": 1319,
+        "Qwen/Qwen3.5-9B": 1319
+      },
+      "concurrency_reference": {
+        "paths": [
+          "results/phase9_qwen35_2b_concurrency_summary.json",
+          "results/phase9_qwen35_4b_concurrency_summary.json",
+          "results/phase9_qwen35_9b_concurrency_summary.json"
+        ],
+        "reference_level": 1
+      }
+    }
+  },
+  "scenarios": [
+    {
+      "network_scenario": "baseline-links",
+      "arrival_rate_per_second": 0.03,
+      "request_count": 256,
+      "strategies": {
+        "fixed-4B-edge": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2684.562880039997,
+            "p50": 2335.1919078227047,
+            "p95": 5005.307354174152
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 0.0,
+              "p95": 0.0
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2684.562880039997,
+              "p50": 2335.1919078227047,
+              "p95": 5005.307354174152
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0,
+            "max_before": 0,
+            "mean_after": 0.0,
+            "max_after": 0
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "quality-only": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2684.562880039997,
+            "p50": 2335.1919078227047,
+            "p95": 5005.307354174152
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 0.0,
+              "p95": 0.0
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2684.562880039997,
+              "p50": 2335.1919078227047,
+              "p95": 5005.307354174152
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0,
+            "max_before": 0,
+            "mean_after": 0.0,
+            "max_after": 0
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "queue-aware": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2684.562880039997,
+            "p50": 2335.1919078227047,
+            "p95": 5005.307354174152
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 0.0,
+              "p95": 0.0
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2684.562880039997,
+              "p50": 2335.1919078227047,
+              "p95": 5005.307354174152
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0,
+            "max_before": 0,
+            "mean_after": 0.0,
+            "max_after": 0
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        }
+      }
+    },
+    {
+      "network_scenario": "baseline-links",
+      "arrival_rate_per_second": 0.15,
+      "request_count": 256,
+      "strategies": {
+        "fixed-4B-edge": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2734.181127688585,
+            "p50": 2365.0313244461504,
+            "p95": 5098.828662458996
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 49.618247648588266,
+              "p95": 259.00940064367023
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2734.181127688585,
+              "p50": 2365.0313244461504,
+              "p95": 5098.828662458996
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0234375,
+            "max_before": 2,
+            "mean_after": 0.0859375,
+            "max_after": 3
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "quality-only": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2734.181127688585,
+            "p50": 2365.0313244461504,
+            "p95": 5098.828662458996
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 49.618247648588266,
+              "p95": 259.00940064367023
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2734.181127688585,
+              "p50": 2365.0313244461504,
+              "p95": 5098.828662458996
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0234375,
+            "max_before": 2,
+            "mean_after": 0.0859375,
+            "max_after": 3
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "queue-aware": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2726.6421825900243,
+            "p50": 2365.0313244461504,
+            "p95": 5098.828662458996
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 28.39299092995404,
+              "p95": 42.130591014938545
+            },
+            "compute": {
+              "mean": 2686.96012916007,
+              "p95": 5036.028930377655
+            },
+            "transmission": {
+              "mean": 8.7265625,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.5625,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2726.6421825900243,
+              "p50": 2365.0313244461504,
+              "p95": 5098.828662458996
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.01953125,
+            "max_before": 2,
+            "mean_after": 0.0703125,
+            "max_after": 3
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 253,
+            "cloud-a": 3
+          },
+          "sources": [
+            "historical"
+          ]
+        }
+      }
+    },
+    {
+      "network_scenario": "baseline-links",
+      "arrival_rate_per_second": 0.35,
+      "request_count": 256,
+      "strategies": {
+        "fixed-4B-edge": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.875,
+          "latency_slo_satisfaction_rate": 0.953125,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2971.3313175345643,
+            "p50": 2526.259337651144,
+            "p95": 5831.171534600501
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 286.7684374945672,
+              "p95": 1965.0049589982373
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2971.3313175345643,
+              "p50": 2526.259337651144,
+              "p95": 5831.171534600501
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.390625,
+            "max_before": 10,
+            "mean_after": 0.62890625,
+            "max_after": 11
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "quality-only": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.875,
+          "latency_slo_satisfaction_rate": 0.953125,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2971.3313175345643,
+            "p50": 2526.259337651144,
+            "p95": 5831.171534600501
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 286.7684374945672,
+              "p95": 1965.0049589982373
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2971.3313175345643,
+              "p50": 2526.259337651144,
+              "p95": 5831.171534600501
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.390625,
+            "max_before": 10,
+            "mean_after": 0.62890625,
+            "max_after": 11
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "queue-aware": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.890625,
+          "latency_slo_satisfaction_rate": 0.96875,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2818.2632074423777,
+            "p50": 2465.983151374852,
+            "p95": 5318.145945350551
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 63.04958790541049,
+              "p95": 546.6492488194199
+            },
+            "compute": {
+              "mean": 2737.9089320369676,
+              "p95": 5153.108552269284
+            },
+            "transmission": {
+              "mean": 12.1171875,
+              "p95": 70.0
+            },
+            "propagation": {
+              "mean": 5.1875,
+              "p95": 50.0
+            },
+            "total": {
+              "mean": 2818.2632074423777,
+              "p50": 2465.983151374852,
+              "p95": 5318.145945350551
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.08984375,
+            "max_before": 2,
+            "mean_after": 0.2265625,
+            "max_after": 3
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 239,
+            "cloud-a": 17
+          },
+          "sources": [
+            "historical"
+          ]
+        }
+      }
+    },
+    {
+      "network_scenario": "baseline-links",
+      "arrival_rate_per_second": 0.6,
+      "request_count": 256,
+      "strategies": {
+        "fixed-4B-edge": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.66796875,
+          "latency_slo_satisfaction_rate": 0.71484375,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 4902.861263653802,
+            "p50": 4269.699891109347,
+            "p95": 10146.95123737036
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 2218.298383613805,
+              "p95": 7463.0751561552825
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 4902.861263653802,
+              "p50": 4269.699891109347,
+              "p95": 10146.95123737036
+            }
+          },
+          "queue_length": {
+            "mean_before": 7.1171875,
+            "max_before": 34,
+            "mean_after": 7.87109375,
+            "max_after": 35
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "quality-only": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.66796875,
+          "latency_slo_satisfaction_rate": 0.71484375,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 4902.861263653802,
+            "p50": 4269.699891109347,
+            "p95": 10146.95123737036
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 2218.298383613805,
+              "p95": 7463.0751561552825
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 4902.861263653802,
+              "p50": 4269.699891109347,
+              "p95": 10146.95123737036
+            }
+          },
+          "queue_length": {
+            "mean_before": 7.1171875,
+            "max_before": 34,
+            "mean_after": 7.87109375,
+            "max_after": 35
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "queue-aware": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.86328125,
+          "latency_slo_satisfaction_rate": 0.93359375,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 3216.125464819872,
+            "p50": 2888.5317761081305,
+            "p95": 6271.197234397724
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 277.2409909805413,
+              "p95": 1437.3660532750728
+            },
+            "compute": {
+              "mean": 2905.6813488393304,
+              "p95": 5983.413989932679
+            },
+            "transmission": {
+              "mean": 21.078125,
+              "p95": 70.0
+            },
+            "propagation": {
+              "mean": 12.125,
+              "p95": 50.0
+            },
+            "total": {
+              "mean": 3216.125464819872,
+              "p50": 2888.5317761081305,
+              "p95": 6271.197234397724
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.65625,
+            "max_before": 9,
+            "mean_after": 0.96484375,
+            "max_after": 10
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 202,
+            "cloud-a": 54
+          },
+          "sources": [
+            "historical"
+          ]
+        }
+      }
+    },
+    {
+      "network_scenario": "high-cloud-transfer",
+      "arrival_rate_per_second": 0.03,
+      "request_count": 256,
+      "strategies": {
+        "fixed-4B-edge": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2684.562880039997,
+            "p50": 2335.1919078227047,
+            "p95": 5005.307354174152
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 0.0,
+              "p95": 0.0
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2684.562880039997,
+              "p50": 2335.1919078227047,
+              "p95": 5005.307354174152
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0,
+            "max_before": 0,
+            "mean_after": 0.0,
+            "max_after": 0
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "quality-only": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2684.562880039997,
+            "p50": 2335.1919078227047,
+            "p95": 5005.307354174152
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 0.0,
+              "p95": 0.0
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2684.562880039997,
+              "p50": 2335.1919078227047,
+              "p95": 5005.307354174152
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0,
+            "max_before": 0,
+            "mean_after": 0.0,
+            "max_after": 0
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "queue-aware": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2684.562880039997,
+            "p50": 2335.1919078227047,
+            "p95": 5005.307354174152
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 0.0,
+              "p95": 0.0
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2684.562880039997,
+              "p50": 2335.1919078227047,
+              "p95": 5005.307354174152
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0,
+            "max_before": 0,
+            "mean_after": 0.0,
+            "max_after": 0
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        }
+      }
+    },
+    {
+      "network_scenario": "high-cloud-transfer",
+      "arrival_rate_per_second": 0.15,
+      "request_count": 256,
+      "strategies": {
+        "fixed-4B-edge": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2734.181127688585,
+            "p50": 2365.0313244461504,
+            "p95": 5098.828662458996
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 49.618247648588266,
+              "p95": 259.00940064367023
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2734.181127688585,
+              "p50": 2365.0313244461504,
+              "p95": 5098.828662458996
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0234375,
+            "max_before": 2,
+            "mean_after": 0.0859375,
+            "max_after": 3
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "quality-only": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.8984375,
+          "latency_slo_satisfaction_rate": 0.9765625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2734.181127688585,
+            "p50": 2365.0313244461504,
+            "p95": 5098.828662458996
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 49.618247648588266,
+              "p95": 259.00940064367023
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2734.181127688585,
+              "p50": 2365.0313244461504,
+              "p95": 5098.828662458996
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.0234375,
+            "max_before": 2,
+            "mean_after": 0.0859375,
+            "max_after": 3
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "queue-aware": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.89453125,
+          "latency_slo_satisfaction_rate": 0.97265625,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2729.3461591005907,
+            "p50": 2365.0313244461504,
+            "p95": 5098.828662458996
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 33.5113577973643,
+              "p95": 174.36999193140036
+            },
+            "compute": {
+              "mean": 2682.7879263032264,
+              "p95": 5036.028930377655
+            },
+            "transmission": {
+              "mean": 9.8125,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 3.234375,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2729.3461591005907,
+              "p50": 2365.0313244461504,
+              "p95": 5098.828662458996
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.01953125,
+            "max_before": 2,
+            "mean_after": 0.07421875,
+            "max_after": 3
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 254,
+            "cloud-a": 2
+          },
+          "sources": [
+            "historical"
+          ]
+        }
+      }
+    },
+    {
+      "network_scenario": "high-cloud-transfer",
+      "arrival_rate_per_second": 0.35,
+      "request_count": 256,
+      "strategies": {
+        "fixed-4B-edge": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.875,
+          "latency_slo_satisfaction_rate": 0.953125,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2971.3313175345643,
+            "p50": 2526.259337651144,
+            "p95": 5831.171534600501
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 286.7684374945672,
+              "p95": 1965.0049589982373
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2971.3313175345643,
+              "p50": 2526.259337651144,
+              "p95": 5831.171534600501
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.390625,
+            "max_before": 10,
+            "mean_after": 0.62890625,
+            "max_after": 11
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "quality-only": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.875,
+          "latency_slo_satisfaction_rate": 0.953125,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2971.3313175345643,
+            "p50": 2526.259337651144,
+            "p95": 5831.171534600501
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 286.7684374945672,
+              "p95": 1965.0049589982373
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2971.3313175345643,
+              "p50": 2526.259337651144,
+              "p95": 5831.171534600501
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.390625,
+            "max_before": 10,
+            "mean_after": 0.62890625,
+            "max_after": 11
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "queue-aware": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.890625,
+          "latency_slo_satisfaction_rate": 0.96875,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 2849.9860183099545,
+            "p50": 2478.1867839189044,
+            "p95": 5481.672314737151
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 112.34276931661789,
+              "p95": 911.13961943196
+            },
+            "compute": {
+              "mean": 2713.932311493337,
+              "p95": 5153.108552269284
+            },
+            "transmission": {
+              "mean": 16.15625,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 7.5546875,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 2849.9860183099545,
+              "p50": 2478.1867839189044,
+              "p95": 5481.672314737151
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.13671875,
+            "max_before": 3,
+            "mean_after": 0.31640625,
+            "max_after": 4
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 247,
+            "cloud-a": 9
+          },
+          "sources": [
+            "historical"
+          ]
+        }
+      }
+    },
+    {
+      "network_scenario": "high-cloud-transfer",
+      "arrival_rate_per_second": 0.6,
+      "request_count": 256,
+      "strategies": {
+        "fixed-4B-edge": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.66796875,
+          "latency_slo_satisfaction_rate": 0.71484375,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 4902.861263653802,
+            "p50": 4269.699891109347,
+            "p95": 10146.95123737036
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 2218.298383613805,
+              "p95": 7463.0751561552825
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 4902.861263653802,
+              "p50": 4269.699891109347,
+              "p95": 10146.95123737036
+            }
+          },
+          "queue_length": {
+            "mean_before": 7.1171875,
+            "max_before": 34,
+            "mean_after": 7.87109375,
+            "max_after": 35
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "quality-only": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.66796875,
+          "latency_slo_satisfaction_rate": 0.71484375,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 4902.861263653802,
+            "p50": 4269.699891109347,
+            "p95": 10146.95123737036
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 2218.298383613805,
+              "p95": 7463.0751561552825
+            },
+            "compute": {
+              "mean": 2674.562880039997,
+              "p95": 4995.307354174152
+            },
+            "transmission": {
+              "mean": 8.0,
+              "p95": 8.0
+            },
+            "propagation": {
+              "mean": 2.0,
+              "p95": 2.0
+            },
+            "total": {
+              "mean": 4902.861263653802,
+              "p50": 4269.699891109347,
+              "p95": 10146.95123737036
+            }
+          },
+          "queue_length": {
+            "mean_before": 7.1171875,
+            "max_before": 34,
+            "mean_after": 7.87109375,
+            "max_after": 35
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 256
+          },
+          "sources": [
+            "historical"
+          ]
+        },
+        "queue-aware": {
+          "request_count": 256,
+          "accuracy": 0.9140625,
+          "slo_satisfaction_rate": 0.86328125,
+          "latency_slo_satisfaction_rate": 0.93359375,
+          "quality_slo_satisfaction_rate": 0.9140625,
+          "quality_loss_vs_oracle_rate": 0.04296875,
+          "latency_ms": {
+            "mean": 3345.1793134287723,
+            "p50": 3051.576326851873,
+            "p95": 6328.783165689601
+          },
+          "latency_decomposition_ms": {
+            "queue_wait": {
+              "mean": 389.57584652637337,
+              "p95": 1751.0706604923253
+            },
+            "compute": {
+              "mean": 2869.431591902399,
+              "p95": 5659.149696581006
+            },
+            "transmission": {
+              "mean": 53.3125,
+              "p95": 240.0
+            },
+            "propagation": {
+              "mean": 32.859375,
+              "p95": 160.0
+            },
+            "total": {
+              "mean": 3345.1793134287723,
+              "p50": 3051.576326851873,
+              "p95": 6328.783165689601
+            }
+          },
+          "queue_length": {
+            "mean_before": 0.75,
+            "max_before": 9,
+            "mean_after": 1.1328125,
+            "max_after": 10
+          },
+          "model_invocations": {
+            "Qwen/Qwen3.5-4B": 256
+          },
+          "node_invocations": {
+            "edge-a": 206,
+            "cloud-a": 50
+          },
+          "sources": [
+            "historical"
+          ]
+        }
+      }
+    }
+  ]
+}

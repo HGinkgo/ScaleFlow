@@ -1,0 +1,80 @@
+# Phase 12 queue-aware collaboration experiment.
+# The Phase 7 JSONL files provide historical per-request latency and correctness.
+# Node multipliers and network values are explicit simulation parameters; they
+# do not claim to be measurements of an edge/cloud deployment.
+project:
+  name: ScaleFlow
+  seed: 42
+
+benchmark:
+  source: phase7_historical_replay
+  record_paths:
+    Qwen/Qwen3.5-2B: results/phase7_persistent_qwen35_2b_gsm8k_full.jsonl
+    Qwen/Qwen3.5-4B: results/phase7_persistent_qwen35_4b_gsm8k_full.jsonl
+    Qwen/Qwen3.5-9B: results/phase7_persistent_qwen35_9b_gsm8k_full.jsonl
+  concurrency_summary_paths:
+    Qwen/Qwen3.5-2B: results/phase9_qwen35_2b_concurrency_summary.json
+    Qwen/Qwen3.5-4B: results/phase9_qwen35_4b_concurrency_summary.json
+    Qwen/Qwen3.5-9B: results/phase9_qwen35_9b_concurrency_summary.json
+  concurrency_reference_level: 1
+
+models:
+  - model_id: Qwen/Qwen3.5-2B
+    quality: 0.6459438968915845
+  - model_id: Qwen/Qwen3.5-4B
+    quality: 0.8961334344200151
+  - model_id: Qwen/Qwen3.5-9B
+    quality: 0.9294920394238059
+
+nodes:
+  - node_id: edge-a
+    capacity: 2
+    model_ids:
+      - Qwen/Qwen3.5-2B
+      - Qwen/Qwen3.5-4B
+    # A configured multiplier expresses a scenario assumption applied to the
+    # historical Phase 7 mean; it is not a real edge measurement.
+    service_time_multiplier:
+      Qwen/Qwen3.5-2B: 0.65
+      Qwen/Qwen3.5-4B: 0.70
+    network:
+      transmission_ms: 4.0
+      propagation_ms: 1.0
+  - node_id: cloud-a
+    capacity: 2
+    model_ids:
+      - Qwen/Qwen3.5-4B
+      - Qwen/Qwen3.5-9B
+    service_time_multiplier:
+      Qwen/Qwen3.5-4B: 0.95
+      Qwen/Qwen3.5-9B: 1.00
+    network:
+      transmission_ms: 35.0
+      propagation_ms: 25.0
+
+queueing:
+  process: poisson
+  request_count: 256
+  rates_per_second: [0.03, 0.15, 0.35, 0.60]
+  seed: 42
+  request_sampling_seed: 2026
+  network_scenarios:
+    - name: baseline-links
+    - name: high-cloud-transfer
+      overrides:
+        cloud-a:
+          transmission_ms: 120.0
+          propagation_ms: 80.0
+  slo:
+    deadline_ms: 6000.0
+    min_quality: 0.85
+    require_correctness: true
+  strategies:
+    - name: fixed-4B-edge
+      type: fixed
+      model_id: Qwen/Qwen3.5-4B
+      node_id: edge-a
+    - name: quality-only
+      type: quality_only
+    - name: queue-aware
+      type: queue_aware

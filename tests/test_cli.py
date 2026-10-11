@@ -92,6 +92,7 @@ def test_module_cli_help_starts() -> None:
     assert "cascade-gsm8k-three-offline" in completed.stdout
     assert "run-gsm8k-concurrency" in completed.stdout
     assert "analyze-gsm8k-routing" in completed.stdout
+    assert "simulate-queue-aware" in completed.stdout
 
 
 def test_concurrency_cli_parses_required_artifact_paths() -> None:
@@ -244,6 +245,31 @@ def test_routing_cli_parses_three_model_inputs_and_split_report() -> None:
     assert args.split_report == Path(
         "results/phase8_confidence_development.json"
     )
+
+
+def test_queue_aware_cli_parses_optional_historical_inputs() -> None:
+    args = cli.build_parser().parse_args(
+        [
+            "simulate-queue-aware",
+            "--config",
+            "configs/qwen35_queue_aware.yaml",
+            "--inputs",
+            "results/2b.jsonl",
+            "results/4b.jsonl",
+            "results/9b.jsonl",
+            "--output",
+            "results/phase12.jsonl",
+            "--summary",
+            "results/phase12.json",
+        ]
+    )
+
+    assert args.command == "simulate-queue-aware"
+    assert args.inputs == [
+        Path("results/2b.jsonl"),
+        Path("results/4b.jsonl"),
+        Path("results/9b.jsonl"),
+    ]
 
 
 def test_run_mock_cli_writes_deterministic_routes(tmp_path: Path) -> None:
