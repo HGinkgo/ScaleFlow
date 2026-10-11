@@ -247,6 +247,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     queue_parser.add_argument("--output", type=Path, required=True)
     queue_parser.add_argument("--summary", type=Path, required=True)
+    prepare_rag_parser = subparsers.add_parser("prepare-rag", help="prepare pinned FRAMES samples and frozen Wikipedia passages")
+    prepare_rag_parser.add_argument("--config", type=Path, required=True)
+    prepare_rag_parser.add_argument("--manifest", type=Path, required=True)
+    run_rag_parser = subparsers.add_parser("run-rag", help="measure real small-model direct and multistage FRAMES RAG")
+    run_rag_parser.add_argument("--config", type=Path, required=True)
+    run_rag_parser.add_argument("--manifest", type=Path, required=True)
+    run_rag_parser.add_argument("--output", type=Path, required=True)
+    run_rag_parser.add_argument("--summary", type=Path, required=True)
+    replay_rag_parser = subparsers.add_parser("replay-rag-network", help="replay measured RAG stages on a fixed network and queues")
+    replay_rag_parser.add_argument("--config", type=Path, required=True)
+    replay_rag_parser.add_argument("--inputs", type=Path, required=True)
+    replay_rag_parser.add_argument("--output", type=Path, required=True)
+    replay_rag_parser.add_argument("--summary", type=Path, required=True)
     return parser
 
 
@@ -1281,6 +1294,27 @@ def simulate_queue_aware(
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command in {"prepare-rag", "run-rag", "replay-rag-network"}:
+        from scaleflow.rag import load_jsonl, prepare_rag, run_rag, write_json, write_jsonl
+        from scaleflow.rag_network import run_rag_replay
+
+        config = load_config(args.config)
+        if args.command == "prepare-rag":
+            report = prepare_rag(config, args.manifest)
+            print(json.dumps({"sample_count": report["sample_count"], "corpus": report["corpus"]}, ensure_ascii=False))
+        elif args.command == "run-rag":
+            report = run_rag(config, args.config, args.manifest, args.output, args.summary)
+            print(json.dumps(report["metrics"], ensure_ascii=False))
+        else:
+            if args.output.exists() or args.summary.exists():
+                raise ConfigError("RAG replay outputs already exist")
+            report = run_rag_replay(load_jsonl(args.inputs), config["simulation"])
+            rows = report.pop("per_request")
+            report["metadata"].update({"config_sha256": file_sha256(args.config), "records_sha256": file_sha256(args.inputs)})
+            write_jsonl(args.output, rows)
+            write_json(args.summary, report)
+            print(json.dumps(report["scenarios"], ensure_ascii=False))
+        return 0
     if args.command == "run-mock":
         return run_mock(args.config, args.output)
     if args.command == "run-vllm":

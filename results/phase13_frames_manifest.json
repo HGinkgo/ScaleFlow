@@ -1,0 +1,326 @@
+{
+  "dataset": "google/frames-benchmark",
+  "selection_method": "sorted(random.Random(seed).sample(row_indices, count))",
+  "sample_count": 24,
+  "population_count": 824,
+  "seed": 42,
+  "samples": [
+    {
+      "sample_id": "25",
+      "row_index": 25,
+      "question": "What was the age difference between Mike Tyson and Tyson Fury on the respective days on which they lost their first ever fights? Represent the figure in years only.",
+      "gold_answer": "12 years.",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Tyson_Fury",
+        "https://en.wikipedia.org/wiki/Mike_Tyson",
+        "https://en.wikipedia.org/wiki/Mike_Tyson_vs._Buster_Douglas",
+        "https://en.wikipedia.org/wiki/Tyson_Fury_vs_Oleksandr_Usyk"
+      ],
+      "reasoning_types": "Numerical reasoning | Post processing"
+    },
+    {
+      "sample_id": "27",
+      "row_index": 27,
+      "question": "What number would Tommy Lawton have worn playing for Chelsea FC?",
+      "gold_answer": "9",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Tommy_Lawton",
+        "https://en.wikipedia.org/wiki/Squad_number_(association_football)"
+      ],
+      "reasoning_types": "Temporal reasoning"
+    },
+    {
+      "sample_id": "30",
+      "row_index": 30,
+      "question": "As of August 1, 2024, what is the population of the writer of the \"Culdcept Saga\"'s birthplace? Write the answer to the nearest million, in characters.",
+      "gold_answer": "Two million.",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Culdcept_Saga",
+        "https://en.wikipedia.org/wiki/Tow_Ubukata",
+        "https://en.wikipedia.org/wiki/Gifu_Prefecture"
+      ],
+      "reasoning_types": "Numerical reasoning | Multiple constraints | Post processing"
+    },
+    {
+      "sample_id": "32",
+      "row_index": 32,
+      "question": "As of 2010, if you added the number of times Brazil had won the World Cup to the amount of times the Chicago Bulls had won the NBA Championship and multiplied this number by the amount of times the Dallas Cowboys had won the Super Bowl, what number are you left with?",
+      "gold_answer": "55",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/FIFA_World_Cup",
+        "https://en.wikipedia.org/wiki/Chicago_Bulls",
+        "https://en.wikipedia.org/wiki/Dallas_Cowboys"
+      ],
+      "reasoning_types": "Numerical reasoning | Tabular reasoning"
+    },
+    {
+      "sample_id": "89",
+      "row_index": 89,
+      "question": "What was the birthday of the man who was mayor of New York City the year Snoopy debuted in the Macy's Thanksgiving Day Parade?",
+      "gold_answer": "November 24, 1921",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Snoopy",
+        "https://en.wikipedia.org/wiki/List_of_mayors_of_New_York_City",
+        "https://en.wikipedia.org/wiki/John_Lindsay"
+      ],
+      "reasoning_types": "Tabular reasoning | Multiple constraints | Temporal reasoning"
+    },
+    {
+      "sample_id": "95",
+      "row_index": 95,
+      "question": "As of August 2024, the Atlanta Braves beat the Houston Astros the last time they won the World Series. How many years before this did Jackie Robinson join the Brooklyn Dodgers?",
+      "gold_answer": "74 years",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/List_of_World_Series_champions#World_Series_results",
+        "https://en.wikipedia.org/wiki/2021_Atlanta_Braves_season",
+        "https://en.wikipedia.org/wiki/2021_Houston_Astros_season",
+        "https://en.wikipedia.org/wiki/Jackie_Robinson"
+      ],
+      "reasoning_types": "Numerical reasoning | Temporal reasoning"
+    },
+    {
+      "sample_id": "104",
+      "row_index": 104,
+      "question": "\"The Terminator\" was released on October 26th exactly how many years after the famous gunfight at the O.K. Corral occurred?",
+      "gold_answer": "103",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Gunfight_at_the_O.K._Corral",
+        "https://en.wikipedia.org/wiki/The_Terminator"
+      ],
+      "reasoning_types": "Numerical reasoning | Multiple constraints"
+    },
+    {
+      "sample_id": "114",
+      "row_index": 114,
+      "question": "What painting was stolen from The Louvre exactly 56 years before the birth of activist and songwriter Serj Tankian?",
+      "gold_answer": "The Mona Lisa",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Mona_Lisa#Refuge,_theft,_and_vandalism",
+        "https://en.wikipedia.org/wiki/Serj_Tankian"
+      ],
+      "reasoning_types": "Numerical reasoning | Temporal reasoning"
+    },
+    {
+      "sample_id": "142",
+      "row_index": 142,
+      "question": "As of August 5, 2024, what is the name of the federal law that was found to be violated by the company that Brian Bergstein is employed by?",
+      "gold_answer": "The Sherman Antitrust Act",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Brian_Bergstein",
+        "https://en.wikipedia.org/wiki/Associated_Press",
+        "https://en.wikipedia.org/wiki/Associated_Press_v._United_States",
+        "https://en.wikipedia.org/wiki/Sherman_Antitrust_Act"
+      ],
+      "reasoning_types": "Multiple constraints"
+    },
+    {
+      "sample_id": "223",
+      "row_index": 223,
+      "question": "After Meat Loaf legally changed his name due to a commercial, what was the first new brand launched by the company to whom the commercial belonged?",
+      "gold_answer": "Dockers",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Meat_Loaf#Personal_life",
+        "https://en.wikipedia.org/wiki/Levi_Strauss_%26_Co.#Blue_jeans_era_(1960s%E2%80%931980s)"
+      ],
+      "reasoning_types": "Temporal reasoning"
+    },
+    {
+      "sample_id": "228",
+      "row_index": 228,
+      "question": "The US Naval ship that sunk in Havana Harbor on February 15, 1898, is named for a state that was admitted to the Union while what woman was serving as First Lady?",
+      "gold_answer": "Elizabeth Monroe",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/USS_Maine_(1889)",
+        "https://en.wikipedia.org/wiki/Maine",
+        "https://en.wikipedia.org/wiki/List_of_first_ladies_of_the_United_States"
+      ],
+      "reasoning_types": "Multiple constraints | Temporal reasoning"
+    },
+    {
+      "sample_id": "238",
+      "row_index": 238,
+      "question": "Part of the dynamic duo who broke a record set by Mickey Lolich and Bill Freehan in 1975 for most starts together, this MLB pitcher's battery mate ranked first all-time among catchers in putouts as of 2022. In what year did he (the pitcher)  make his Grand Ole Opry debut?",
+      "gold_answer": "2024",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/St._Louis_Cardinals",
+        "https://en.wikipedia.org/wiki/Yadier_Molina",
+        "https://en.wikipedia.org/wiki/Adam_Wainwright"
+      ],
+      "reasoning_types": "Multiple constraints | Temporal reasoning"
+    },
+    {
+      "sample_id": "250",
+      "row_index": 250,
+      "question": "The Sikh empire's capital at the time of the Battle of Sobraon came under the rule of the British Crown in what year?",
+      "gold_answer": "1858",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Battle_of_Sobraon",
+        "https://en.wikipedia.org/wiki/Lahore",
+        "https://en.wikipedia.org/wiki/Punjab_Province_(British_India)"
+      ],
+      "reasoning_types": "Temporal reasoning"
+    },
+    {
+      "sample_id": "281",
+      "row_index": 281,
+      "question": "I am the narrator character in the final novel written by the recipient of the 1963 Hugo Award for Best Novel. Who am I?",
+      "gold_answer": "Angel Archer.",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Hugo_Award_for_Best_Novel",
+        "https://en.wikipedia.org/wiki/Philip_K._Dick#Career",
+        "https://en.wikipedia.org/wiki/The_Transmigration_of_Timothy_Archer"
+      ],
+      "reasoning_types": "Tabular reasoning | Multiple constraints"
+    },
+    {
+      "sample_id": "432",
+      "row_index": 432,
+      "question": "In 2024's version of the world, which country was the birthplace of the Emperor who reigned from the year 363 to 364 over the Empire that the Goths played a major part in collapsing?",
+      "gold_answer": "Serbia",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Goths",
+        "https://en.wikipedia.org/wiki/Western_Roman_Empire",
+        "https://en.wikipedia.org/wiki/Jovian_(emperor)"
+      ],
+      "reasoning_types": "Multiple constraints"
+    },
+    {
+      "sample_id": "517",
+      "row_index": 517,
+      "question": "What age was the Director of Inception (2010) when the film was released in the UK?",
+      "gold_answer": "39",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Inception",
+        "https://en.wikipedia.org/wiki/Christopher_Nolan"
+      ],
+      "reasoning_types": "Numerical reasoning"
+    },
+    {
+      "sample_id": "558",
+      "row_index": 558,
+      "question": "Use this information: -The Dragonfly Sea is a novel by Yvonne Adhiambo Owuor. -It has a publisher. -The publisher has two co-founders.  What was the original name of the university where the male co-founder of this publisher studied?",
+      "gold_answer": "King's College",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/The_Dragonfly_Sea",
+        "https://en.wikipedia.org/wiki/Alfred_A._Knopf",
+        "https://en.wikipedia.org/wiki/Alfred_A._Knopf_Sr.",
+        "https://en.wikipedia.org/wiki/Columbia_University"
+      ],
+      "reasoning_types": "Multiple constraints | Post processing"
+    },
+    {
+      "sample_id": "604",
+      "row_index": 604,
+      "question": "During which year did the actor who played George Falconer in the film A Single Man receive his first Academy Award? Include the name of the film for which he won.",
+      "gold_answer": "Colin Firth won his first Academy Award in 2011 for The King's Speech.",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/A_Single_Man",
+        "https://en.wikipedia.org/wiki/Colin_Firth",
+        "https://en.wikipedia.org/wiki/List_of_awards_and_nominations_received_by_Colin_Firth"
+      ],
+      "reasoning_types": "Multiple constraints"
+    },
+    {
+      "sample_id": "616",
+      "row_index": 616,
+      "question": "As of 2024, how many times could the country where shogi was invented fit inside the country where xiangqi was invented? Round to the nearest whole number.",
+      "gold_answer": "25",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Shogi",
+        "https://en.wikipedia.org/wiki/Xiangqi",
+        "https://en.wikipedia.org/wiki/China",
+        "https://en.wikipedia.org/wiki/Japan"
+      ],
+      "reasoning_types": "Numerical reasoning | Post processing"
+    },
+    {
+      "sample_id": "654",
+      "row_index": 654,
+      "question": "Please consider the following clues and answer the question that follows:  1. This mosque is located in the city dubbed the \"Jerusalem of the Balkans.\" 2, The mosque was commissioned by an authoritarian dictator born in a small village 10 km west of Yogyakarta.  Question: What is the height difference between the twin towers of the mosque and its dome?",
+      "gold_answer": "21 meters",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Istiklal_Mosque,_Sarajevo",
+        "https://en.wikipedia.org/wiki/Sarajevo",
+        "https://en.wikipedia.org/wiki/Suharto",
+        "https://en.wikipedia.org/wiki/Kemusuk"
+      ],
+      "reasoning_types": "Numerical reasoning | Multiple constraints"
+    },
+    {
+      "sample_id": "692",
+      "row_index": 692,
+      "question": "Little River Canyon National Preserve has three waterfalls, one of which is the tallest in Alabama. How much shorter is Alabama's tallest waterfall than the tallest waterfall in the continental US?",
+      "gold_answer": "2,452 ft",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Grace%27s_High_Falls",
+        "https://en.wikipedia.org/wiki/List_of_waterfalls_by_height#By_overall_height"
+      ],
+      "reasoning_types": "Numerical reasoning | Tabular reasoning | Post processing"
+    },
+    {
+      "sample_id": "754",
+      "row_index": 754,
+      "question": "How many times larger was the population of the city of Paris, 19 years after the year designated as The International Year for the Culture of Peace by the United Nations, than the population of Brown County, Kansas according to its 2020 census? Round the answer to the nearest whole number.",
+      "gold_answer": "228 times larger",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Brown_County,_Kansas",
+        "https://en.wikipedia.org/wiki/Demographics_of_Paris",
+        "https://en.wikipedia.org/wiki/International_Year_for_the_Culture_of_Peace"
+      ],
+      "reasoning_types": "Numerical reasoning | Post processing | Temporal reasoning"
+    },
+    {
+      "sample_id": "758",
+      "row_index": 758,
+      "question": "Who was the Mayor of Quincy, Massachusetts when the Quincy Medical Center opened and who was the Mayor when it closed?",
+      "gold_answer": "Henry O. Fairbanks and Thomas P. Koch",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Quincy_Medical_Center",
+        "https://en.wikipedia.org/wiki/List_of_mayors_of_Quincy,_Massachusetts"
+      ],
+      "reasoning_types": "Numerical reasoning | Tabular reasoning | Temporal reasoning"
+    },
+    {
+      "sample_id": "759",
+      "row_index": 759,
+      "question": "I can't recall who I'm trying to think of. This person was the partner of someone in the 1984 Olympic keelboat competition. Their partner's sister was the only American who placed in the 2003 Pan American Games for sailing in the men's or women's competition (not including the open events).",
+      "gold_answer": "Richard Coxon.",
+      "reference_urls": [
+        "https://en.wikipedia.org/wiki/Sailing_at_the_2003_Pan_American_Games",
+        "https://en.wikipedia.org/wiki/Lanee_Butler",
+        "https://en.wikipedia.org/wiki/Colin_Beashel"
+      ],
+      "reasoning_types": "Multiple constraints"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://inference.mlcommons-storage.org/frames-benchmark-dataset/frames-benchmark/test.tsv",
+      "path": "data/frames/test.tsv",
+      "sha256": "4255093c93b595b5b04c7c8dde290b48ec87d72ca0fb0b760d9dd02740d669ff",
+      "md5": "fc556246315cc91e9823c4f9c94b91e6"
+    },
+    {
+      "url": "https://inference.mlcommons-storage.org/frames-benchmark-dataset/doc_html/docs.tar.gz",
+      "path": "data/frames/docs.tar.gz",
+      "sha256": "f5e6d7c14f93cdd0af49f9f72e2311419af7c9b0634755fb2310058a84e36e80",
+      "md5": "994551fd1a8455f22fa3b5f68f0d8d40"
+    },
+    {
+      "url": "https://inference.mlcommons-storage.org/frames-benchmark-dataset/doc_html/url_mapping.json",
+      "path": "data/frames/url_mapping.json",
+      "sha256": "7992a39c3b7a647d9e4e64896149e724b878f13e134d158d6b2b02f3d4d94c54",
+      "md5": "abe078da480c5f3014f7f375dc9d396c"
+    }
+  ],
+  "index_sha256": "c2c6c23156345fd50cfdf4a8b128ecb5f31984658663e4d15d4318d8d4f020ae",
+  "corpus": {
+    "scope": "entire MLCommons frozen Wikipedia corpus; no per-question reference filtering",
+    "document_count": 2515,
+    "passage_count": 126417,
+    "chunk_words": 220,
+    "overlap_words": 30,
+    "index_path": "data/frames/passages.jsonl",
+    "html_extractor": "mw-parser-output text incl. table cells; script/style removed"
+  }
+}

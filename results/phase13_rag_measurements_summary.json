@@ -1,0 +1,165 @@
+{
+  "result_type": "real_vllm_stage_measurements_and_cpu_retrieval",
+  "created_utc": "2026-10-11T11:49:56.042470+00:00",
+  "config_sha256": "50117799ef29cbe7c307e8fc526d4514e878c67c52c0b596c079cde2be5427c3",
+  "manifest_sha256": "e419623800c6b7a636c4d8d6cc83d87b75a3aab24dbd1b6f1fd1f62dc3968f15",
+  "records_sha256": "d58b13ee0dbaf7772f0c3dba8948452eca95198eb798d408dc28cf4c7ffd6876",
+  "sample_count": 24,
+  "sources": [
+    {
+      "url": "https://inference.mlcommons-storage.org/frames-benchmark-dataset/frames-benchmark/test.tsv",
+      "path": "data/frames/test.tsv",
+      "sha256": "4255093c93b595b5b04c7c8dde290b48ec87d72ca0fb0b760d9dd02740d669ff",
+      "md5": "fc556246315cc91e9823c4f9c94b91e6"
+    },
+    {
+      "url": "https://inference.mlcommons-storage.org/frames-benchmark-dataset/doc_html/docs.tar.gz",
+      "path": "data/frames/docs.tar.gz",
+      "sha256": "f5e6d7c14f93cdd0af49f9f72e2311419af7c9b0634755fb2310058a84e36e80",
+      "md5": "994551fd1a8455f22fa3b5f68f0d8d40"
+    },
+    {
+      "url": "https://inference.mlcommons-storage.org/frames-benchmark-dataset/doc_html/url_mapping.json",
+      "path": "data/frames/url_mapping.json",
+      "sha256": "7992a39c3b7a647d9e4e64896149e724b878f13e134d158d6b2b02f3d4d94c54",
+      "md5": "abe078da480c5f3014f7f375dc9d396c"
+    }
+  ],
+  "corpus": {
+    "scope": "entire MLCommons frozen Wikipedia corpus; no per-question reference filtering",
+    "document_count": 2515,
+    "passage_count": 126417,
+    "chunk_words": 220,
+    "overlap_words": 30,
+    "index_path": "data/frames/passages.jsonl",
+    "html_extractor": "mw-parser-output text incl. table cells; script/style removed"
+  },
+  "sampling": {
+    "population_count": 824,
+    "seed": 42,
+    "method": "sorted(random.Random(seed).sample(row_indices, count))",
+    "sample_ids": [
+      "25",
+      "27",
+      "30",
+      "32",
+      "89",
+      "95",
+      "104",
+      "114",
+      "142",
+      "223",
+      "228",
+      "238",
+      "250",
+      "281",
+      "432",
+      "517",
+      "558",
+      "604",
+      "616",
+      "654",
+      "692",
+      "754",
+      "758",
+      "759"
+    ]
+  },
+  "models": [
+    {
+      "model_id": "Qwen/Qwen3.5-2B",
+      "gpu": 0,
+      "backend": {
+        "model_id": "Qwen/Qwen3.5-2B",
+        "revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "gpu_memory_utilization": 0.65
+      }
+    },
+    {
+      "model_id": "Qwen/Qwen3.5-4B",
+      "gpu": 0,
+      "backend": {
+        "model_id": "Qwen/Qwen3.5-4B",
+        "revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+        "gpu_memory_utilization": 0.8
+      }
+    }
+  ],
+  "stages": {
+    "multi_query_model": "Qwen/Qwen3.5-2B",
+    "answer_model": "Qwen/Qwen3.5-4B",
+    "max_queries": 4
+  },
+  "retrieval": {
+    "candidates_per_query": 60,
+    "top_k": 10,
+    "max_passages_per_document": 2,
+    "rerank_overlap_weight": 0.02
+  },
+  "scoring": "normalized exact match after FINAL extraction; lowercase/punctuation/articles/whitespace normalization",
+  "measurement_contract": {
+    "model_load_and_warmup_excluded": true,
+    "sequential_batches": true,
+    "latency_scope": "sum of measured query model, CPU retrieval/reranking, answer model service times; isolated stages, not full online E2E wall clock",
+    "real_distributed_online_measurement": false,
+    "actual_network_measurement": false,
+    "protocol_overhead_included": false,
+    "payload_format": "compact sorted UTF-8 JSON",
+    "payload_assumption": "question, parsed queries, evidence, final answer; stage code/prompt templates preinstalled on nodes; raw model reasoning stays local",
+    "query_prompt": "Break the multi-hop question into at most four short Wikipedia search queries.\nInclude named entities and the facts needed. Do not answer the question.\nReturn only a JSON array of strings, with no explanation.\nQuestion: {question}\n",
+    "answer_prompt": "Answer the multi-hop question using the supplied Wikipedia evidence.\nEvidence may be incomplete or irrelevant. Reason briefly, and do not invent missing facts.\nIf the answer cannot be determined, use unknown as your final answer.\nEnd with exactly one line: FINAL: <short answer>\nInclude required units, names or list items, but no citations or explanation on that line.\nQuestion: {question}\nEvidence:\n{context}\n"
+  },
+  "metrics": {
+    "direct": {
+      "task_count": 24,
+      "task_success_rate": 0.08333333333333333,
+      "pipeline_execution_success_rate": 1.0,
+      "cumulative_compute_ms": {
+        "mean": 396.69772115303203,
+        "p95": 980.124517832883
+      },
+      "query_fallback_count": 0,
+      "answer_missing_final_line_count": 0,
+      "answer_output_budget_reached_count": 0,
+      "retrieved_reference_count_mean": 0.0
+    },
+    "single_node_rag": {
+      "task_count": 24,
+      "task_success_rate": 0.041666666666666664,
+      "pipeline_execution_success_rate": 1.0,
+      "cumulative_compute_ms": {
+        "mean": 6715.704547474161,
+        "p95": 10894.500545272604
+      },
+      "query_fallback_count": 1,
+      "answer_missing_final_line_count": 5,
+      "answer_output_budget_reached_count": 5,
+      "retrieved_reference_count_mean": 2.0833333333333335
+    },
+    "multi_model_rag": {
+      "task_count": 24,
+      "task_success_rate": 0.08333333333333333,
+      "pipeline_execution_success_rate": 1.0,
+      "cumulative_compute_ms": {
+        "mean": 7217.577125392078,
+        "p95": 11437.610652926378
+      },
+      "query_fallback_count": 4,
+      "answer_missing_final_line_count": 5,
+      "answer_output_budget_reached_count": 6,
+      "retrieved_reference_count_mean": 2.125
+    }
+  },
+  "limitations": [
+    "Small-sample pilot is not a full FRAMES or MLPerf result",
+    "Exact match penalizes valid paraphrases and alternate units",
+    "BM25/RRF/lexical reranking replaces dense/ColBERT retrieval",
+    "One retrieval round; no iterative sufficiency checking",
+    "Network and heterogeneous node speed/capacity are replay assumptions",
+    "Model load, ingestion/index construction and orchestration overhead outside task latency",
+    "Short warmup does not guarantee all JIT kernels are compiled; residual compilation can inflate early measured requests",
+    "Fixed generation budget; budget reached is a token-count diagnostic, not a recorded vLLM finish reason"
+  ],
+  "audit_enrichment": "Added metadata, error and token-budget diagnostics from saved raw worker outputs; all original answers, correctness and measured latencies unchanged.",
+  "scoring_source": "Reproducible local fallback: official accuracy_eval.py defaults to gpt-oss-20b LLM judge; no judge endpoint configured and large-model deployment excluded by scope."
+}

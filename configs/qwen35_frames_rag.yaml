@@ -1,0 +1,118 @@
+# Fixed FRAMES pilot. Network/node settings are simulation assumptions.
+project:
+  seed: 42
+dataset:
+  path: data/frames/test.tsv
+  url: https://inference.mlcommons-storage.org/frames-benchmark-dataset/frames-benchmark/test.tsv
+  md5: fc556246315cc91e9823c4f9c94b91e6
+  sample_count: 24
+  seed: 42
+corpus:
+  archive:
+    path: data/frames/docs.tar.gz
+    url: https://inference.mlcommons-storage.org/frames-benchmark-dataset/doc_html/docs.tar.gz
+    md5: 994551fd1a8455f22fa3b5f68f0d8d40
+  mapping:
+    path: data/frames/url_mapping.json
+    url: https://inference.mlcommons-storage.org/frames-benchmark-dataset/doc_html/url_mapping.json
+    md5: abe078da480c5f3014f7f375dc9d396c
+  index_path: data/frames/passages.jsonl
+  chunk_words: 220
+  overlap_words: 30
+models:
+  - model_id: Qwen/Qwen3.5-2B
+    gpu: 0
+    backend:
+      model_id: Qwen/Qwen3.5-2B
+      revision: 15852e8c16360a2fea060d615a32b45270f8a8fc
+      gpu_memory_utilization: 0.65
+  - model_id: Qwen/Qwen3.5-4B
+    gpu: 0
+    backend:
+      model_id: Qwen/Qwen3.5-4B
+      revision: 851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a
+      gpu_memory_utilization: 0.80
+stages:
+  multi_query_model: Qwen/Qwen3.5-2B
+  answer_model: Qwen/Qwen3.5-4B
+  max_queries: 4
+retrieval:
+  candidates_per_query: 60
+  top_k: 10
+  max_passages_per_document: 2
+  rerank_overlap_weight: 0.02
+measurement:
+  workdir: results/phase13_worker
+  backend_common:
+    language_model_only: true
+    enable_thinking: false
+    dtype: bfloat16
+    max_model_len: 8192
+    enforce_eager: true
+    enable_prefix_caching: false
+    seed: 42
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 256
+    logprobs: 1
+prompts:
+  query: |
+    Break the multi-hop question into at most four short Wikipedia search queries.
+    Include named entities and the facts needed. Do not answer the question.
+    Return only a JSON array of strings, with no explanation.
+    Question: {question}
+  direct: |
+    Answer this factual multi-hop question. Think through it briefly.
+    End with exactly one line: FINAL: <short answer>
+    Include required units, names or list items in the answer, but no explanation on that line.
+    Question: {question}
+  rag_answer: |
+    Answer the multi-hop question using the supplied Wikipedia evidence.
+    Evidence may be incomplete or irrelevant. Reason briefly, and do not invent missing facts.
+    If the answer cannot be determined, use unknown as your final answer.
+    End with exactly one line: FINAL: <short answer>
+    Include required units, names or list items, but no citations or explanation on that line.
+    Question: {question}
+    Evidence:
+    {context}
+simulation:
+  seed: 42
+  client_node: edge
+  single_node: edge
+  fixed_stage_nodes:
+    query: edge
+    retrieve_rerank: edge
+    answer: cloud
+  nodes:
+    - node_id: edge
+      capacity: 1
+      model_ids: [Qwen/Qwen3.5-2B, Qwen/Qwen3.5-4B, bm25-rrf-lexical]
+      service_time_multiplier:
+        Qwen/Qwen3.5-2B: 1.0
+        Qwen/Qwen3.5-4B: 1.4
+        bm25-rrf-lexical: 1.0
+    - node_id: cloud
+      capacity: 2
+      model_ids: [Qwen/Qwen3.5-4B]
+      service_time_multiplier:
+        Qwen/Qwen3.5-4B: 0.8
+  arrival:
+    process: poisson
+    request_count: 96
+    request_sampling_seed: 42
+  arrival_rates_per_second: [0.05, 0.2, 0.5]
+  network_scenarios:
+    - name: fast-link
+      links:
+        - source: edge
+          destination: cloud
+          bidirectional: true
+          bandwidth_mbps: 100
+          propagation_ms: 20
+    - name: constrained-link
+      links:
+        - source: edge
+          destination: cloud
+          bidirectional: true
+          bandwidth_mbps: 0.1
+          propagation_ms: 100

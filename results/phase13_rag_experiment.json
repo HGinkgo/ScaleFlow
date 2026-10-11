@@ -1,0 +1,542 @@
+{
+  "phase": 13,
+  "experiment": "multi-small-model collaborative RAG feasibility",
+  "environment": "scaleflow",
+  "references": {
+    "announcement": "https://mlcommons.org/2026/08/endtoend-inference/",
+    "implementation": "https://github.com/mlcommons/inference/tree/3fbc329939999c13d0a7b5e67fb2092287e06047/e2e-rag",
+    "reference_commit": "3fbc329939999c13d0a7b5e67fb2092287e06047",
+    "reference_readme_sha256": "744cebf11f24151fdcf8c12ddaba6368453054af94d4e3878d72cf050f7cb6fb",
+    "dataset": "https://huggingface.co/datasets/google/frames-benchmark"
+  },
+  "implementation": {
+    "boundary": "New rag.py data/retrieval/measurement, rag_worker.py isolated existing VLLMBackend, rag_network.py dependent-stage event replay; three CLI entries. Phase 7-12 definitions/results unchanged.",
+    "reuse": [
+      "VLLMBackend and ModelResponse latency",
+      "Phase 12 deterministic arrival generation",
+      "project percentile and file fingerprints"
+    ],
+    "why_new_replay": "Phase 12 schedules whole requests/cascades. RAG must release each stage only after prior stage and transfer complete; a separate chronological FCFS event loop preserves old experiment semantics.",
+    "modes": {
+      "direct": "4B answer",
+      "single_node_rag": "4B query -> CPU BM25/RRF/lexical rerank -> 4B evidence answer on edge",
+      "multi_model_rag": "2B query -> CPU BM25/RRF/lexical rerank -> 4B evidence answer; fixed or adaptive answer placement"
+    },
+    "fixed_topology": true,
+    "no_coordinate_trajectory_optimization": true
+  },
+  "real_measurements": {
+    "samples": 24,
+    "seed": 42,
+    "population": 824,
+    "corpus_documents": 2515,
+    "corpus_passages": 126417,
+    "query_calls": 48,
+    "answer_calls": 72,
+    "cpu_retrieval_calls": 48,
+    "warmup_calls": 3,
+    "sampling": "Fixed random selection before inference, no quality selection",
+    "latency_scope": "Sum of isolated measured service latencies, not real distributed online wall-clock E2E. Queues/network only in replay.",
+    "metrics": {
+      "direct": {
+        "task_count": 24,
+        "task_success_rate": 0.08333333333333333,
+        "pipeline_execution_success_rate": 1.0,
+        "cumulative_compute_ms": {
+          "mean": 396.69772115303203,
+          "p95": 980.124517832883
+        },
+        "query_fallback_count": 0,
+        "answer_missing_final_line_count": 0,
+        "answer_output_budget_reached_count": 0,
+        "retrieved_reference_count_mean": 0.0
+      },
+      "single_node_rag": {
+        "task_count": 24,
+        "task_success_rate": 0.041666666666666664,
+        "pipeline_execution_success_rate": 1.0,
+        "cumulative_compute_ms": {
+          "mean": 6715.704547474161,
+          "p95": 10894.500545272604
+        },
+        "query_fallback_count": 1,
+        "answer_missing_final_line_count": 5,
+        "answer_output_budget_reached_count": 5,
+        "retrieved_reference_count_mean": 2.0833333333333335
+      },
+      "multi_model_rag": {
+        "task_count": 24,
+        "task_success_rate": 0.08333333333333333,
+        "pipeline_execution_success_rate": 1.0,
+        "cumulative_compute_ms": {
+          "mean": 7217.577125392078,
+          "p95": 11437.610652926378
+        },
+        "query_fallback_count": 4,
+        "answer_missing_final_line_count": 5,
+        "answer_output_budget_reached_count": 6,
+        "retrieved_reference_count_mean": 2.125
+      }
+    },
+    "unknown_answers": {
+      "direct": 0,
+      "single_node_rag": 13,
+      "multi_model_rag": 11
+    },
+    "stage_compute_mean_ms": {
+      "direct": {
+        "answer": 396.69772115303203
+      },
+      "single_node_rag": {
+        "answer": 5167.182087413191,
+        "query": 1290.0095765362494,
+        "retrieve_rerank": 258.51288352472085
+      },
+      "multi_model_rag": {
+        "answer": 5006.722779595293,
+        "query": 1921.5465328112866,
+        "retrieve_rerank": 289.30781298549846
+      }
+    },
+    "hardware": {
+      "gpu_used": "one NVIDIA GeForce RTX 3090 24576 MiB (GPU 0); models loaded sequentially",
+      "gpu_count_available": 2,
+      "driver_version": "580.95.05"
+    },
+    "packages": {
+      "vllm": "0.26.0",
+      "torch": "2.11.0",
+      "transformers": "5.14.1",
+      "PyYAML": "6.0.3",
+      "pytest": "8.4.2"
+    },
+    "model_source": "Pinned Qwen3.5-2B/4B snapshots already cached; HF_HUB_OFFLINE=1. No weights downloaded or committed."
+  },
+  "replay": {
+    "scenario_count": 6,
+    "variant_count": 24,
+    "requests_per_variant": 96,
+    "per_request_rows": 2304,
+    "independent_quality_samples": 24,
+    "nodes": "Given edge one FCFS slot (4B x1.4) and cloud two slots (4B x0.8); 2B and retrieval edge only. Capacity/multipliers are synthetic.",
+    "latency_equation": "total_ms = queue_wait_ms + compute_ms + transmission_ms + propagation_ms",
+    "transmission_equation": "transmission_ms = UTF8_JSON_payload_bytes * 8 / (bandwidth_Mbps * 1000)",
+    "communication_scope": "Exact compact sorted UTF-8 JSON question/queries/evidence/final-answer payload on cross-node transitions incl. final return. Same-node traffic counts zero. Protocol overhead, local IPC, corpus placement and model deployment excluded; stage code/prompt templates preinstalled, raw reasoning retained locally.",
+    "quality_contract": "Placement reuses identical recorded outputs. No correctness oracle, deadline/drop or online quality effect.",
+    "policy": "Greedy next-stage estimated completion from current queues, in-sample mean service and input transfer plus mean final-answer return. No communication budget or whole-chain/future/in-transit scheduling.",
+    "comparison": [
+      {
+        "network": "fast-link",
+        "arrival_rate_per_second": 0.05,
+        "fixed": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 6534.547715528067,
+            "p95": 9946.743258047063
+          },
+          "communication_bytes": {
+            "mean_per_task": 14203.291666666666,
+            "total": 1363516
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 277.1788827216951,
+            "compute_ms": 6216.23256947302,
+            "transmission_ms": 1.1362633333333334,
+            "propagation_ms": 40.0
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 96
+          }
+        },
+        "network_aware": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 6534.547715528067,
+            "p95": 9946.743258047063
+          },
+          "communication_bytes": {
+            "mean_per_task": 14203.291666666666,
+            "total": 1363516
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 277.1788827216951,
+            "compute_ms": 6216.23256947302,
+            "transmission_ms": 1.1362633333333334,
+            "propagation_ms": 40.0
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 96
+          }
+        },
+        "aware_mean_latency_change_pct": 0.0,
+        "aware_p95_latency_change_pct": 0.0,
+        "aware_communication_reduction_pct": 0.0
+      },
+      {
+        "network": "fast-link",
+        "arrival_rate_per_second": 0.2,
+        "fixed": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 8615.193336554557,
+            "p95": 15562.80671321645
+          },
+          "communication_bytes": {
+            "mean_per_task": 14203.291666666666,
+            "total": 1363516
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 2357.824503748205,
+            "compute_ms": 6216.23256947302,
+            "transmission_ms": 1.1362633333333334,
+            "propagation_ms": 40.0
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 96
+          }
+        },
+        "network_aware": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 9398.100516281227,
+            "p95": 17617.12801229665
+          },
+          "communication_bytes": {
+            "mean_per_task": 13593.708333333334,
+            "total": 1304996
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 3012.144918341244,
+            "compute_ms": 6346.534767939981,
+            "transmission_ms": 1.0874966666666668,
+            "propagation_ms": 38.333333333333336
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 92,
+            "answer:edge": 4
+          }
+        },
+        "aware_mean_latency_change_pct": 9.087517240092202,
+        "aware_p95_latency_change_pct": 13.200197990864982,
+        "aware_communication_reduction_pct": 4.29184549356223
+      },
+      {
+        "network": "fast-link",
+        "arrival_rate_per_second": 0.5,
+        "fixed": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 32416.084020996957,
+            "p95": 52616.721014388335
+          },
+          "communication_bytes": {
+            "mean_per_task": 14203.291666666666,
+            "total": 1363516
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 26158.715188190607,
+            "compute_ms": 6216.23256947302,
+            "transmission_ms": 1.1362633333333334,
+            "propagation_ms": 40.0
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 96
+          }
+        },
+        "network_aware": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 40400.34174143467,
+            "p95": 63204.534520446934
+          },
+          "communication_bytes": {
+            "mean_per_task": 13658.09375,
+            "total": 1311177
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 33987.60811907461,
+            "compute_ms": 6373.307641526723,
+            "transmission_ms": 1.0926475,
+            "propagation_ms": 38.333333333333336
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 92,
+            "answer:edge": 4
+          }
+        },
+        "aware_mean_latency_change_pct": 24.630543637738754,
+        "aware_p95_latency_change_pct": 20.12252626529749,
+        "aware_communication_reduction_pct": 3.8385321477709122
+      },
+      {
+        "network": "constrained-link",
+        "arrival_rate_per_second": 0.05,
+        "fixed": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 7830.216743028085,
+            "p95": 11341.427338046971
+          },
+          "communication_bytes": {
+            "mean_per_task": 14203.291666666666,
+            "total": 1363516
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 277.72084022169776,
+            "compute_ms": 6216.23256947302,
+            "transmission_ms": 1136.2633333333333,
+            "propagation_ms": 200.0
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 96
+          }
+        },
+        "network_aware": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 7830.216743028085,
+            "p95": 11341.427338046971
+          },
+          "communication_bytes": {
+            "mean_per_task": 14203.291666666666,
+            "total": 1363516
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 277.72084022169776,
+            "compute_ms": 6216.23256947302,
+            "transmission_ms": 1136.2633333333333,
+            "propagation_ms": 200.0
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 96
+          }
+        },
+        "aware_mean_latency_change_pct": 0.0,
+        "aware_p95_latency_change_pct": 0.0,
+        "aware_communication_reduction_pct": 0.0
+      },
+      {
+        "network": "constrained-link",
+        "arrival_rate_per_second": 0.2,
+        "fixed": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 9911.85488676704,
+            "p95": 16885.982373216473
+          },
+          "communication_bytes": {
+            "mean_per_task": 14203.291666666666,
+            "total": 1363516
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 2359.3589839606957,
+            "compute_ms": 6216.23256947302,
+            "transmission_ms": 1136.2633333333333,
+            "propagation_ms": 200.0
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 96
+          }
+        },
+        "network_aware": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 9957.595202005807,
+            "p95": 16885.982373216473
+          },
+          "communication_bytes": {
+            "mean_per_task": 13907.145833333334,
+            "total": 1335086
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 2380.383270913606,
+            "compute_ms": 6268.80693109221,
+            "transmission_ms": 1112.5716666666665,
+            "propagation_ms": 195.83333333333334
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 94,
+            "answer:edge": 2
+          }
+        },
+        "aware_mean_latency_change_pct": 0.46147079190832496,
+        "aware_p95_latency_change_pct": 0.0,
+        "aware_communication_reduction_pct": 2.085050707142422
+      },
+      {
+        "network": "constrained-link",
+        "arrival_rate_per_second": 0.5,
+        "fixed": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 33683.0342540864,
+            "p95": 53928.12845438835
+          },
+          "communication_bytes": {
+            "mean_per_task": 14203.291666666666,
+            "total": 1363516
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 26130.538351280044,
+            "compute_ms": 6216.23256947302,
+            "transmission_ms": 1136.2633333333333,
+            "propagation_ms": 200.0
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 96
+          }
+        },
+        "network_aware": {
+          "task_count": 96,
+          "task_success_rate": 0.08333333333333333,
+          "latency_ms": {
+            "mean": 38384.244287210706,
+            "p95": 60722.04361960999
+          },
+          "communication_bytes": {
+            "mean_per_task": 13749.979166666666,
+            "total": 1319998
+          },
+          "latency_decomposition_mean_ms": {
+            "queue_wait_ms": 30733.92916705505,
+            "compute_ms": 6356.56678682232,
+            "transmission_ms": 1099.9983333333332,
+            "propagation_ms": 193.75
+          },
+          "stage_node_counts": {
+            "query:edge": 96,
+            "retrieve_rerank:edge": 96,
+            "answer:cloud": 93,
+            "answer:edge": 3
+          }
+        },
+        "aware_mean_latency_change_pct": 13.957204679545644,
+        "aware_p95_latency_change_pct": 12.598091867712103,
+        "aware_communication_reduction_pct": 3.191601712044445
+      }
+    ]
+  },
+  "findings": [
+    "Two different small models execute the chain, but task success is 2/24, equal to direct 2/24; single-node RAG is 1/24. No quality improvement established.",
+    "RAG cumulative measured service is about 17-18 times direct under these prompts; quality too low for a reliable task-quality objective.",
+    "RAG answers lack FINAL for 5/24 in both modes; 256-token budget reached in 5 single-node and 6 multi-model answers. Query fallback 1/24 vs 4/24; unknown answers 13 vs 11.",
+    "Strict match rejects predicted 74 vs gold 74 years, and predicted 103 years vs gold 103. Diagnostic examples do not alter scoring; unknowns and genuinely wrong numbers also fail.",
+    "Network-aware policy never improves mean latency in six scenarios. It matches fixed at low rate; at higher rates saves 2.1-4.3 percent bytes with up to 24.6 percent worse mean latency.",
+    "Occasional answer placement on shared edge consumes slots needed by subsequent query/retrieval stages. Stage-local greedy predictions can worsen full-chain queues.",
+    "Cloud offload can reduce queueing versus same-node RAG under synthetic resources; this does not establish model-cooperation or network-aware quality benefits."
+  ],
+  "thesis_mapping": {
+    "system_model": "Dependent stages, fixed links/nodes, allowed models, FCFS capacity, measured service, application payload/propagation.",
+    "optimization_goal": "Task success vs mean/P95 completion latency vs cross-node bytes; implemented greedy estimated stage completion under availability/capacity.",
+    "experiment_role": "Feasibility/negative-result pilot, with measured stages and historical queue/network replay explicitly separated.",
+    "recommendation": "Keep RAG exploratory; insufficient evidence to designate it the main thesis scenario. Establish reliable retrieval/answer scoring on a fixed expanded sample, then evaluate whole-chain scheduling with measured node calibration."
+  },
+  "limitations": [
+    "Small-sample pilot is not a full FRAMES or MLPerf result",
+    "Exact match penalizes valid paraphrases and alternate units",
+    "BM25/RRF/lexical reranking replaces dense/ColBERT retrieval",
+    "One retrieval round; no iterative sufficiency checking",
+    "Network and heterogeneous node speed/capacity are replay assumptions",
+    "Model load, ingestion/index construction and orchestration overhead outside task latency",
+    "Short warmup does not guarantee all JIT kernels are compiled; residual compilation can inflate early measured requests",
+    "Fixed generation budget; budget reached is a token-count diagnostic, not a recorded vLLM finish reason",
+    "24 independent questions only; repeated 96-request replay is not added quality evidence.",
+    "No link contention, packet loss, background traffic or model residency/switch cost. Edge slot is a synthetic shared model/retrieval compute resource.",
+    "In-sample means, no held-out latency predictor or online calibration.",
+    "One run per question; model outputs/latencies need not be bitwise reproducible across hardware/kernel versions.",
+    "Direct and evidence prompts differ; this pilot does not isolate every cause of latency differences."
+  ],
+  "validation": {
+    "pytest": "138 passed in 2.02s",
+    "new_rag_tests": 13,
+    "coverage": [
+      "fixed sampling",
+      "multi-model stage dependencies and failure retention",
+      "output budget diagnostics",
+      "event order/FCFS/capacity",
+      "UTF-8 exact bytes/network formula",
+      "latency decomposition/P95",
+      "network-sensitive placement",
+      "deterministic comparisons",
+      "CLI"
+    ],
+    "data_audit": "2304 rows satisfy latency and byte sums, aligned arrivals and identical multi-model answers.",
+    "retrieval_reproduction": "48 saved evidence sets reproduced exactly after deterministic term iteration.",
+    "replay_reproduction": "Independent replay CLI reproduces per-request file SHA256 exactly."
+  },
+  "run_commands": [
+    "source /root/miniconda3/etc/profile.d/conda.sh && conda activate scaleflow",
+    "python -m scaleflow prepare-rag --config configs/qwen35_frames_rag.yaml --manifest results/phase13_frames_manifest.json",
+    "python -m scaleflow run-rag --config configs/qwen35_frames_rag.yaml --manifest results/phase13_frames_manifest.json --output results/phase13_rag_measurements.jsonl --summary results/phase13_rag_measurements_summary.json",
+    "python -m scaleflow replay-rag-network --config configs/qwen35_frames_rag.yaml --inputs results/phase13_rag_measurements.jsonl --output results/phase13_rag_network_replay.jsonl --summary results/phase13_rag_network_summary.json",
+    "pytest -q"
+  ],
+  "rerun_notes": "Output files refuse overwrite. Choose fresh output/summary paths for a new run; prepared corpus/manifest can be reused. Different sample size/seed requires fresh manifest/index_path; checksum-pinned source downloads can be reused. New worker artifacts under measurement.workdir/output.stem.",
+  "artifacts": {
+    "qwen35_frames_rag.yaml": {
+      "sha256": "50117799ef29cbe7c307e8fc526d4514e878c67c52c0b596c079cde2be5427c3",
+      "bytes": 3643
+    },
+    "phase13_frames_manifest.json": {
+      "sha256": "e419623800c6b7a636c4d8d6cc83d87b75a3aab24dbd1b6f1fd1f62dc3968f15",
+      "bytes": 15479
+    },
+    "phase13_rag_measurements.jsonl": {
+      "sha256": "d58b13ee0dbaf7772f0c3dba8948452eca95198eb798d408dc28cf4c7ffd6876",
+      "bytes": 2265390
+    },
+    "phase13_rag_measurements_summary.json": {
+      "sha256": "46d6fad0968a86a96ae7bcd660249d36a358f60382a82f4d7fd9fe7b94ca42f5",
+      "bytes": 6674
+    },
+    "phase13_rag_network_replay.jsonl": {
+      "sha256": "df2240dccffe61c8e23736da3b590d1d03f8f8e2ca2b6e319060324a0a1f31bf",
+      "bytes": 5012613
+    },
+    "phase13_rag_network_summary.json": {
+      "sha256": "4d02fe8e2c6d4fa4d6a740e66872d85a0df4c7272e066c3d4f2e9729beac0c9f",
+      "bytes": 20099
+    }
+  },
+  "committed_data_scope": "Core manifest and per-request/aggregate outputs only (~7 MiB). Full source/derived corpus, weights, worker jobs/logs remain ignored local files.",
+  "scoring_source": {
+    "official": "https://github.com/mlcommons/inference/blob/3fbc329939999c13d0a7b5e67fb2092287e06047/e2e-rag/accuracy_eval.py",
+    "official_file_sha256": "3d95d1651f4594f28c69be4cec091e159bd71a00ac4b0a9f0c96791bf3d0bb5e",
+    "official_default": "gpt-oss-20b LLM judge via endpoint",
+    "reason_for_fallback": "No configured judge service; user excludes large-model download/execution. Existing GSM8K numeric scoring does not fit FRAMES answer types.",
+    "used": "normalized exact match, fixed before model measurements"
+  }
+}
