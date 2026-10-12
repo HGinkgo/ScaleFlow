@@ -1,0 +1,65 @@
+{
+  "phase": 15,
+  "validated_at_utc": "2026-10-12T14:03:54.264860+00:00",
+  "baseline_commit": "77997f64226b11b38e5da151fa6f91e6cf86daf6",
+  "conda_environment": "scaleflow",
+  "tests": {
+    "command": "pytest -q",
+    "passed": 235,
+    "new_phase15_test_cases": 36,
+    "duration_seconds": 2.13,
+    "stdout": "........................................................................ [ 30%]\n........................................................................ [ 61%]\n........................................................................ [ 91%]\n...................                                                      [100%]\n235 passed in 2.13s\n"
+  },
+  "preservation": {
+    "all_preexisting_tracked_files_byte_unchanged": true,
+    "file_count": 72,
+    "phase7_to14_unchanged": true
+  },
+  "evidence": {
+    "frozen_source_hash_count": 4,
+    "question_count": 24,
+    "exact_original_excerpt_count": 72,
+    "excerpt_offsets_and_hashes_rechecked_against_frozen_archive": true,
+    "a_contexts_equal_phase13_saved_evidence": true,
+    "agent_verifier": "Codex agent",
+    "human_confirmed_count": 0
+  },
+  "generations": {
+    "measurement_type": "real_vllm_answer_only",
+    "successful": 48,
+    "request_count": 48,
+    "model": "Qwen/Qwen3.5-4B",
+    "max_input_tokens": 4078,
+    "output_token_limit": 256,
+    "context_limit": 8192,
+    "all_actual_prompt_token_ids_equal_preflight": true,
+    "truncation_count": 0,
+    "finish_reason_counts": {
+      "stop": 48
+    },
+    "model_load_and_two_warmups_excluded": true
+  },
+  "aggregation_replay": {
+    "no_model_calls": true,
+    "answer_measurements_byte_identical": true,
+    "paired_review_csv_byte_identical": true,
+    "summary_identical_except_output_path_keys": true,
+    "csv_line_endings": "LF"
+  },
+  "artifacts_sha256": {
+    "configs/qwen35_frames_evidence_diagnostics.json": "6311170ec79897dd941257635c1b7ea1411fe845562ba7af8cad732eddedf9fb",
+    "src/scaleflow/phase15_diagnostics.py": "4ae171c8963d4eb3fa27c133ac76f00cc8199c0774d55a178e6507e5592c9c08",
+    "src/scaleflow/phase15_worker.py": "e288722f2fab0bc0a964400af5d828823138f0ee3cc240d1b0ecb0e8ff1d1e91",
+    "tests/test_phase15_diagnostics.py": "72988254d6a614138e7580104a800d10c47405c89cecf7d1f0febae446bfc1fb",
+    "results/phase15_analysis.json": "ec16188b7d04c5e13cc1c32eb1d9356a55e22ec8c5d047f6a68acf77b7de1dbc",
+    "results/phase15_answer_measurements.jsonl": "5627c61bfe88e53d47eae37f10f33e78e436afb71189fc6f0f2e0f5f027108ad",
+    "results/phase15_evidence_checks.jsonl": "c88a9125219f9e7f649046a62d4a91a80fac568aad694d2fc4b36b1fba61266a",
+    "results/phase15_generations.jsonl": "639beb5e2a27a7d486c1a4aa29b1f3cf7b1216b955d3623b0ed8fe911ada2dc7",
+    "results/phase15_generations.meta.json": "4e61a3cd3dc60073d683997e017a97b1b5da2fc41e8213c6b191939d3233a13e",
+    "results/phase15_job.json": "f105f1b33cf25fdabac8bfee82b086528d532cf455c9cd400f997a4144819a56",
+    "results/phase15_paired_inputs.jsonl": "5e81e341b6c242c69609f0d8a450d26dd22b7e391f2194a973a9a05516c784d2",
+    "results/phase15_paired_review.csv": "ff89d27919861de216101ca1d719c32d91a2f8f4dde60d1fdf96140a5ec735c9",
+    "results/phase15_semantic_review.json": "5c7130eb614cdd294b86a4fde7f0935a6eb43602197ab52750af4127304967bc",
+    "results/phase15_summary.json": "d9893a7a1d6260409baab89797eac010c37be05fc8954f63de1967bc5e0df603"
+  }
+}

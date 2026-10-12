@@ -1,0 +1,292 @@
+{
+  "question_count": 24,
+  "generation_count": 48,
+  "methods": {
+    "A_phase13_evidence": {
+      "task_count": 24,
+      "exact_match_count": 3,
+      "exact_match_rate": 0.125,
+      "unknown_count": 9,
+      "missing_final_count": 0,
+      "budget_reached_count": 0,
+      "pipeline_failure_count": 0,
+      "output_format_violation_count": 0,
+      "mean_output_tokens": 5.791666666666667,
+      "mean_input_tokens": 3609.9166666666665,
+      "mean_latency_ms": 649.4497467647307,
+      "p95_latency_ms": 763.429304282181,
+      "mean_context_chars": 12867.625,
+      "mean_context_tokens": 3485.5833333333335,
+      "mean_reference_document_count_canonical": 2.125,
+      "mean_nonreference_document_count_canonical": 5.25,
+      "sample_ids": [
+        "25",
+        "27",
+        "30",
+        "32",
+        "89",
+        "95",
+        "104",
+        "114",
+        "142",
+        "223",
+        "228",
+        "238",
+        "250",
+        "281",
+        "432",
+        "517",
+        "558",
+        "604",
+        "616",
+        "654",
+        "692",
+        "754",
+        "758",
+        "759"
+      ]
+    },
+    "B_sufficient_evidence": {
+      "task_count": 24,
+      "exact_match_count": 11,
+      "exact_match_rate": 0.4583333333333333,
+      "unknown_count": 0,
+      "missing_final_count": 0,
+      "budget_reached_count": 0,
+      "pipeline_failure_count": 0,
+      "output_format_violation_count": 0,
+      "mean_output_tokens": 7.166666666666667,
+      "mean_input_tokens": 692.8333333333334,
+      "mean_latency_ms": 331.0227999269652,
+      "p95_latency_ms": 502.05620555207133,
+      "mean_context_chars": 1874.625,
+      "mean_context_tokens": 568.5,
+      "mean_reference_document_count_canonical": 2.7083333333333335,
+      "mean_nonreference_document_count_canonical": 0.0,
+      "sample_ids": [
+        "25",
+        "27",
+        "30",
+        "32",
+        "89",
+        "95",
+        "104",
+        "114",
+        "142",
+        "223",
+        "228",
+        "238",
+        "250",
+        "281",
+        "432",
+        "517",
+        "558",
+        "604",
+        "616",
+        "654",
+        "692",
+        "754",
+        "758",
+        "759"
+      ]
+    }
+  },
+  "b_evidence_status_counts": {
+    "sufficient": 18,
+    "insufficient": 1,
+    "pending": 5
+  },
+  "paired_on_agent_verified_sufficient": {
+    "task_count": 18,
+    "human_confirmed_count": 0,
+    "outcomes": {
+      "both_correct": 2,
+      "only_a_correct": 0,
+      "only_b_correct": 7,
+      "both_wrong": 9
+    },
+    "rows": [
+      {
+        "sample_id": "25",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      },
+      {
+        "sample_id": "27",
+        "a_exact": false,
+        "b_exact": true,
+        "outcome": "only_b_correct"
+      },
+      {
+        "sample_id": "32",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      },
+      {
+        "sample_id": "89",
+        "a_exact": false,
+        "b_exact": true,
+        "outcome": "only_b_correct"
+      },
+      {
+        "sample_id": "95",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      },
+      {
+        "sample_id": "104",
+        "a_exact": true,
+        "b_exact": true,
+        "outcome": "both_correct"
+      },
+      {
+        "sample_id": "114",
+        "a_exact": true,
+        "b_exact": true,
+        "outcome": "both_correct"
+      },
+      {
+        "sample_id": "228",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      },
+      {
+        "sample_id": "238",
+        "a_exact": false,
+        "b_exact": true,
+        "outcome": "only_b_correct"
+      },
+      {
+        "sample_id": "250",
+        "a_exact": false,
+        "b_exact": true,
+        "outcome": "only_b_correct"
+      },
+      {
+        "sample_id": "281",
+        "a_exact": false,
+        "b_exact": true,
+        "outcome": "only_b_correct"
+      },
+      {
+        "sample_id": "432",
+        "a_exact": false,
+        "b_exact": true,
+        "outcome": "only_b_correct"
+      },
+      {
+        "sample_id": "517",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      },
+      {
+        "sample_id": "558",
+        "a_exact": false,
+        "b_exact": true,
+        "outcome": "only_b_correct"
+      },
+      {
+        "sample_id": "604",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      },
+      {
+        "sample_id": "654",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      },
+      {
+        "sample_id": "754",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      },
+      {
+        "sample_id": "758",
+        "a_exact": false,
+        "b_exact": false,
+        "outcome": "both_wrong"
+      }
+    ]
+  },
+  "semantic_review_note": "Exact match is primary. Candidate equivalences and unresolved semantic cases are recorded per task; no token score or model self-score is promoted to correctness.",
+  "phase": 15,
+  "measurement_type": "real_vllm_answer_only",
+  "scoring": "Unchanged Phase 13 normalized exact match applied to extracted FINAL answer.",
+  "sources_sha256": {
+    "results/phase15_paired_inputs.jsonl": "5e81e341b6c242c69609f0d8a450d26dd22b7e391f2194a973a9a05516c784d2",
+    "results/phase15_evidence_checks.jsonl": "c88a9125219f9e7f649046a62d4a91a80fac568aad694d2fc4b36b1fba61266a",
+    "results/phase15_generations.jsonl": "639beb5e2a27a7d486c1a4aa29b1f3cf7b1216b955d3623b0ed8fe911ada2dc7"
+  },
+  "notes": [
+    "All 24 fixed Phase 13 samples are kept. B uses question reference information and is diagnostic, not normal retrieval performance.",
+    "Sufficiency is checked by Codex agent; zero samples are human-confirmed. Insufficient and pending samples stay in full-24 results but are excluded from the sufficient-evidence paired subset.",
+    "A and B share a new FINAL-only prompt and identical generation/context budgets. Differences from Phase 13 cannot all be attributed to evidence changes.",
+    "A and B differ in length, distractors and reference-document inclusion. Pair improvement is not an isolated causal estimate of document coverage.",
+    "Semantic candidates are for human review only; no token F1, overlap or model self-judgment establishes correctness."
+  ],
+  "unconfirmed_semantic_candidates": [
+    {
+      "request_id": "95-A",
+      "prediction": "74",
+      "gold": "74 years",
+      "status": "possible_equivalent",
+      "reason": "74 is the same numeric value as gold 74 years; the unit is omitted despite the prompt requiring units. A human should decide whether contextual units suffice; primary EM stays false.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    },
+    {
+      "request_id": "223-B",
+      "prediction": "The Dockers brand",
+      "gold": "Dockers",
+      "status": "possible_equivalent",
+      "reason": "The Dockers brand names the same brand as gold Dockers, with an added descriptor. Plausible answer equivalence requires human confirmation; the separate FIRST-launch evidence check remains pending.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    },
+    {
+      "request_id": "654-A",
+      "prediction": "21 metres",
+      "gold": "21 meters",
+      "status": "possible_equivalent",
+      "reason": "21 metres and 21 meters have the same number and standard British/American unit spelling. This is a strong equivalence candidate, but has not been human-confirmed and does not change EM.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    },
+    {
+      "request_id": "654-B",
+      "prediction": "21 m",
+      "gold": "21 meters",
+      "status": "possible_equivalent",
+      "reason": "21 m and 21 meters use the same number and an SI unit abbreviation. The quoted heights 48 m and 27 m support the arithmetic. Human equivalence confirmation is still pending; EM is unchanged.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    },
+    {
+      "request_id": "758-B",
+      "prediction": "Henry O. Fairbanks; Thomas P. Koch",
+      "gold": "Henry O. Fairbanks and Thomas P. Koch",
+      "status": "possible_equivalent",
+      "reason": "Both full mayor names and order match the gold list. A semicolon replaces the gold conjunction and; normalized EM preserves the word and so fails. This exact entity-list candidate still awaits human confirmation.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    }
+  ]
+}

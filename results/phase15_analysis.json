@@ -1,0 +1,1968 @@
+{
+  "phase": 15,
+  "question": "当前 Qwen3.5-4B 的低正确率主要是证据不足，还是充分证据下仍难完成任务？",
+  "conclusion": "证据缺失/干扰是明显瓶颈，但不是充分解释：在完全相同的新提示与生成设置下，补全原文片段提高了 EM；18 个 agent 核验充分样本的 B 组仍有 9 个 EM 失败，其中 2 个仅列为等价候选，其余 7 个存在可复核的算术、日期或事实对应错误。尚不能量化哪一因素是整体主要原因，也不能把结果推广为模型一般能力结论。",
+  "primary_results": {
+    "all_24": {
+      "A_phase13_evidence": {
+        "task_count": 24,
+        "exact_match_count": 3,
+        "exact_match_rate": 0.125,
+        "unknown_count": 9,
+        "missing_final_count": 0,
+        "budget_reached_count": 0,
+        "pipeline_failure_count": 0,
+        "output_format_violation_count": 0,
+        "mean_output_tokens": 5.791666666666667,
+        "mean_input_tokens": 3609.9166666666665,
+        "mean_latency_ms": 649.4497467647307,
+        "p95_latency_ms": 763.429304282181,
+        "mean_context_chars": 12867.625,
+        "mean_context_tokens": 3485.5833333333335,
+        "mean_reference_document_count_canonical": 2.125,
+        "mean_nonreference_document_count_canonical": 5.25,
+        "sample_ids": [
+          "25",
+          "27",
+          "30",
+          "32",
+          "89",
+          "95",
+          "104",
+          "114",
+          "142",
+          "223",
+          "228",
+          "238",
+          "250",
+          "281",
+          "432",
+          "517",
+          "558",
+          "604",
+          "616",
+          "654",
+          "692",
+          "754",
+          "758",
+          "759"
+        ]
+      },
+      "B_sufficient_evidence": {
+        "task_count": 24,
+        "exact_match_count": 11,
+        "exact_match_rate": 0.4583333333333333,
+        "unknown_count": 0,
+        "missing_final_count": 0,
+        "budget_reached_count": 0,
+        "pipeline_failure_count": 0,
+        "output_format_violation_count": 0,
+        "mean_output_tokens": 7.166666666666667,
+        "mean_input_tokens": 692.8333333333334,
+        "mean_latency_ms": 331.0227999269652,
+        "p95_latency_ms": 502.05620555207133,
+        "mean_context_chars": 1874.625,
+        "mean_context_tokens": 568.5,
+        "mean_reference_document_count_canonical": 2.7083333333333335,
+        "mean_nonreference_document_count_canonical": 0.0,
+        "sample_ids": [
+          "25",
+          "27",
+          "30",
+          "32",
+          "89",
+          "95",
+          "104",
+          "114",
+          "142",
+          "223",
+          "228",
+          "238",
+          "250",
+          "281",
+          "432",
+          "517",
+          "558",
+          "604",
+          "616",
+          "654",
+          "692",
+          "754",
+          "758",
+          "759"
+        ]
+      }
+    },
+    "b_evidence_status_counts": {
+      "sufficient": 18,
+      "insufficient": 1,
+      "pending": 5
+    },
+    "paired_agent_sufficient_18": {
+      "task_count": 18,
+      "human_confirmed_count": 0,
+      "outcomes": {
+        "both_correct": 2,
+        "only_a_correct": 0,
+        "only_b_correct": 7,
+        "both_wrong": 9
+      },
+      "rows": [
+        {
+          "sample_id": "25",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        },
+        {
+          "sample_id": "27",
+          "a_exact": false,
+          "b_exact": true,
+          "outcome": "only_b_correct"
+        },
+        {
+          "sample_id": "32",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        },
+        {
+          "sample_id": "89",
+          "a_exact": false,
+          "b_exact": true,
+          "outcome": "only_b_correct"
+        },
+        {
+          "sample_id": "95",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        },
+        {
+          "sample_id": "104",
+          "a_exact": true,
+          "b_exact": true,
+          "outcome": "both_correct"
+        },
+        {
+          "sample_id": "114",
+          "a_exact": true,
+          "b_exact": true,
+          "outcome": "both_correct"
+        },
+        {
+          "sample_id": "228",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        },
+        {
+          "sample_id": "238",
+          "a_exact": false,
+          "b_exact": true,
+          "outcome": "only_b_correct"
+        },
+        {
+          "sample_id": "250",
+          "a_exact": false,
+          "b_exact": true,
+          "outcome": "only_b_correct"
+        },
+        {
+          "sample_id": "281",
+          "a_exact": false,
+          "b_exact": true,
+          "outcome": "only_b_correct"
+        },
+        {
+          "sample_id": "432",
+          "a_exact": false,
+          "b_exact": true,
+          "outcome": "only_b_correct"
+        },
+        {
+          "sample_id": "517",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        },
+        {
+          "sample_id": "558",
+          "a_exact": false,
+          "b_exact": true,
+          "outcome": "only_b_correct"
+        },
+        {
+          "sample_id": "604",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        },
+        {
+          "sample_id": "654",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        },
+        {
+          "sample_id": "754",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        },
+        {
+          "sample_id": "758",
+          "a_exact": false,
+          "b_exact": false,
+          "outcome": "both_wrong"
+        }
+      ]
+    },
+    "a_em_on_sufficient": 2,
+    "b_em_on_sufficient": 9,
+    "a_rate_on_sufficient": 0.1111111111111111,
+    "b_rate_on_sufficient": 0.5
+  },
+  "only_b_correct_cases": [
+    {
+      "sample_id": "27",
+      "question": "What number would Tommy Lawton have worn playing for Chelsea FC?",
+      "gold_answer": "9",
+      "a_answer": "unknown",
+      "b_answer": "9",
+      "a_exact_match": false,
+      "b_exact_match": true,
+      "a_semantic_status": "abstention",
+      "b_semantic_status": "exact_match",
+      "a_context_tokens": 3581,
+      "b_context_tokens": 409,
+      "a_reference_document_count": 2,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "27-B-1",
+          "url": "https://en.wikipedia.org/wiki/Tommy_Lawton",
+          "archive_member": "en.wikipedia.org_wiki_Tommy_Lawton.html",
+          "char_start": 364,
+          "char_end": 684,
+          "text": "5 ft 11 in (1.80 m) [ 2 ] | Position | Centre-forward | Youth career | 1933 | Rossendale United | 1933–1936 | Burnley | Senior career* | Years | Team | Apps | ( Gls ) | 1936–1937 | Burnley | 25 | (16) | 1937–1945 | Everton | 87 | (65) | 1945–1947 | Chelsea | 42 | (30) | 1947–1952 | Notts County | 151 | (90) | 1952–1953"
+        },
+        {
+          "excerpt_id": "27-B-2",
+          "url": "https://en.wikipedia.org/wiki/Squad_number_(association_football)",
+          "archive_member": "en.wikipedia.org_wiki_Squad_number_(association_football).html",
+          "char_start": 1199,
+          "char_end": 1468,
+          "text": "frequently used by the starting goalkeeper , as the goalkeeper is the first player in a line-up. [ 1 ] \"9\" is usually worn by strikers , also known as centre-forwards , who hold the most advanced offensive position on the pitch, and are often the highest scorers in the"
+        },
+        {
+          "excerpt_id": "27-B-3",
+          "url": "https://en.wikipedia.org/wiki/Squad_number_(association_football)",
+          "archive_member": "en.wikipedia.org_wiki_Squad_number_(association_football).html",
+          "char_start": 4425,
+          "char_end": 4865,
+          "text": "1933. Numbered shirts had first appeared in England in 1928 when Arsenal played Sheffield Wednesday. Their use would not be ruled mandatory until 1939 A similar numbering criterion was used in the 1933 FA Cup Final between Everton and Manchester City . [ 9 ] Nevertheless, it was not until the 1939–40 season when The Football League ruled that squads had to wear numbers for each player. [ 9 ] [ 6 ] Early evolutions of formations involved"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Didier_Drogba:1900",
+          "url": "https://en.wikipedia.org/wiki/Didier_Drogba"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Didier_Drogba#Honours:1900",
+          "url": "https://en.wikipedia.org/wiki/Didier_Drogba#Honours"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Tommy_Lawton:7410",
+          "url": "https://en.wikipedia.org/wiki/Tommy_Lawton"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Tommy_Lawton:2280",
+          "url": "https://en.wikipedia.org/wiki/Tommy_Lawton"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Nike,_Inc.:8170",
+          "url": "https://en.wikipedia.org/wiki/Nike,_Inc."
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Didier_Drogba:4940",
+          "url": "https://en.wikipedia.org/wiki/Didier_Drogba"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Didier_Drogba#Honours:4940",
+          "url": "https://en.wikipedia.org/wiki/Didier_Drogba#Honours"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Colin_Farrell:380",
+          "url": "https://en.wikipedia.org/wiki/Colin_Farrell"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Squad_number_(association_football):6840",
+          "url": "https://en.wikipedia.org/wiki/Squad_number_(association_football)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Frank_Lampard:6080",
+          "url": "https://en.wikipedia.org/wiki/Frank_Lampard"
+        }
+      ],
+      "agent_analysis": "A 命中球员和号码规则文档，却取到生涯/参考资料片段，缺少中锋与 9 号的规则；B 补入位置、号码规则和实行年份。参考文档命中不等于事实充分。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "89",
+      "question": "What was the birthday of the man who was mayor of New York City the year Snoopy debuted in the Macy's Thanksgiving Day Parade?",
+      "gold_answer": "November 24, 1921",
+      "a_answer": "unknown",
+      "b_answer": "November 24, 1921",
+      "a_exact_match": false,
+      "b_exact_match": true,
+      "a_semantic_status": "abstention",
+      "b_semantic_status": "exact_match",
+      "a_context_tokens": 3600,
+      "b_context_tokens": 574,
+      "a_reference_document_count": 3,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "89-B-1",
+          "url": "https://en.wikipedia.org/wiki/Snoopy",
+          "archive_member": "en.wikipedia.org_wiki_Snoopy.html",
+          "char_start": 6390,
+          "char_end": 6802,
+          "text": "Snoopy appeared as a character balloon in New York City's Macy's Thanksgiving Day Parade in 1968; the balloon depicted Snoopy in his World War I Flying Ace costume. [ 17 ] The beagle has been in almost every parade ever since in different costumes, as an ice skater, a jester (to celebrate the new millennium and the parade's 75th anniversary), with Woodstock riding on his head, [ 18 ] [ 19 ] and an astronaut. "
+        },
+        {
+          "excerpt_id": "89-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_New_York_City",
+          "archive_member": "en.wikipedia.org_wiki_List_of_mayors_of_New_York_City.html",
+          "char_start": 18829,
+          "char_end": 19320,
+          "text": "City Council (1946–1950) | 103 | | Robert F. Wagner Jr. (1910–1991) | January 1, 1954 – December 31, 1965 | | Democratic | 1953 1957 1961 | 17th Borough President of Manhattan (1950–1953) | 104 | | John Lindsay (1921–2000) | January 1, 1966 – December 31, 1973 | | Republican 8 Democratic | 1965 1969 | Member of the U.S. House of Representatives from New York's 17th district (1959–1965) | 105 | | Abraham Beame (1906–2001) | January 1, 1974 – December 31, 1977 | | Democratic | 1973 | 36th"
+        },
+        {
+          "excerpt_id": "89-B-3",
+          "url": "https://en.wikipedia.org/wiki/John_Lindsay",
+          "archive_member": "en.wikipedia.org_wiki_John_Lindsay.html",
+          "char_start": 270,
+          "char_end": 702,
+          "text": "by | Robert F. Wagner Jr. | Succeeded by | Abraham Beame | Member of the U.S. House of Representatives from New York 's 17th district | In office January 3, 1959 – December 31, 1965 | Preceded by | Frederic Coudert | Succeeded by | Theodore R. Kupferman | | Personal details | Born | John Vliet Lindsay ( 1921-11-24 ) November 24, 1921 New York City , U.S. | Died | December 19, 2000 (2000-12-19) (aged 79) Hilton Head Island, South"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_mayors_of_New_York_City:3990",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_New_York_City"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_mayors_of_New_York_City:0",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_New_York_City"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_John_Lindsay:6270",
+          "url": "https://en.wikipedia.org/wiki/John_Lindsay"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_John_Lindsay:6460",
+          "url": "https://en.wikipedia.org/wiki/John_Lindsay"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Snoopy:950",
+          "url": "https://en.wikipedia.org/wiki/Snoopy"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Snoopy:4750",
+          "url": "https://en.wikipedia.org/wiki/Snoopy"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Idina_Menzel:2470",
+          "url": "https://en.wikipedia.org/wiki/Idina_Menzel"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_My_Beautiful_Dark_Twisted_Fantasy:5510",
+          "url": "https://en.wikipedia.org/wiki/My_Beautiful_Dark_Twisted_Fantasy"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Philadelphia:10450",
+          "url": "https://en.wikipedia.org/wiki/Philadelphia"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Goku:6840",
+          "url": "https://en.wikipedia.org/wiki/Goku"
+        }
+      ],
+      "agent_analysis": "A 包含 Snoopy 1968 年游行记录，却缺市长生日及对应任期正文；B 补齐三段事实链。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "238",
+      "question": "Part of the dynamic duo who broke a record set by Mickey Lolich and Bill Freehan in 1975 for most starts together, this MLB pitcher's battery mate ranked first all-time among catchers in putouts as of 2022. In what year did he (the pitcher)  make his Grand Ole Opry debut?",
+      "gold_answer": "2024",
+      "a_answer": "unknown",
+      "b_answer": "2024",
+      "a_exact_match": false,
+      "b_exact_match": true,
+      "a_semantic_status": "abstention",
+      "b_semantic_status": "exact_match",
+      "a_context_tokens": 3460,
+      "b_context_tokens": 497,
+      "a_reference_document_count": 3,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "238-B-1",
+          "url": "https://en.wikipedia.org/wiki/St._Louis_Cardinals",
+          "archive_member": "en.wikipedia.org_wiki_St._Louis_Cardinals.html",
+          "char_start": 18479,
+          "char_end": 19032,
+          "text": "during Saturday road games. [ 106 ] The Cardinals traded for multi-time all stars Paul Goldschmidt and Nolan Arenado , and Albert Pujols returned to the team for his final season in 2022 . [ 107 ] In 2022, long-time starting pitcher-catcher duo Adam Wainwright and Yadier Molina set the NL/AL record for most starts as a duo, also referred to as a battery , at 325 starts together going back to 2007. [ 108 ] The previous record holding duo, Mickey Lolich and Bill Freehan , had held the record since 1975. [ 109 ] Ballpark [ edit ] Main articles: Busch"
+        },
+        {
+          "excerpt_id": "238-B-2",
+          "url": "https://en.wikipedia.org/wiki/Yadier_Molina",
+          "archive_member": "en.wikipedia.org_wiki_Yadier_Molina.html",
+          "char_start": 1798,
+          "char_end": 2315,
+          "text": "Puerto Rican national team in four World Baseball Classic (WBC) tournaments, winning two silver medals . When he retired after the 2022 season, Molina ranked first all-time among catchers in putouts and second all-time among catchers with 130 Defensive Runs Saved (DRS); among active players, he ranked first with 845 assists , 40.21% of runners caught stealing , and 55 pickoffs . Along with pitcher Adam Wainwright , Molina holds the records for most games started and won as a battery . As a hitter, Molina accrued"
+        },
+        {
+          "excerpt_id": "238-B-3",
+          "url": "https://en.wikipedia.org/wiki/Adam_Wainwright",
+          "archive_member": "en.wikipedia.org_wiki_Adam_Wainwright.html",
+          "char_start": 39760,
+          "char_end": 40316,
+          "text": "in Springfield, Illinois , in January 2023 for approximately 500 fans. [ 155 ] Wainwright has released three singles and one full-length album, Hey Y'all . It which was originally scheduled to be released on March 9, 2024, when he made his Grand Ole Opry debut, but was officially released on April 5, 2024. [ 156 ] [ 157 ] Politics [ edit ] In May 2025, Public Policy Polling , a polling firm affiliated with the Democratic Party , ran a poll in Missouri's 2nd congressional district gauging voters' interest in Wainwright relative to incumbent Republican"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Adam_Wainwright:5890",
+          "url": "https://en.wikipedia.org/wiki/Adam_Wainwright"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Yadier_Molina:10260",
+          "url": "https://en.wikipedia.org/wiki/Yadier_Molina"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Adam_Wainwright:380",
+          "url": "https://en.wikipedia.org/wiki/Adam_Wainwright"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_St._Louis_Cardinals:3420",
+          "url": "https://en.wikipedia.org/wiki/St._Louis_Cardinals"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Yadier_Molina:380",
+          "url": "https://en.wikipedia.org/wiki/Yadier_Molina"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Barry_Bonds:5320",
+          "url": "https://en.wikipedia.org/wiki/Barry_Bonds"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Texas_Rangers_award_winners_and_league_leaders:3990",
+          "url": "https://en.wikipedia.org/wiki/Texas_Rangers_award_winners_and_league_leaders"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Iv%C3%A1n_Rodr%C3%ADguez:1330",
+          "url": "https://en.wikipedia.org/wiki/Iv%C3%A1n_Rodr%C3%ADguez"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jerry_Garcia:1140",
+          "url": "https://en.wikipedia.org/wiki/Jerry_Garcia"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Alex_Rodriguez:8360",
+          "url": "https://en.wikipedia.org/wiki/Alex_Rodriguez"
+        }
+      ],
+      "agent_analysis": "A 包含电池组合记录，却没有目标投手 Grand Ole Opry 首演日期；B 增加带 2024 年日期的原文。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "250",
+      "question": "The Sikh empire's capital at the time of the Battle of Sobraon came under the rule of the British Crown in what year?",
+      "gold_answer": "1858",
+      "a_answer": "1849",
+      "b_answer": "1858",
+      "a_exact_match": false,
+      "b_exact_match": true,
+      "a_semantic_status": "not_equivalent_candidate",
+      "b_semantic_status": "exact_match",
+      "a_context_tokens": 3511,
+      "b_context_tokens": 467,
+      "a_reference_document_count": 2,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "250-B-1",
+          "url": "https://en.wikipedia.org/wiki/Battle_of_Sobraon",
+          "archive_member": "en.wikipedia.org_wiki_Battle_of_Sobraon.html",
+          "char_start": 7108,
+          "char_end": 7660,
+          "text": "had indeed been Tej Singh's intention. The first British units began to cross the river on the evening of the day of battle, and on 13 February, Gough's army was only 30 miles (48 km) from Lahore, the Sikh empire's capital. Although detachments of the Khalsa remained intact in outlying frontier districts of the Punjab, they could not be concentrated quickly enough to defend Lahore. The central durbar of the Punjab nominated Gulab Singh , the effective ruler of Jammu , to negotiate terms for surrender. By the Treaty of Lahore , the Sikhs ceded the"
+        },
+        {
+          "excerpt_id": "250-B-2",
+          "url": "https://en.wikipedia.org/wiki/Punjab_Province_(British_India)",
+          "archive_member": "en.wikipedia.org_wiki_Punjab_Province_(British_India).html",
+          "char_start": 3126,
+          "char_end": 3591,
+          "text": "head of province . [ 1 ] : 54 After 1853, the board was replaced by a chief commissioner as the Punjab was separated from the Bengal Presidency and established as a Chief Commissioner's Province . [ 1 ] : 54 In 1858, the Punjab, along with the rest of British India, came under the rule of the British crown . Following the Indian Rebellion of 1857 , the Punjab became a lieutenant-governor's province under the Bengal Presidency. [ 1 ] : 54 After the Government of"
+        },
+        {
+          "excerpt_id": "250-B-3",
+          "url": "https://en.wikipedia.org/wiki/Lahore",
+          "archive_member": "en.wikipedia.org_wiki_Lahore.html",
+          "char_start": 9262,
+          "char_end": 9764,
+          "text": "Empire 1748–1758 Maratha Empire 1758–1759 Durrani Empire 1759–1765 Bhangi Misl and Kanhaiya Misl 1765–1799 Sikh Empire 1799–1849 British East India Company 1849–1858 British Raj / British Empire 1858–1947 Pakistan 1947–present Main article: History of Lahore For a chronological guide, see Timeline of Lahore . Origins No definitive record of Lahore's early history exists, and its ambiguous historical background has given rise to various theories about its establishment and history. [ 47 ] Alexander"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Lahore:5320",
+          "url": "https://en.wikipedia.org/wiki/Lahore"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Battle_of_Sobraon:1140",
+          "url": "https://en.wikipedia.org/wiki/Battle_of_Sobraon"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Battle_of_Sobraon:2090",
+          "url": "https://en.wikipedia.org/wiki/Battle_of_Sobraon"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Lahore:5130",
+          "url": "https://en.wikipedia.org/wiki/Lahore"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Pakistan:2090",
+          "url": "https://en.wikipedia.org/wiki/Pakistan"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Andhra_Pradesh:2280",
+          "url": "https://en.wikipedia.org/wiki/Andhra_Pradesh"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Western_Roman_Empire:2660",
+          "url": "https://en.wikipedia.org/wiki/Western_Roman_Empire"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Nuapada_district:950",
+          "url": "https://en.wikipedia.org/wiki/Nuapada_district"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Tasmania:570",
+          "url": "https://en.wikipedia.org/wiki/Tasmania"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_ancient_great_powers:13490",
+          "url": "https://en.wikipedia.org/wiki/List_of_ancient_great_powers"
+        }
+      ],
+      "agent_analysis": "A 的 Lahore 片段谈 1849 年接管，缺少 Crown 与 East India Company 的区分；B 添加明确写 1858 年归 British crown 的 Punjab 原文。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "281",
+      "question": "I am the narrator character in the final novel written by the recipient of the 1963 Hugo Award for Best Novel. Who am I?",
+      "gold_answer": "Angel Archer.",
+      "a_answer": "Rick Dalton",
+      "b_answer": "Angel Archer",
+      "a_exact_match": false,
+      "b_exact_match": true,
+      "a_semantic_status": "not_equivalent_candidate",
+      "b_semantic_status": "exact_match",
+      "a_context_tokens": 3406,
+      "b_context_tokens": 445,
+      "a_reference_document_count": 3,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "281-B-1",
+          "url": "https://en.wikipedia.org/wiki/Hugo_Award_for_Best_Novel",
+          "archive_member": "en.wikipedia.org_wiki_Hugo_Award_for_Best_Novel.html",
+          "char_start": 3849,
+          "char_end": 4311,
+          "text": "and 2018). Winners and finalists [ edit ] In the following table, the years correspond to the date of the ceremony, rather than when the novel was first published. Each year links to the corresponding \"year in literature\". Entries with a yellow background have won the award; those with a grey background are the finalists on the short-list. * Winners and joint winners Winners and finalists Year | Author(s) | Novel | Publisher | Ref. | 1953 | Alfred Bester * |"
+        },
+        {
+          "excerpt_id": "281-B-2",
+          "url": "https://en.wikipedia.org/wiki/Hugo_Award_for_Best_Novel",
+          "archive_member": "en.wikipedia.org_wiki_Hugo_Award_for_Best_Novel.html",
+          "char_start": 6691,
+          "char_end": 6942,
+          "text": "Fantastic | [ 16 ] | 1963 | Philip K. Dick * | The Man in the High Castle | Putnam Publishing Group | [ 17 ] | Marion Zimmer Bradley | The Sword of Aldones | Ace Books | [ 17 ] | Arthur C. Clarke | A Fall of Moondust | Harcourt Trade Publishers | [ 17"
+        },
+        {
+          "excerpt_id": "281-B-3",
+          "url": "https://en.wikipedia.org/wiki/Philip_K._Dick",
+          "archive_member": "en.wikipedia.org_wiki_Philip_K._Dick#Career.html",
+          "char_start": 17024,
+          "char_end": 17254,
+          "text": "portions of which were later published as The Exegesis of Philip K. Dick . The last novel he wrote was The Transmigration of Timothy Archer ; it was published shortly after his death in 1982. [ 49 ] Personal life [ edit ] Dick was"
+        },
+        {
+          "excerpt_id": "281-B-4",
+          "url": "https://en.wikipedia.org/wiki/The_Transmigration_of_Timothy_Archer",
+          "archive_member": "en.wikipedia.org_wiki_The_Transmigration_of_Timothy_Archer.html",
+          "char_start": 4698,
+          "char_end": 5205,
+          "text": "offers her. The Transmigration of Timothy Archer is one of Dick's most overtly philosophical and intellectual works. While Dick's novels usually employ multiple narrators or an omniscient perspective, this story is told in the first person by a single narrator: Angel Archer, Bishop Archer's daughter-in-law. Characters [ edit ] Angel Archer: Narrator, manager of a Berkeley record store, widow of Jeff Archer. Timothy Archer: Bishop of California; father of the late Jeff Archer and father-in-law of Angel."
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Hugo_Award_for_Best_Novel:380",
+          "url": "https://en.wikipedia.org/wiki/Hugo_Award_for_Best_Novel"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Hugo_Award_for_Best_Novel:10640",
+          "url": "https://en.wikipedia.org/wiki/Hugo_Award_for_Best_Novel"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Dune_(novel):0",
+          "url": "https://en.wikipedia.org/wiki/Dune_(novel)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_The_Transmigration_of_Timothy_Archer:0",
+          "url": "https://en.wikipedia.org/wiki/The_Transmigration_of_Timothy_Archer"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Dune_(novel):7410",
+          "url": "https://en.wikipedia.org/wiki/Dune_(novel)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Once_Upon_a_Time_in_Hollywood:1900",
+          "url": "https://en.wikipedia.org/wiki/Once_Upon_a_Time_in_Hollywood"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Ursula_K._Le_Guin:3610",
+          "url": "https://en.wikipedia.org/wiki/Ursula_K._Le_Guin"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Philip_K._Dick#Career:9310",
+          "url": "https://en.wikipedia.org/wiki/Philip_K._Dick#Career"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Caldecott_Medal#Recipients:1900",
+          "url": "https://en.wikipedia.org/wiki/Caldecott_Medal#Recipients"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Philip_K._Dick#Career:5320",
+          "url": "https://en.wikipedia.org/wiki/Philip_K._Dick#Career"
+        }
+      ],
+      "agent_analysis": "A 混入电影人物 Rick Dalton 和其他小说，目标小说片段未包含 Angel Archer 的叙述者事实；B 选取获奖表键、作者最后小说及叙述者原句。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "432",
+      "question": "In 2024's version of the world, which country was the birthplace of the Emperor who reigned from the year 363 to 364 over the Empire that the Goths played a major part in collapsing?",
+      "gold_answer": "Serbia",
+      "a_answer": "Singidunum",
+      "b_answer": "Serbia",
+      "a_exact_match": false,
+      "b_exact_match": true,
+      "a_semantic_status": "not_equivalent_candidate",
+      "b_semantic_status": "exact_match",
+      "a_context_tokens": 3668,
+      "b_context_tokens": 537,
+      "a_reference_document_count": 2,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "432-B-1",
+          "url": "https://en.wikipedia.org/wiki/Goths",
+          "archive_member": "en.wikipedia.org_wiki_Goths.html",
+          "char_start": 249,
+          "char_end": 862,
+          "text": "the southernmost and westernmost parts, Scania , Halland , Blekinge and Bohuslän , were originally not a part of Götaland, but were Dano-Norwegian territory until 1658. The Goths [ a ] were a Germanic people who played a major role in the fall of the Western Roman Empire and the emergence of medieval Europe . [ 1 ] [ 2 ] [ 3 ] They were first mentioned by Greco-Roman authors in the 3rd century AD, living north of the Lower Danube in what is now Ukraine , Moldova , and Romania . From here, they conducted raids into Roman territory, and large numbers of them joined the Roman military. These early Goths lived"
+        },
+        {
+          "excerpt_id": "432-B-2",
+          "url": "https://en.wikipedia.org/wiki/Jovian_(emperor)",
+          "archive_member": "en.wikipedia.org_wiki_Jovian_(emperor).html",
+          "char_start": 0,
+          "char_end": 525,
+          "text": "From Wikipedia, the free encyclopedia Roman emperor from 363 to 364 Jovian | Solidus of Jovian, inscribed: d n iovianus p f aug | Roman emperor | Reign | 27 June 363 – 17 February 364 | Predecessor | Julian | Successor | Valentinian I ( West ) Valens ( East ) | | Born | 331 Singidunum , Moesia Superior , Roman Empire | Died | 17 February 364 (aged 33) Dadastana , Anatolia , Roman Empire | Burial | Church of the Holy Apostles , Constantinople | Spouse | Charito | Issue | Varronianus another son | Names | Flavius Jovianus"
+        },
+        {
+          "excerpt_id": "432-B-3",
+          "url": "https://en.wikipedia.org/wiki/Jovian_(emperor)",
+          "archive_member": "en.wikipedia.org_wiki_Jovian_(emperor).html",
+          "char_start": 1647,
+          "char_end": 2196,
+          "text": "territory split into jurisdictions of the East and West . Early life and accession [ edit ] Jovian was born at Singidunum , Moesia Superior (today Belgrade in Serbia ), in 331, son of Varronianus, [ 4 ] the commander of Constantius II 's imperial bodyguards ( comes domesticorum ). [ 5 ] He also joined the guards and in this capacity in 361, escorted Constantius' remains to the Church of the Holy Apostles . [ 5 ] Jovian was married to Charito and they had two sons, Varronianus , and another whose name is unknown. [ 6 ] In 363 Jovian accompanied"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Western_Roman_Empire:14440",
+          "url": "https://en.wikipedia.org/wiki/Western_Roman_Empire"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jovian_(emperor):0",
+          "url": "https://en.wikipedia.org/wiki/Jovian_(emperor)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Western_Roman_Empire:3420",
+          "url": "https://en.wikipedia.org/wiki/Western_Roman_Empire"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jovian_(emperor):2660",
+          "url": "https://en.wikipedia.org/wiki/Jovian_(emperor)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_Chinese_monarchs:8740",
+          "url": "https://en.wikipedia.org/wiki/List_of_Chinese_monarchs"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Poland:13110",
+          "url": "https://en.wikipedia.org/wiki/Poland"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Mexico:17100",
+          "url": "https://en.wikipedia.org/wiki/Mexico"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_France:16530",
+          "url": "https://en.wikipedia.org/wiki/France"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_John_Lennon:15200",
+          "url": "https://en.wikipedia.org/wiki/John_Lennon"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Queen_(band):13870",
+          "url": "https://en.wikipedia.org/wiki/Queen_(band)"
+        }
+      ],
+      "agent_analysis": "A 有 Jovian 的 Singidunum 出生地，却缺其现代国家位置；B 包含 today Belgrade in Serbia 原句。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "558",
+      "question": "Use this information: -The Dragonfly Sea is a novel by Yvonne Adhiambo Owuor. -It has a publisher. -The publisher has two co-founders.  What was the original name of the university where the male co-founder of this publisher studied?",
+      "gold_answer": "King's College",
+      "a_answer": "unknown",
+      "b_answer": "King's College",
+      "a_exact_match": false,
+      "b_exact_match": true,
+      "a_semantic_status": "abstention",
+      "b_semantic_status": "exact_match",
+      "a_context_tokens": 3419,
+      "b_context_tokens": 753,
+      "a_reference_document_count": 0,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "558-B-1",
+          "url": "https://en.wikipedia.org/wiki/The_Dragonfly_Sea",
+          "archive_member": "en.wikipedia.org_wiki_The_Dragonfly_Sea.html",
+          "char_start": 0,
+          "char_end": 450,
+          "text": "2019 novel by Yvonne Adhiambo Owuor The Dragonfly Sea First edition cover | Author | Yvonne Adhiambo Owuor | Publisher | Knopf Publishers | Publication date | March 12, 2019 | ISBN | 978-0-451-49404-7 | The Dragonfly Sea is a novel by Kenyan writer Yvonne Adhiambo Owuor, first published in 2019. Set primarily along the Swahili coast of Kenya and extending to China and Turkey, the novel follows a young woman’s journey across the Indian Ocean world"
+        },
+        {
+          "excerpt_id": "558-B-2",
+          "url": "https://en.wikipedia.org/wiki/Alfred_A._Knopf",
+          "archive_member": "en.wikipedia.org_wiki_Alfred_A._Knopf.html",
+          "char_start": 142,
+          "char_end": 715,
+          "text": "see Knopf (surname) . Alfred A. Knopf, Inc. | Parent company | Penguin Random House | Founded | 1915 ; 111 years ago ( 1915 ) | Founder | Blanche Wolf Knopf and Alfred A. Knopf Sr. | Country of origin | United States | Headquarters location | New York City , U.S. | Official website | knopfdoubleday .com /imprint /knopf / | Alfred A. Knopf, Inc. ( / k ə n ɒ p f / ) is an American publishing house that was founded by Blanche Knopf and Alfred A. Knopf Sr. in 1915. [ 1 ] Blanche and Alfred traveled abroad regularly and were known for publishing European, Asian, and Latin"
+        },
+        {
+          "excerpt_id": "558-B-3",
+          "url": "https://en.wikipedia.org/wiki/Alfred_A._Knopf_Sr.",
+          "archive_member": "en.wikipedia.org_wiki_Alfred_A._Knopf_Sr..html",
+          "char_start": 0,
+          "char_end": 585,
+          "text": "American publisher Alfred A. Knopf Sr. | Knopf in 1935; photograph by Carl van Vechten | Born | Alfred Abraham Knopf ( 1892-09-12 ) September 12, 1892 New York, New York , U.S. | Died | August 11, 1984 (1984-08-11) (aged 91) Purchase, New York , U.S. | Education | Columbia University | Spouse | Blanche Wolf Knopf 1916–1966 (her death) | Children | Alfred A. Knopf Jr. | Relatives | Edwin H. Knopf (half-brother) | Alfred Abraham Knopf Sr. (September 12, 1892 – August 11, 1984) was an American publisher of the 20th century, and co-founder of Alfred A. Knopf, Inc. His contemporaries"
+        },
+        {
+          "excerpt_id": "558-B-4",
+          "url": "https://en.wikipedia.org/wiki/Columbia_University",
+          "archive_member": "en.wikipedia.org_wiki_Columbia_University.html",
+          "char_start": 379,
+          "char_end": 820,
+          "text": "to remove this message ) | Columbia University in the City of New York Coat of arms | Latin : Universitas Columbiae [ 1 ] | Former names | King's College (1754–1784) Columbia College (1784–1896) | Motto | In lumine Tuo videbimus lumen ( Latin ) | Motto in English | \"In Thy light shall we see light\" [ 2 ] | Type | Private research university | Established | May 25, 1754 ; 272 years ago ( 1754-05-25 ) | Founder | George II of Great Britain"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Enix:0",
+          "url": "https://en.wikipedia.org/wiki/Enix"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jane_Austen:5320",
+          "url": "https://en.wikipedia.org/wiki/Jane_Austen"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Vassar_College:380",
+          "url": "https://en.wikipedia.org/wiki/Vassar_College"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jane_Austen#List_of_works:5320",
+          "url": "https://en.wikipedia.org/wiki/Jane_Austen#List_of_works"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_University_of_Illinois_Urbana-Champaign#Notable_alumni_and_faculty:8550",
+          "url": "https://en.wikipedia.org/wiki/University_of_Illinois_Urbana-Champaign#Notable_alumni_and_faculty"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Nineteen_Eighty-Four:2660",
+          "url": "https://en.wikipedia.org/wiki/Nineteen_Eighty-Four"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jane_Eyre:0",
+          "url": "https://en.wikipedia.org/wiki/Jane_Eyre"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Nineteen_Eighty-Four:2850",
+          "url": "https://en.wikipedia.org/wiki/Nineteen_Eighty-Four"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Stephen_Etnier:190",
+          "url": "https://en.wikipedia.org/wiki/Stephen_Etnier"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Richard_Burton_(comics):0",
+          "url": "https://en.wikipedia.org/wiki/Richard_Burton_(comics)"
+        }
+      ],
+      "agent_analysis": "A 没有命中任何题目参考文档；B 补齐小说出版商、男性联合创始人、就读大学及原校名链条。",
+      "human_confirmed": false
+    }
+  ],
+  "b_not_exact_cases_on_sufficient": [
+    {
+      "sample_id": "25",
+      "question": "What was the age difference between Mike Tyson and Tyson Fury on the respective days on which they lost their first ever fights? Represent the figure in years only.",
+      "gold_answer": "12 years.",
+      "a_answer": "40",
+      "b_answer": "2",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "not_equivalent_candidate",
+      "b_semantic_status": "not_equivalent_candidate",
+      "a_context_tokens": 3412,
+      "b_context_tokens": 367,
+      "a_reference_document_count": 4,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "25-B-1",
+          "url": "https://en.wikipedia.org/wiki/Mike_Tyson",
+          "archive_member": "en.wikipedia.org_wiki_Mike_Tyson.html",
+          "char_start": 984,
+          "char_end": 1135,
+          "text": "Michael Gerard Tyson (born June 30, 1966) is an American former professional boxer , who competed between 1985 and 2024, and a cannabis entrepreneur. ["
+        },
+        {
+          "excerpt_id": "25-B-2",
+          "url": "https://en.wikipedia.org/wiki/Mike_Tyson_vs._Buster_Douglas",
+          "archive_member": "en.wikipedia.org_wiki_Mike_Tyson_vs._Buster_Douglas.html",
+          "char_start": 935,
+          "char_end": 1231,
+          "text": "Mike Tyson vs. Buster Douglas , billed as Tyson is Back! , was a professional boxing match that occurred at the Tokyo Dome on Sunday, February 11, 1990. [ 2 ] The then-undefeated, undisputed heavyweight champion Tyson lost by knockout to the 42-1 underdog Douglas. The fight is widely regarded as"
+        },
+        {
+          "excerpt_id": "25-B-3",
+          "url": "https://en.wikipedia.org/wiki/Tyson_Fury",
+          "archive_member": "en.wikipedia.org_wiki_Tyson_Fury.html",
+          "char_start": 0,
+          "char_end": 236,
+          "text": "From Wikipedia, the free encyclopedia British boxer (born 1988) Tyson Fury Fury in 2017 | Personal information | Nickname | The Gypsy King | Born | Tyson Luke Fury ( 1988-08-12 ) 12 August 1988 (age 37) Manchester , England | Height | 6"
+        },
+        {
+          "excerpt_id": "25-B-4",
+          "url": "https://en.wikipedia.org/wiki/Tyson_Fury",
+          "archive_member": "en.wikipedia.org_wiki_Tyson_Fury.html",
+          "char_start": 64719,
+          "char_end": 65074,
+          "text": "[ 266 ] The fight was rescheduled for 18 May 2024 and would crown the first undisputed heavyweight champion of the four belt era, as well as the first undisputed heavyweight champion in nearly 25 years. [ 267 ] Fury lost the bout via split decision, the first loss in his professional boxing career. The opening rounds of the fight were closely contested,"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Tyson_Fury:24130",
+          "url": "https://en.wikipedia.org/wiki/Tyson_Fury"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Tyson_Fury:570",
+          "url": "https://en.wikipedia.org/wiki/Tyson_Fury"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Mike_Tyson:2850",
+          "url": "https://en.wikipedia.org/wiki/Mike_Tyson"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Mike_Tyson:3230",
+          "url": "https://en.wikipedia.org/wiki/Mike_Tyson"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Mike_Tyson_vs._Buster_Douglas:2090",
+          "url": "https://en.wikipedia.org/wiki/Mike_Tyson_vs._Buster_Douglas"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Tyson_Fury_vs_Oleksandr_Usyk:3040",
+          "url": "https://en.wikipedia.org/wiki/Tyson_Fury_vs_Oleksandr_Usyk"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Tyson_Fury_vs_Oleksandr_Usyk:2850",
+          "url": "https://en.wikipedia.org/wiki/Tyson_Fury_vs_Oleksandr_Usyk"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Mike_Tyson_vs._Buster_Douglas:190",
+          "url": "https://en.wikipedia.org/wiki/Mike_Tyson_vs._Buster_Douglas"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_The_Hangover:760",
+          "url": "https://en.wikipedia.org/wiki/The_Hangover"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Coco_Gauff:1710",
+          "url": "https://en.wikipedia.org/wiki/Coco_Gauff"
+        }
+      ],
+      "agent_analysis": "B 原文具备出生日期与首次职业失利日期；分别计算满岁年龄后仍得到不同数字。此处采用职业比赛解释，保留题目 first ever fights 的范围歧义。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "32",
+      "question": "As of 2010, if you added the number of times Brazil had won the World Cup to the amount of times the Chicago Bulls had won the NBA Championship and multiplied this number by the amount of times the Dallas Cowboys had won the Super Bowl, what number are you left with?",
+      "gold_answer": "55",
+      "a_answer": "10",
+      "b_answer": "150",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "not_equivalent_candidate",
+      "b_semantic_status": "not_equivalent_candidate",
+      "a_context_tokens": 3341,
+      "b_context_tokens": 625,
+      "a_reference_document_count": 1,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "32-B-1",
+          "url": "https://en.wikipedia.org/wiki/FIFA_World_Cup",
+          "archive_member": "en.wikipedia.org_wiki_FIFA_World_Cup.html",
+          "char_start": 37708,
+          "char_end": 38360,
+          "text": "(USSR, Yugoslavia, Czechoslovakia and East Germany). Teams reaching the top four See also: FIFA World Cup records and statistics and National team appearances in the FIFA World Cup Teams reaching the top four Team | Titles | Runners-up | Third place | Fourth place | Top 4 total | Brazil | 5 ( 1958 , 1962 , 1970 , 1994 , 2002 ) | 2 ( 1950 * , 1998 ) | 2 ( 1938 , 1978 ) | 2 ( 1974 , 2014 * ) | 11 | Germany 1 | 4 ( 1954 , 1974 * , 1990 , 2014 ) | 4 ( 1966 , 1982 , 1986 , 2002 ) | 4 ( 1934 , 1970 , 2006 * , 2010 ) | 1 ( 1958 ) | 13 | Italy | 4 ( 1934 * , 1938 , 1982 , 2006 ) | 2 ( 1970 , 1994 ) | 1 ( 1990 * ) | 1 ( 1978 ) | 8 | Argentina | 3 ( 1978"
+        },
+        {
+          "excerpt_id": "32-B-2",
+          "url": "https://en.wikipedia.org/wiki/Chicago_Bulls",
+          "archive_member": "en.wikipedia.org_wiki_Chicago_Bulls.html",
+          "char_start": 384,
+          "char_end": 710,
+          "text": "| Main sponsor | Motorola Mobility [ 7 ] | CEO | Michael Reinsdorf | President | Bryson Graham | General manager | Stephen Mervis | Head coach | Tiago Splitter | Ownership | Jerry Reinsdorf | Affiliation | Windy City Bulls | Championships | 6 ( 1991 , 1992 , 1993 , 1996 , 1997 , 1998 ) | Conference titles | 6 ( 1991 , 1992 ,"
+        },
+        {
+          "excerpt_id": "32-B-3",
+          "url": "https://en.wikipedia.org/wiki/Dallas_Cowboys",
+          "archive_member": "en.wikipedia.org_wiki_Dallas_Cowboys.html",
+          "char_start": 962,
+          "char_end": 1257,
+          "text": "League ( 1960 –present) Western Conference (1960) Eastern Conference (1961–1969) Capitol Division (1967–1969) National Football Conference (1970–present) NFC East (1970–present) | Championships | Super Bowl championships : 5 1971 ( VI ), 1977 ( XII ), 1992 ( XXVII ), 1993 ( XXVIII ), 1995 ( XXX"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Dallas:11400",
+          "url": "https://en.wikipedia.org/wiki/Dallas"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Chicago:13300",
+          "url": "https://en.wikipedia.org/wiki/Chicago"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Dallas_Cowboys:13680",
+          "url": "https://en.wikipedia.org/wiki/Dallas_Cowboys"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Dallas:11210",
+          "url": "https://en.wikipedia.org/wiki/Dallas"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_Super_Bowl_champions:4560",
+          "url": "https://en.wikipedia.org/wiki/List_of_Super_Bowl_champions"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Dallas_Cowboys:2850",
+          "url": "https://en.wikipedia.org/wiki/Dallas_Cowboys"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Super_Bowl_Most_Valuable_Player_Award:380",
+          "url": "https://en.wikipedia.org/wiki/Super_Bowl_Most_Valuable_Player_Award"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_Super_Bowl_champions:7030",
+          "url": "https://en.wikipedia.org/wiki/List_of_Super_Bowl_champions"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Super_Bowl:1900",
+          "url": "https://en.wikipedia.org/wiki/Super_Bowl"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Super_Bowl:15200",
+          "url": "https://en.wikipedia.org/wiki/Super_Bowl"
+        }
+      ],
+      "agent_analysis": "B 提供 5、6、5 及早于 2010 年的冠军年份，要求计算 (5+6)*5；模型答 150，存在明确算术/事实组合错误。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "95",
+      "question": "As of August 2024, the Atlanta Braves beat the Houston Astros the last time they won the World Series. How many years before this did Jackie Robinson join the Brooklyn Dodgers?",
+      "gold_answer": "74 years",
+      "a_answer": "74",
+      "b_answer": "57",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "possible_equivalent",
+      "b_semantic_status": "not_equivalent_candidate",
+      "a_context_tokens": 3681,
+      "b_context_tokens": 749,
+      "a_reference_document_count": 2,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "95-B-1",
+          "url": "https://en.wikipedia.org/wiki/2021_Atlanta_Braves_season",
+          "archive_member": "en.wikipedia.org_wiki_2021_Atlanta_Braves_season.html",
+          "char_start": 0,
+          "char_end": 1461,
+          "text": "Major League Baseball season Major League Baseball team season 2021 Atlanta Braves | World Series champions National League champions National League East champions | | League | National League | Division | East | Ballpark | Truist Park | City | Atlanta | Record | 88–73 (.547) [ a ] | Divisional place | 1st | Owners | Liberty Media / John Malone | General manager | Alex Anthopoulos | Manager | Brian Snitker | Television | Bally Sports Southeast Bally Sports South ( Chip Caray , Jeff Francoeur , Paul Byrd , Tom Glavine , Dale Murphy , Joe Simpson , Kelly Crull ) | Radio | 680 The Fan Rock 100.5 Atlanta Braves Radio Network (Ben Ingram, Jim Powell , Joe Simpson ) 1600 La Mejor (Daniel Cantú, Emanuel Zamarrón) | ← 2020 Seasons 2022 → | The 2021 Atlanta Braves season was the 151st season of the Atlanta Braves franchise, the 56th season in Atlanta , and the Braves' 5th season at Truist Park . The Braves were managed by Brian Snitker, in his 6th season as the team's manager . The Braves clinched their fourth consecutive National League East title. They defeated the Milwaukee Brewers in the NLDS and faced the Los Angeles Dodgers in the NLCS for the second straight year. They defeated the Dodgers in six games to reach the World Series for the first time since 1999 . They would go on to defeat the Houston Astros in six games, winning their first World Series since 1995 , their second since moving to Atlanta, and their fourth in franchise history."
+        },
+        {
+          "excerpt_id": "95-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_World_Series_champions",
+          "archive_member": "en.wikipedia.org_wiki_List_of_World_Series_champions#World_Series_results.html",
+          "char_start": 15602,
+          "char_end": 15986,
+          "text": "2020 | Los Angeles Dodgers (21, 7–14) | Dave Roberts | 4–2 | Tampa Bay Rays (2, 0–2) | Kevin Cash | 2021 | Atlanta Braves (10, 4–6) | Brian Snitker | 4–2 | Houston Astros (4, 1–3) | Dusty Baker | 2022 | Houston Astros (5, 2–3) | Dusty Baker | 4–2 | Philadelphia Phillies [W] (8, 2–6) | Rob Thomson | 2023 | Texas Rangers [W] (3, 1–2) | Bruce Bochy | 4–1 | Arizona Diamondbacks [W] (2,"
+        },
+        {
+          "excerpt_id": "95-B-3",
+          "url": "https://en.wikipedia.org/wiki/Jackie_Robinson",
+          "archive_member": "en.wikipedia.org_wiki_Jackie_Robinson.html",
+          "char_start": 1276,
+          "char_end": 1891,
+          "text": "Jack Roosevelt Robinson (January 31, 1919 – October 24, 1972) was an American professional baseball player who was the first African American to play in Major League Baseball (MLB) in the modern era. Robinson broke the color line when he started at first base for the Brooklyn Dodgers on April 15, 1947. The Dodgers signing Robinson heralded the end of racial segregation in professional baseball, which had relegated black players to the Negro leagues since the 1880s. Born in Cairo, Georgia , Robinson was raised in Pasadena, California . A four-sport student athlete at Pasadena Junior College and the University"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Minute_Maid_Park:3230",
+          "url": "https://en.wikipedia.org/wiki/Minute_Maid_Park"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jackie_Robinson#:0",
+          "url": "https://en.wikipedia.org/wiki/Jackie_Robinson#"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jackie_Robinson:0",
+          "url": "https://en.wikipedia.org/wiki/Jackie_Robinson"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Atlanta_Braves:3610",
+          "url": "https://en.wikipedia.org/wiki/Atlanta_Braves"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_1995_World_Series:380",
+          "url": "https://en.wikipedia.org/wiki/1995_World_Series"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jackie_Robinson#:5320",
+          "url": "https://en.wikipedia.org/wiki/Jackie_Robinson#"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_2021_Houston_Astros_season:11590",
+          "url": "https://en.wikipedia.org/wiki/2021_Houston_Astros_season"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Jackie_Robinson:5320",
+          "url": "https://en.wikipedia.org/wiki/Jackie_Robinson"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_1974_World_Series:5890",
+          "url": "https://en.wikipedia.org/wiki/1974_World_Series"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_2017_World_Series:16910",
+          "url": "https://en.wikipedia.org/wiki/2017_World_Series"
+        }
+      ],
+      "agent_analysis": "B 提供 2021 年夺冠和 1947 年入队，模型仍答 57；A 答 74 但未带 years，仅列为语义等价候选。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "228",
+      "question": "The US Naval ship that sunk in Havana Harbor on February 15, 1898, is named for a state that was admitted to the Union while what woman was serving as First Lady?",
+      "gold_answer": "Elizabeth Monroe",
+      "a_answer": "unknown",
+      "b_answer": "Dolley Madison",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "abstention",
+      "b_semantic_status": "not_equivalent_candidate",
+      "a_context_tokens": 3583,
+      "b_context_tokens": 724,
+      "a_reference_document_count": 1,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "228-B-1",
+          "url": "https://en.wikipedia.org/wiki/USS_Maine_(1889)",
+          "archive_member": "en.wikipedia.org_wiki_USS_Maine_(1889).html",
+          "char_start": 2066,
+          "char_end": 3053,
+          "text": "Conning tower : 10 in (254 mm) Bulkheads : 6 in (152 mm) | | USS Maine was a United States Navy ship that sank in Havana Harbor on February 15, 1898, contributing to the outbreak of the Spanish–American War in April. U.S. newspapers claimed that the Spanish were responsible for the ship's destruction, while evidence points to an accident caused by an internal coal bunker fire. The phrase \"Remember the Maine! To hell with Spain!\" became a rallying cry for action. The Maine explosion served as a catalyst which accelerated the events leading up to the war. Maine is described as an armored cruiser or second-class battleship , depending on the source, ordered in 1886. She was the first U.S. Navy ship to be named after the state of Maine . [ a ] [ 1 ] [ 2 ] Maine and its contemporary the battleship Texas were both represented as an advance in American warship design, reflecting the latest European naval developments. Both ships had two-gun turrets staggered en échelon , and full"
+        },
+        {
+          "excerpt_id": "228-B-2",
+          "url": "https://en.wikipedia.org/wiki/Maine",
+          "archive_member": "en.wikipedia.org_wiki_Maine.html",
+          "char_start": 394,
+          "char_end": 790,
+          "text": "Anthem: State of Maine | Location of Maine within the United States | Country | United States | Before statehood | Part of Massachusetts ( District of Maine ) | Admitted to the Union | March 15, 1820 ; 206 years ago ( 1820-03-15 ) (23rd) | Capital | Augusta | Largest city | Portland | Largest county or equivalent | Cumberland | Largest metro and urban areas | Portland | Government | • Governor"
+        },
+        {
+          "excerpt_id": "228-B-3",
+          "url": "https://en.wikipedia.org/wiki/List_of_first_ladies_of_the_United_States",
+          "archive_member": "en.wikipedia.org_wiki_List_of_first_ladies_of_the_United_States.html",
+          "char_start": 3948,
+          "char_end": 4590,
+          "text": "March 4, 1801 – March 4, 1809 | 28 years, 158 days | Thomas Jefferson Father [ A ] | 4 | | Dolley Madison May 20, 1768 – July 12, 1849 (aged 81) [ 19 ] [ 20 ] | March 4, 1809 – March 4, 1817 | 40 years, 288 days | James Madison m. September 14, 1794 | 5 | | Elizabeth Monroe June 30, 1768 – September 23, 1830 (aged 62) [ 21 ] [ 22 ] | March 4, 1817 – March 4, 1825 | 48 years, 247 days | James Monroe m. February 16, 1786 | 6 | | Louisa Adams Birth country: Great Britain (present day United Kingdom) February 12, 1775 – May 15, 1852 (aged 77) [ 23 ] [ 24 ] | March 4, 1825 – March 4, 1829 | 50 years, 20 days | John Quincy Adams m. July 26,"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_USS_Maine_(1889):0",
+          "url": "https://en.wikipedia.org/wiki/USS_Maine_(1889)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_USS_Maine_(1889):10830",
+          "url": "https://en.wikipedia.org/wiki/USS_Maine_(1889)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_capitals_in_the_United_States:2660",
+          "url": "https://en.wikipedia.org/wiki/List_of_capitals_in_the_United_States"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_5th_Cavalry_Regiment:2090",
+          "url": "https://en.wikipedia.org/wiki/5th_Cavalry_Regiment"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Theodore_Roosevelt:4180",
+          "url": "https://en.wikipedia.org/wiki/Theodore_Roosevelt"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Key_West#_~_text=The%20southernmost%20location%20that%20the,apart%20at%20their%20closest%20points.:9500",
+          "url": "https://en.wikipedia.org/wiki/Key_West#:~:text=The%20southernmost%20location%20that%20the,apart%20at%20their%20closest%20points."
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Operation_Torch:3990",
+          "url": "https://en.wikipedia.org/wiki/Operation_Torch"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Key_West#_~_text=The%20southernmost%20location%20that%20the,apart%20at%20their%20closest%20points.:2660",
+          "url": "https://en.wikipedia.org/wiki/Key_West#:~:text=The%20southernmost%20location%20that%20the,apart%20at%20their%20closest%20points."
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Pearl_Harbor_(film):1900",
+          "url": "https://en.wikipedia.org/wiki/Pearl_Harbor_(film)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Franklin_D._Roosevelt:10830",
+          "url": "https://en.wikipedia.org/wiki/Franklin_D._Roosevelt"
+        }
+      ],
+      "agent_analysis": "B 提供 1820 年入联和 1817-1825 任期；模型选了前一任 Dolley Madison，显示日期与表格行对应错误。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "517",
+      "question": "What age was the Director of Inception (2010) when the film was released in the UK?",
+      "gold_answer": "39",
+      "a_answer": "unknown",
+      "b_answer": "40",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "abstention",
+      "b_semantic_status": "not_equivalent_candidate",
+      "a_context_tokens": 3676,
+      "b_context_tokens": 514,
+      "a_reference_document_count": 2,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "517-B-1",
+          "url": "https://en.wikipedia.org/wiki/Inception",
+          "archive_member": "en.wikipedia.org_wiki_Inception.html",
+          "char_start": 0,
+          "char_end": 1097,
+          "text": "From Wikipedia, the free encyclopedia 2010 film by Christopher Nolan This article is about the 2010 film. For the self-similarity concept, see Recursion . For other uses, see Inception (disambiguation) . Inception | Theatrical release poster | Directed by | Christopher Nolan | Written by | Christopher Nolan | Produced by | Emma Thomas Christopher Nolan | Starring | Leonardo DiCaprio Ken Watanabe Joseph Gordon-Levitt Marion Cotillard Elliot Page [ a ] Tom Hardy Cillian Murphy Tom Berenger Michael Caine | Cinematography | Wally Pfister | Edited by | Lee Smith | Music by | Hans Zimmer | Production companies | Legendary Pictures [ 1 ] Syncopy [ 1 ] | Distributed by | Warner Bros. Pictures [ 1 ] | Release dates | July 8, 2010 ( 2010-07-08 ) ( Odeon Leicester Square ) July 16, 2010 ( 2010-07-16 ) (United States and United Kingdom) | Running time | 148 minutes [ 2 ] | Countries | United States [ 3 ] United Kingdom [ 3 ] | Language | English | Budget | $160 million [ 4 ] | Box office | $839 million [ 4 ] | Inception is a 2010 science fiction action film written and directed by Christopher"
+        },
+        {
+          "excerpt_id": "517-B-2",
+          "url": "https://en.wikipedia.org/wiki/Christopher_Nolan",
+          "archive_member": "en.wikipedia.org_wiki_Christopher_Nolan.html",
+          "char_start": 0,
+          "char_end": 649,
+          "text": "From Wikipedia, the free encyclopedia British and American filmmaker (born 1970) This article is about the filmmaker. For other people named Christopher Nolan, see Christopher Nolan (disambiguation) . Sir Christopher Nolan CBE | Nolan in 2024 | Born | Christopher Edward Nolan ( 1970-07-30 ) 30 July 1970 (age 55) Westminster , London, England | Citizenship | UK US | Education | University College London ( BA ) | Occupations | Film director producer screenwriter | Years active | 1993–present | Organisation | Syncopy Inc. | Works | Filmography | Spouse | Emma Thomas ​ ( m. 1997) ​ | Children | 4 | Relatives | Jonathan Nolan (brother) John Nolan"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Inception:11970",
+          "url": "https://en.wikipedia.org/wiki/Inception"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Inception:7220",
+          "url": "https://en.wikipedia.org/wiki/Inception"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Christopher_Nolan:3230",
+          "url": "https://en.wikipedia.org/wiki/Christopher_Nolan"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Christopher_Nolan:7980",
+          "url": "https://en.wikipedia.org/wiki/Christopher_Nolan"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_The_Ward_(film):1710",
+          "url": "https://en.wikipedia.org/wiki/The_Ward_(film)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Pride_%26_Prejudice_(2005_film):6840",
+          "url": "https://en.wikipedia.org/wiki/Pride_%26_Prejudice_(2005_film)"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Devil%27s_Pass:950",
+          "url": "https://en.wikipedia.org/wiki/Devil%27s_Pass"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Academy_Award_for_Best_Director:380",
+          "url": "https://en.wikipedia.org/wiki/Academy_Award_for_Best_Director"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Downton_Abbey:11780",
+          "url": "https://en.wikipedia.org/wiki/Downton_Abbey"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Donnie_Darko:5700",
+          "url": "https://en.wikipedia.org/wiki/Donnie_Darko"
+        }
+      ],
+      "agent_analysis": "B 有 2010 年 7 月 16 日英国上映和 1970 年 7 月 30 日出生；上映时生日未到，模型答 40 而非 39。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "604",
+      "question": "During which year did the actor who played George Falconer in the film A Single Man receive his first Academy Award? Include the name of the film for which he won.",
+      "gold_answer": "Colin Firth won his first Academy Award in 2011 for The King's Speech.",
+      "a_answer": "2010, The King's Speech",
+      "b_answer": "2010, The King's Speech",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "not_equivalent_candidate",
+      "b_semantic_status": "not_equivalent_candidate",
+      "a_context_tokens": 3300,
+      "b_context_tokens": 350,
+      "a_reference_document_count": 3,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "604-B-1",
+          "url": "https://en.wikipedia.org/wiki/A_Single_Man",
+          "archive_member": "en.wikipedia.org_wiki_A_Single_Man.html",
+          "char_start": 988,
+          "char_end": 1475,
+          "text": "The directorial debut of fashion designer Tom Ford , the film stars Colin Firth , who was nominated for the Academy Award for Best Actor for his portrayal of George Falconer, a depressed gay British university professor living in Southern California in 1962. The film premiered on September 11, 2009, at the 66th Venice International Film Festival , where Firth won the Volpi Cup for Best Actor , and went on the film festival circuit. After it screened at the 34th Toronto International"
+        },
+        {
+          "excerpt_id": "604-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_awards_and_nominations_received_by_Colin_Firth",
+          "archive_member": "en.wikipedia.org_wiki_List_of_awards_and_nominations_received_by_Colin_Firth.html",
+          "char_start": 2679,
+          "char_end": 3293,
+          "text": "(2022). For the later he also received a Golden Globe Award nomination. Major associations [ edit ] Academy Awards [ edit ] Year | Category | Nominated work | Result | Ref. | 2010 | Best Actor | A Single Man | Nominated | [ 1 ] | 2011 | The King's Speech | Won | [ 2 ] | BAFTA Awards [ edit ] Year | Category | Nominated work | Result | Ref. | British Academy Film Awards | 2002 | Best Actor in a Supporting Role | Bridget Jones's Diary | Nominated | [ 3 ] | 2010 | Best Actor in a Leading Role | A Single Man | Won | [ 4 ] | 2011 | The King's Speech | Won | [ 5 ] | British Academy Television Awards | 1989 | Best"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_A_Single_Man:190",
+          "url": "https://en.wikipedia.org/wiki/A_Single_Man"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_Academy_Award_records:4940",
+          "url": "https://en.wikipedia.org/wiki/List_of_Academy_Award_records"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Academy_Award_for_Best_Actor#1960s:6460",
+          "url": "https://en.wikipedia.org/wiki/Academy_Award_for_Best_Actor#1960s"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Colin_Firth:190",
+          "url": "https://en.wikipedia.org/wiki/Colin_Firth"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_awards_and_nominations_received_by_Colin_Firth:190",
+          "url": "https://en.wikipedia.org/wiki/List_of_awards_and_nominations_received_by_Colin_Firth"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Golden_Globe_Award_for_Best_Actor_in_a_Motion_Picture_%E2%80%93_Drama:3990",
+          "url": "https://en.wikipedia.org/wiki/Golden_Globe_Award_for_Best_Actor_in_a_Motion_Picture_%E2%80%93_Drama"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Academy_Award_for_Best_Actor#1960s:8550",
+          "url": "https://en.wikipedia.org/wiki/Academy_Award_for_Best_Actor#1960s"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Heath_Ledger:5700",
+          "url": "https://en.wikipedia.org/wiki/Heath_Ledger"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_Academy_Award_records:5130",
+          "url": "https://en.wikipedia.org/wiki/List_of_Academy_Award_records"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Academy_Award_for_Best_Supporting_Actor:190",
+          "url": "https://en.wikipedia.org/wiki/Academy_Award_for_Best_Supporting_Actor"
+        }
+      ],
+      "agent_analysis": "B 的 Academy Awards 表明确标明 2011 年获奖，模型两组均答 2010 年，不能仅归因于 gold 使用完整句子。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "654",
+      "question": "Please consider the following clues and answer the question that follows:  1. This mosque is located in the city dubbed the \"Jerusalem of the Balkans.\" 2, The mosque was commissioned by an authoritarian dictator born in a small village 10 km west of Yogyakarta.  Question: What is the height difference between the twin towers of the mosque and its dome?",
+      "gold_answer": "21 meters",
+      "a_answer": "21 metres",
+      "b_answer": "21 m",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "possible_equivalent",
+      "b_semantic_status": "possible_equivalent",
+      "a_context_tokens": 3711,
+      "b_context_tokens": 911,
+      "a_reference_document_count": 3,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "654-B-1",
+          "url": "https://en.wikipedia.org/wiki/Sarajevo",
+          "archive_member": "en.wikipedia.org_wiki_Sarajevo.html",
+          "char_start": 372,
+          "char_end": 931,
+          "text": "Sarajevo | Old Town and Center skyline Gazi Husrev-beg Mosque Sacred Heart Cathedral Serb Orthodox Cathedral Baščaršija Sarajevo cable car Latin Bridge Šeher-Ćehaja Bridge in front of Vijećnica | Flag Coat of arms | Nickname(s): \"Jerusalem of Europe\", [ 1 ] \"Jerusalem of the Balkans\", [ 2 ] \"Šeher, Rajvosa\" [ 3 ] | Interactive map of Sarajevo | Sarajevo Location within Bosnia and Herzegovina Show map of Bosnia and Herzegovina Sarajevo Location within Europe Show map of Europe | Coordinates: 43°51′23″N 18°24′47″E ﻿ / ﻿ 43.85639°N 18.41306°E ﻿ / 43.85639;"
+        },
+        {
+          "excerpt_id": "654-B-2",
+          "url": "https://en.wikipedia.org/wiki/Istiklal_Mosque,_Sarajevo",
+          "archive_member": "en.wikipedia.org_wiki_Istiklal_Mosque,_Sarajevo.html",
+          "char_start": 879,
+          "char_end": 1430,
+          "text": "| US$ 2.7 million | Specifications | Interior area | 2,500 m 2 (27,000 sq ft) | Dome | 1 | Dome height (outer) | 27 m (89 ft) | Dome dia. (outer) | 27 m (89 ft) | Minaret | 2 | Minaret height | 48 m (157 ft) | Materials | Stainless steel ; aluminium ; glass; tiles; timber | The Istiklal Mosque ( Bosnian : Istiklal džamija ) is a large mosque in Sarajevo , the capital of Bosnia and Herzegovina . It was named after Istiqlal Mosque , the national mosque of Indonesia , that is located in Jakarta . The mosque was a gift from the Indonesian people and"
+        },
+        {
+          "excerpt_id": "654-B-3",
+          "url": "https://en.wikipedia.org/wiki/Istiklal_Mosque,_Sarajevo",
+          "archive_member": "en.wikipedia.org_wiki_Istiklal_Mosque,_Sarajevo.html",
+          "char_start": 1960,
+          "char_end": 2580,
+          "text": "Bureau Center for Islamic Architecture, arranging Islamic weddings , and also as Indonesian Cultural Center. [ 2 ] History [ edit ] During his visit to the war torn city of Sarajevo in March 1995 and a courtesy call to Bosnian President Alija Izetbegović , Indonesian President Suharto contemplated an idea to build a mosque in the city as a gift for the people of Bosnia and Herzegovina. Suharto mobilized his administrations to realize his idea, and appointed Fauzan Noe’man, one of Indonesia's foremost architect to design the mosque and proceed with the project. Noe'man was known for his works in constructing grand"
+        },
+        {
+          "excerpt_id": "654-B-4",
+          "url": "https://en.wikipedia.org/wiki/Suharto",
+          "archive_member": "en.wikipedia.org_wiki_Suharto.html",
+          "char_start": 4489,
+          "char_end": 4828,
+          "text": "] (8 June 1921 – 27 January 2008) was an Indonesian general and politician who served as the second and longest-serving president of Indonesia from 1967 to 1998. Suharto was born in Kemusuk , near the city of Yogyakarta , during the Dutch colonial era. [ 10 ] He grew up in humble circumstances. [ 11 ] His Javanese Muslim parents divorced"
+        },
+        {
+          "excerpt_id": "654-B-5",
+          "url": "https://en.wikipedia.org/wiki/Kemusuk",
+          "archive_member": "en.wikipedia.org_wiki_Kemusuk.html",
+          "char_start": 0,
+          "char_end": 615,
+          "text": "Coordinates : 7°49′00″S 110°16′59″E ﻿ / ﻿ 7.81667°S 110.28306°E ﻿ / -7.81667; 110.28306 From Wikipedia, the free encyclopedia Kemusuk is a hamlet ( dukuh ) in the Argomulyo village, Sedayu subdistrict, Bantul Regency , Special Region of Yogyakarta , Indonesia . The area, around 10 km to the west of Yogyakarta towards the town of Wates , is known as the birthplace of the second president of Indonesia , Suharto . Significance with Suharto's life and family [ edit ] Suharto was born to a 'poor but not unimportant farmer's family' in the village. His father, Kertosudiro, was a local irrigation official in charge"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Sarajevo:380",
+          "url": "https://en.wikipedia.org/wiki/Sarajevo"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Sarajevo:0",
+          "url": "https://en.wikipedia.org/wiki/Sarajevo"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Istiklal_Mosque,_Sarajevo:570",
+          "url": "https://en.wikipedia.org/wiki/Istiklal_Mosque,_Sarajevo"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Istiklal_Mosque,_Sarajevo:0",
+          "url": "https://en.wikipedia.org/wiki/Istiklal_Mosque,_Sarajevo"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Israel:19950",
+          "url": "https://en.wikipedia.org/wiki/Israel"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Kemusuk:0",
+          "url": "https://en.wikipedia.org/wiki/Kemusuk"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Willis_Tower:7220",
+          "url": "https://en.wikipedia.org/wiki/Willis_Tower"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Israel:16530",
+          "url": "https://en.wikipedia.org/wiki/Israel"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Empire_State_Building:11970",
+          "url": "https://en.wikipedia.org/wiki/Empire_State_Building"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Qufu#Geography:2090",
+          "url": "https://en.wikipedia.org/wiki/Qufu#Geography"
+        }
+      ],
+      "agent_analysis": "B 答 21 m，A 答 21 metres，gold 为 21 meters；单位变体是未人工确认的等价候选，不自动改为正确。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "754",
+      "question": "How many times larger was the population of the city of Paris, 19 years after the year designated as The International Year for the Culture of Peace by the United Nations, than the population of Brown County, Kansas according to its 2020 census? Round the answer to the nearest whole number.",
+      "gold_answer": "228 times larger",
+      "a_answer": "231",
+      "b_answer": "226",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "not_equivalent_candidate",
+      "b_semantic_status": "not_equivalent_candidate",
+      "a_context_tokens": 3478,
+      "b_context_tokens": 580,
+      "a_reference_document_count": 3,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "754-B-1",
+          "url": "https://en.wikipedia.org/wiki/International_Year_for_the_Culture_of_Peace",
+          "archive_member": "en.wikipedia.org_wiki_International_Year_for_the_Culture_of_Peace.html",
+          "char_start": 0,
+          "char_end": 568,
+          "text": "United Nations observance The International Year for the Culture of Peace was designated by the United Nations as the year 2000, with the aim of celebrating and encouraging a culture of peace . Origins [ edit ] Since 1959 the United Nations has designated specific years to emphasize issues which are part of the mission of the organization. The International Year for the Culture of Peace was proclaimed in a United Nations General Assembly resolution in 1997 on the basis of an Economic and Social Council resolution. [ 1 ] The General Assembly invited a Declaration"
+        },
+        {
+          "excerpt_id": "754-B-2",
+          "url": "https://en.wikipedia.org/wiki/Demographics_of_Paris",
+          "archive_member": "en.wikipedia.org_wiki_Demographics_of_Paris.html",
+          "char_start": 1158,
+          "char_end": 1793,
+          "text": "sq mi) | 3,640/km 2 (9,400/sq mi) | +0.70%/year | Metropolitan area | 12,089,098 | 17,174.4 km 2 (6,631 sq mi) | 704/km 2 (1,820/sq mi) | +0.71%/year | The city of Paris (also called the Commune or Department of Paris) had a population of 2,165,423 people within its administrative city limits as of 1 January 2019. [ 1 ] It is surrounded by the Paris unité urbaine , or urban area, the most populous urban area in the European Union . In 2018 the unité urbaine had a population of 10,816,803 in 2,854 km 2 (1,102 sq mi). [ 2 ] The Paris Region, or Île-de-France , covers 12,012 km 2 (4,638 sq mi), and has its own regional council and"
+        },
+        {
+          "excerpt_id": "754-B-3",
+          "url": "https://en.wikipedia.org/wiki/Brown_County,_Kansas",
+          "archive_member": "en.wikipedia.org_wiki_Brown_County,_Kansas.html",
+          "char_start": 847,
+          "char_end": 1404,
+          "text": "2nd | Website | brcoks.org | Brown County is a county located in the northeastern portion of the U.S. state of Kansas . Its county seat and most populous city is Hiawatha . [ 2 ] As of the 2020 census , the county population was 9,508. [ 1 ] The county was named after Albert G. Brown , a U.S. Senator from Mississippi and Kansas statehood advocate. The Kickapoo Indian Reservation of Kansas , the majority of the Sac and Fox Reservation , and the majority of the Iowa Reservation of Kansas and Nebraska are located within the county. History [ edit ] Early"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Brown_County,_Kansas:190",
+          "url": "https://en.wikipedia.org/wiki/Brown_County,_Kansas"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Brown_County,_Kansas:2090",
+          "url": "https://en.wikipedia.org/wiki/Brown_County,_Kansas"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Utah_County,_Utah:190",
+          "url": "https://en.wikipedia.org/wiki/Utah_County,_Utah"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_New_Jersey:6080",
+          "url": "https://en.wikipedia.org/wiki/New_Jersey"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Demographics_of_Paris:380",
+          "url": "https://en.wikipedia.org/wiki/Demographics_of_Paris"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_International_Year_for_the_Culture_of_Peace:0",
+          "url": "https://en.wikipedia.org/wiki/International_Year_for_the_Culture_of_Peace"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Kennebec_County,_Maine:190",
+          "url": "https://en.wikipedia.org/wiki/Kennebec_County,_Maine"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_International_Year_for_the_Culture_of_Peace:190",
+          "url": "https://en.wikipedia.org/wiki/International_Year_for_the_Culture_of_Peace"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Demographics_of_Paris:4180",
+          "url": "https://en.wikipedia.org/wiki/Demographics_of_Paris"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Maine:10450",
+          "url": "https://en.wikipedia.org/wiki/Maine"
+        }
+      ],
+      "agent_analysis": "B 有 2000 年、2019 年巴黎市人口 2165423、2020 年县人口 9508；其比值约 227.75，模型答 226。保留 times larger 表述口径供人工复核。",
+      "human_confirmed": false
+    },
+    {
+      "sample_id": "758",
+      "question": "Who was the Mayor of Quincy, Massachusetts when the Quincy Medical Center opened and who was the Mayor when it closed?",
+      "gold_answer": "Henry O. Fairbanks and Thomas P. Koch",
+      "a_answer": "unknown",
+      "b_answer": "Henry O. Fairbanks; Thomas P. Koch",
+      "a_exact_match": false,
+      "b_exact_match": false,
+      "a_semantic_status": "abstention",
+      "b_semantic_status": "possible_equivalent",
+      "a_context_tokens": 3402,
+      "b_context_tokens": 465,
+      "a_reference_document_count": 2,
+      "b_evidence_status": "sufficient",
+      "b_excerpt_locations": [
+        {
+          "excerpt_id": "758-B-1",
+          "url": "https://en.wikipedia.org/wiki/Quincy_Medical_Center",
+          "archive_member": "en.wikipedia.org_wiki_Quincy_Medical_Center.html",
+          "char_start": 333,
+          "char_end": 912,
+          "text": "Private | Type | Teaching | Affiliated university | Boston University | Services | Emergency department | Yes | Beds | 90 | History | Former names | Quincy Hospital Quincy City Hospital | Opened | 1890 ( 1890 ) | Closed | December 26, 2014 ( 2014-12-26 ) | Demolished | 2021 | Links | Website | Official site | Lists | Hospitals in Massachusetts | Quincy Medical Center was a small for-profit community hospital located in Quincy, Massachusetts for 124 years, from 1890 to 2014. [ 1 ] A municipal hospital for most of its existence, it transitioned to non-profit in 1999 and then"
+        },
+        {
+          "excerpt_id": "758-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_Quincy,_Massachusetts",
+          "archive_member": "en.wikipedia.org_wiki_List_of_mayors_of_Quincy,_Massachusetts.html",
+          "char_start": 437,
+          "char_end": 752,
+          "text": "Quincy City Hall List of mayors [ edit ] # | Mayor | Picture | Term | Party | 1st | Charles H. Porter | | 1889 | Republican | 2nd | Henry O. Fairbanks | | 1890-1893 | Republican | 3rd | William A. Hodges | | 1894-1895 | Democratic | 4th | Charles Francis Adams | | 1896-1897 | Independent Republican | 5th | Russell"
+        },
+        {
+          "excerpt_id": "758-B-3",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_Quincy,_Massachusetts",
+          "archive_member": "en.wikipedia.org_wiki_List_of_mayors_of_Quincy,_Massachusetts.html",
+          "char_start": 2128,
+          "char_end": 2404,
+          "text": "Republican | 31st | James A. Sheets | | 1990–2002 | Democratic (turned Independent in retirement) [ 1 ] | 32nd | William J. Phelan | | 2002–2008 | Independent | 33rd | Thomas P. Koch | | 2008–present | Independent [ 2 ] | References [ edit ] ^ \"Former Quincy mayor Sheets says"
+        }
+      ],
+      "a_passage_locations": [
+        {
+          "passage_id": "en.wikipedia.org_wiki_Quincy_Medical_Center:0",
+          "url": "https://en.wikipedia.org/wiki/Quincy_Medical_Center"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Quincy_Medical_Center:380",
+          "url": "https://en.wikipedia.org/wiki/Quincy_Medical_Center"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_mayors_of_Quincy,_Massachusetts:0",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_Quincy,_Massachusetts"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_List_of_presidents_of_the_United_States_by_education:1330",
+          "url": "https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States_by_education"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Massachusetts:16910",
+          "url": "https://en.wikipedia.org/wiki/Massachusetts"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Harvard_University:3420",
+          "url": "https://en.wikipedia.org/wiki/Harvard_University"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Seattle:14440",
+          "url": "https://en.wikipedia.org/wiki/Seattle"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Harvard_University:1140",
+          "url": "https://en.wikipedia.org/wiki/Harvard_University"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Oklahoma_City:12350",
+          "url": "https://en.wikipedia.org/wiki/Oklahoma_City"
+        },
+        {
+          "passage_id": "en.wikipedia.org_wiki_Pittsburgh:15960",
+          "url": "https://en.wikipedia.org/wiki/Pittsburgh"
+        }
+      ],
+      "agent_analysis": "B 列出与 gold 相同的两位市长姓名，分号代替 and 导致 EM 拒绝；这是等价候选，不是已确认语义正确。",
+      "human_confirmed": false
+    }
+  ],
+  "unconfirmed_answer_equivalence_candidates": [
+    {
+      "request_id": "95-A",
+      "prediction": "74",
+      "gold": "74 years",
+      "status": "possible_equivalent",
+      "reason": "74 is the same numeric value as gold 74 years; the unit is omitted despite the prompt requiring units. A human should decide whether contextual units suffice; primary EM stays false.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    },
+    {
+      "request_id": "223-B",
+      "prediction": "The Dockers brand",
+      "gold": "Dockers",
+      "status": "possible_equivalent",
+      "reason": "The Dockers brand names the same brand as gold Dockers, with an added descriptor. Plausible answer equivalence requires human confirmation; the separate FIRST-launch evidence check remains pending.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    },
+    {
+      "request_id": "654-A",
+      "prediction": "21 metres",
+      "gold": "21 meters",
+      "status": "possible_equivalent",
+      "reason": "21 metres and 21 meters have the same number and standard British/American unit spelling. This is a strong equivalence candidate, but has not been human-confirmed and does not change EM.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    },
+    {
+      "request_id": "654-B",
+      "prediction": "21 m",
+      "gold": "21 meters",
+      "status": "possible_equivalent",
+      "reason": "21 m and 21 meters use the same number and an SI unit abbreviation. The quoted heights 48 m and 27 m support the arithmetic. Human equivalence confirmation is still pending; EM is unchanged.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    },
+    {
+      "request_id": "758-B",
+      "prediction": "Henry O. Fairbanks; Thomas P. Koch",
+      "gold": "Henry O. Fairbanks and Thomas P. Koch",
+      "status": "possible_equivalent",
+      "reason": "Both full mayor names and order match the gold list. A semicolon replaces the gold conjunction and; normalized EM preserves the word and so fails. This exact entity-list candidate still awaits human confirmation.",
+      "reviewer": "Codex agent",
+      "human_confirmed": false,
+      "affects_primary_score": false,
+      "verifier": "Codex agent"
+    }
+  ],
+  "unresolved_evidence_cases": [
+    {
+      "sample_id": "30",
+      "verifier": "Codex agent",
+      "human_confirmed": false,
+      "status": "insufficient",
+      "reason": "The supplied frozen population figure is dated April 1, 2025, after August 1, 2024. No applicable 2024 population observation was found in this reference page.",
+      "caveats": [
+        "A later population close to a rounded answer is not evidence of the requested historical population."
+      ],
+      "required_facts": [
+        {
+          "requirement": "Identity of game story writer",
+          "excerpt_ids": [
+            "30-B-1"
+          ],
+          "assessment": "supported",
+          "reason": "Identity of game story writer is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Writer birthplace",
+          "excerpt_ids": [
+            "30-B-2"
+          ],
+          "assessment": "supported",
+          "reason": "Writer birthplace is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Available prefecture population and its recorded date",
+          "excerpt_ids": [
+            "30-B-3"
+          ],
+          "assessment": "supported",
+          "reason": "Available prefecture population and its recorded date is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Population as of August 1, 2024",
+          "excerpt_ids": [],
+          "assessment": "missing",
+          "reason": "No population observation at or before the requested date is provided in the selected demographic text."
+        }
+      ]
+    },
+    {
+      "sample_id": "142",
+      "verifier": "Codex agent",
+      "human_confirmed": false,
+      "status": "pending",
+      "reason": "The Associated Press legal holding is explicit, but the undated frozen biography does not establish the employer as of August 5, 2024.",
+      "caveats": [
+        "The employment sentence is not explicitly dated August 5, 2024; the historical legal holding is explicit."
+      ],
+      "required_facts": [
+        {
+          "requirement": "Associated Press employment",
+          "excerpt_ids": [
+            "142-B-1"
+          ],
+          "assessment": "supported",
+          "reason": "Associated Press employment is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Federal statute identified in the court holding",
+          "excerpt_ids": [
+            "142-B-2"
+          ],
+          "assessment": "supported",
+          "reason": "Federal statute identified in the court holding is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Employer as of August 5, 2024",
+          "excerpt_ids": [
+            "142-B-1"
+          ],
+          "assessment": "unverified",
+          "reason": "The employment sentence is undated."
+        }
+      ]
+    },
+    {
+      "sample_id": "223",
+      "verifier": "Codex agent",
+      "human_confirmed": false,
+      "status": "pending",
+      "reason": "A subsequent brand launch is explicitly documented, but the excerpt does not establish an exhaustive list of launches or that it was the FIRST launch after the name change.",
+      "caveats": [
+        "Do not promote a plausible next launch to verified first launch without an exhaustive chronology."
+      ],
+      "required_facts": [
+        {
+          "requirement": "Name-change year and commercial company",
+          "excerpt_ids": [
+            "223-B-1"
+          ],
+          "assessment": "supported",
+          "reason": "Name-change year and commercial company is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Company brand launch chronology near the name-change year",
+          "excerpt_ids": [
+            "223-B-2"
+          ],
+          "assessment": "supported",
+          "reason": "Company brand launch chronology near the name-change year is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "No other new brand was launched earlier after the name-change year",
+          "excerpt_ids": [
+            "223-B-2"
+          ],
+          "assessment": "unverified",
+          "reason": "The chronology is not declared exhaustive."
+        }
+      ]
+    },
+    {
+      "sample_id": "616",
+      "verifier": "Codex agent",
+      "human_confirmed": false,
+      "status": "pending",
+      "reason": "Country linkage and areas are present, but the frozen infoboxes do not date the area measurements to 2024. Their accompanying statistics include 2026 observations.",
+      "caveats": [
+        "Interpret origin as the countries of these game forms, not India where their common ancestor chaturanga originated. Frozen infobox areas are not explicitly dated 2024."
+      ],
+      "required_facts": [
+        {
+          "requirement": "Japanese game identification",
+          "excerpt_ids": [
+            "616-B-1"
+          ],
+          "assessment": "supported",
+          "reason": "Japanese game identification is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Transmission to Japan and development of present form",
+          "excerpt_ids": [
+            "616-B-2"
+          ],
+          "assessment": "supported",
+          "reason": "Transmission to Japan and development of present form is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Country native to xiangqi",
+          "excerpt_ids": [
+            "616-B-3"
+          ],
+          "assessment": "supported",
+          "reason": "Country native to xiangqi is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "China total area",
+          "excerpt_ids": [
+            "616-B-4"
+          ],
+          "assessment": "supported",
+          "reason": "China total area is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Japan total area",
+          "excerpt_ids": [
+            "616-B-5"
+          ],
+          "assessment": "supported",
+          "reason": "Japan total area is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Applicable country areas as of 2024",
+          "excerpt_ids": [
+            "616-B-4",
+            "616-B-5"
+          ],
+          "assessment": "unverified",
+          "reason": "The recorded area fields are undated, so historical applicability has not been independently checked."
+        }
+      ]
+    },
+    {
+      "sample_id": "692",
+      "verifier": "Codex agent",
+      "human_confirmed": false,
+      "status": "pending",
+      "reason": "The table contains a mainland-US height candidate, but explicitly disclaims ranking and completeness. The superlative tallest in continental US is not independently verified by this frozen reference.",
+      "caveats": [
+        "Preserve the source ranking caveat; highest among listed mainland-US entries is weaker than a verified global superlative."
+      ],
+      "required_facts": [
+        {
+          "requirement": "Alabama tallest waterfall, height and Little River Canyon location",
+          "excerpt_ids": [
+            "692-B-1"
+          ],
+          "assessment": "supported",
+          "reason": "Alabama tallest waterfall, height and Little River Canyon location is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Listed high waterfalls, heights and countries/localities",
+          "excerpt_ids": [
+            "692-B-2"
+          ],
+          "assessment": "supported",
+          "reason": "Listed high waterfalls, heights and countries/localities is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Tallest waterfall in the entire continental United States",
+          "excerpt_ids": [
+            "692-B-2"
+          ],
+          "assessment": "unverified",
+          "reason": "The table explicitly warns that rank should not be inferred; it is a list of notable waterfalls."
+        }
+      ]
+    },
+    {
+      "sample_id": "759",
+      "verifier": "Codex agent",
+      "human_confirmed": false,
+      "status": "pending",
+      "reason": "The question says sister, while both frozen biographies establish sister-in-law. The partner chain is documented but the literal kinship constraint is contradicted.",
+      "caveats": [
+        "Do not silently rewrite the question or count this as fully verified sufficient evidence."
+      ],
+      "required_facts": [
+        {
+          "requirement": "Complete mens and womens medal rows identifying the US medalist in those categories",
+          "excerpt_ids": [
+            "759-B-1"
+          ],
+          "assessment": "supported",
+          "reason": "Complete mens and womens medal rows identifying the US medalist in those categories is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Medalist marriage and documented brother-in-law",
+          "excerpt_ids": [
+            "759-B-2"
+          ],
+          "assessment": "supported",
+          "reason": "Medalist marriage and documented brother-in-law is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "Family linkage and 1984 two-person keelboat partner",
+          "excerpt_ids": [
+            "759-B-3"
+          ],
+          "assessment": "supported",
+          "reason": "Family linkage and 1984 two-person keelboat partner is stated in the cited verbatim excerpt."
+        },
+        {
+          "requirement": "The female medalist is the sailors biological sister",
+          "excerpt_ids": [
+            "759-B-2",
+            "759-B-3"
+          ],
+          "assessment": "contradicted",
+          "reason": "The biographies explicitly say brother in law and brothers wife."
+        }
+      ]
+    }
+  ],
+  "measurement_interpretation": {
+    "type": "真实 vLLM 顺序答案调用，非仿真，非在线完整 RAG 服务测量。未运行查询生成、检索器、队列或网络调度。",
+    "model": "Qwen/Qwen3.5-4B；固定 revision 851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a，本地已有权重；vLLM 0.26.0。",
+    "prompt_control": "A/B 共用 FINAL-only 提示、temperature=0、seed=42、256-token 上限、8192 上下文；不输出解释。A-first 与 B-first 各 12 对。",
+    "context_validation": "48 个请求实际 prompt token IDs 均与预检完全一致；最长输入 4078 token，未截断；所有 finish_reason 为 stop；加载与 2 次预热单独记录。",
+    "sufficiency": "全部由 Codex agent 检查，人类确认数为 0；18 充分、1 不足、5 待核验。不足/待核验题保留在全 24 分母，排除于充分子集。",
+    "b_is_not_normal_retrieval": "B 使用题目参考文档信息及 agent 按事实需要选片段，仅用于诊断。不是正常检索成绩。",
+    "confounds": "B 平均上下文 568.5 token，A 3485.58；B 来自参考文档而无其他文档，A 每题平均 5.25 个非参考文档。长度、相关性、干扰数量与事实完整性同时变化，不能将提高全部归于覆盖率。文档标签是相关性代理，不等于事实充分性。",
+    "phase13_comparison": "A/B 都使用新的仅 FINAL 输出要求，未运行 Phase 13 原提示的额外对照，不能将相对 Phase 13 的变化全部归于证据。",
+    "semantic_scoring": "主指标为原 normalized exact match。没有使用 token F1、重叠分数或模型自评分判定语义正确；5 个答案等价候选（4 个问题）单独列出，未经人工确认，不调整任何主指标。",
+    "abstention": "B 的 unknown 为 0 但仍有错误，不应把 unknown 降低解释为可靠性提升。",
+    "limits": "固定 24 题、单次确定性生成、agent 原文核验、新的简短输出/禁解释约束；没有人工充分性确认、人工最终语义裁定或统计推广证据。"
+  },
+  "next_priority": "先人工复核充分性与 5 个等价候选，再针对充分证据下的算术、生日边界、表格对应/奖项年份诊断答案阶段；目前不足以把低正确率全部归因于检索并直接继续新调度策略。",
+  "reproduction": {
+    "environment": "source /root/miniconda3/etc/profile.d/conda.sh && conda activate scaleflow",
+    "prerequisites": [
+      "Phase 13 固定 manifest/逐任务结果及原冻结 docs.tar.gz、url_mapping.json 可读，哈希与配置匹配。",
+      "只有 Qwen3.5-4B 固定本地快照及已有 vLLM 0.26.0 依赖，无下载新模型。",
+      "新输出目录，例如 results/phase15_reproduction；已有结果路径不会覆盖。"
+    ],
+    "prepare": "python -m scaleflow.phase15_diagnostics prepare --config configs/qwen35_frames_evidence_diagnostics.json --model-path /root/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/snapshots/851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a --output-dir results/phase15_reproduction",
+    "generate": "CUDA_VISIBLE_DEVICES=0 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 VLLM_WORKER_MULTIPROC_METHOD=spawn python -m scaleflow.phase15_worker results/phase15_reproduction/phase15_job.json results/phase15_reproduction/phase15_generations.jsonl",
+    "summarize": "python -m scaleflow.phase15_diagnostics summarize --output-dir results/phase15_reproduction",
+    "review_note": "已有 results/phase15_semantic_review.json 为本次输出的 agent 复核。如果重跑输出不同，应重新核对，不能盲目应用既有复核理由。仅对本次相同输入/输出重新聚合可带 --semantic-review。",
+    "test": "pytest -q"
+  },
+  "artifacts": [
+    "configs/qwen35_frames_evidence_diagnostics.json",
+    "results/phase15_evidence_checks.jsonl",
+    "results/phase15_paired_inputs.jsonl",
+    "results/phase15_job.json",
+    "results/phase15_generations.jsonl",
+    "results/phase15_generations.meta.json",
+    "results/phase15_answer_measurements.jsonl",
+    "results/phase15_paired_review.csv",
+    "results/phase15_summary.json",
+    "results/phase15_semantic_review.json"
+  ]
+}

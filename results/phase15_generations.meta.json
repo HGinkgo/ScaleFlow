@@ -1,0 +1,58 @@
+{
+  "model_id": "Qwen/Qwen3.5-4B",
+  "revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+  "backend_info": {
+    "backend": "vllm",
+    "vllm_version": "0.26.0",
+    "model_id": "/root/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/snapshots/851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+    "revision": null,
+    "available": true,
+    "language_model_only": true,
+    "enable_thinking": false,
+    "dtype": "bfloat16",
+    "max_model_len": 8192,
+    "gpu_memory_utilization": 0.8,
+    "enforce_eager": true,
+    "enable_prefix_caching": false,
+    "model_load_latency_ms": 21972.117878962308,
+    "gpu_memory_before_mb": 451.8125,
+    "gpu_memory_loaded_mb": 20098.0625,
+    "gpu_memory_delta_mb": 19646.25
+  },
+  "backend_settings": {
+    "language_model_only": true,
+    "enable_thinking": false,
+    "dtype": "bfloat16",
+    "max_model_len": 8192,
+    "gpu_memory_utilization": 0.8,
+    "enforce_eager": true,
+    "enable_prefix_caching": false,
+    "seed": 42,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 0,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "max_tokens": 256,
+    "logprobs": 1,
+    "model_id": "/root/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/snapshots/851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+  },
+  "job_sha256": "f105f1b33cf25fdabac8bfee82b086528d532cf455c9cd400f997a4144819a56",
+  "inputs_sha256": "5e81e341b6c242c69609f0d8a450d26dd22b7e391f2194a973a9a05516c784d2",
+  "warmups_excluded": [
+    {
+      "latency_ms_excluded": 1609.8645431920886,
+      "input_tokens": 18,
+      "raw_output": "ready"
+    },
+    {
+      "latency_ms_excluded": 554.1065922006965,
+      "input_tokens": 3626,
+      "raw_output": "ready"
+    }
+  ],
+  "started_at_utc": "2026-10-12T13:47:02.136601+00:00",
+  "measurement_scope": "Sequential real vLLM answer calls only; no queue/network simulation, no query generation, no retrieval; load and warmups excluded.",
+  "sample_count": 24,
+  "answer_call_count": 48
+}

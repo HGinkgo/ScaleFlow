@@ -1,0 +1,338 @@
+{
+  "25-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "The cited birth/fight dates imply completed ages 23 and 35 on their separate first-professional-loss dates. The output 2 differs from their difference and omits the requested year unit. This is an agent arithmetic check, not a semantic scorer.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "25-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "40 differs from the gold 12 years. No lexical equivalence is plausible; the A evidence must be checked for first-loss facts.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "27-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "27-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "30-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "The output 2 is not two million people and does not follow the required word rendering. Moreover the B population observation is 2025, so historical evidence remains insufficient.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "30-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "32-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "The excerpts provide Brazil 5 championships, Bulls 6, Cowboys 5, all dated before 2010. The requested expression (5 + 6) * 5 yields 55; 150 does not. This arithmetic check is for inspection only.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "32-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "10 differs from gold 55; the preserved retrieved context needs fact-level inspection.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "89-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "89-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "95-A": {
+    "status": "possible_equivalent",
+    "reason": "74 is the same numeric value as gold 74 years; the unit is omitted despite the prompt requiring units. A human should decide whether contextual units suffice; primary EM stays false.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "95-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "The excerpts place the Braves title in 2021 and Robinson debut in 1947, yielding 74 years. The output 57 is a different number, not a unit variant.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "104-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "104-A": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "114-A": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "114-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "142-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "142-A": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "223-B": {
+    "status": "possible_equivalent",
+    "reason": "The Dockers brand names the same brand as gold Dockers, with an added descriptor. Plausible answer equivalence requires human confirmation; the separate FIRST-launch evidence check remains pending.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "223-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "Levi's is the company original brand rather than the named later brand in the gold. B FIRST-launch sufficiency remains pending.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "228-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "228-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "The excerpts place Maine admission in March 1820 and Elizabeth Monroe term in 1817-1825. Dolley Madison is the preceding first lady whose term ended in 1817, so the selected table row is incompatible with the date.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "238-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "238-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "250-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "250-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "1849 is the East India Company takeover date; the question asks British crown rule, for which the B frozen sources explicitly state 1858.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "281-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "Rick Dalton is not the narrator named by the cited final-novel reference. The B narrator passage identifies Angel Archer.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "281-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "432-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "Singidunum is a historical city name; the question requests its country as of 2024. The B birthplace passage explicitly locates it in present-day Serbia.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "432-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "517-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "517-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "The excerpts give UK release July 16, 2010 and Nolan birth July 30, 1970. His birthday had not occurred that year, so 40 is off by one relative to completed age 39.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "558-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "558-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "604-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "The title matches, but 2010 is not the gold award ceremony year 2011. Actor is also omitted. The source table marks A Single Man as nominated in 2010 and The King's Speech as won in 2011.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "604-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "The title matches but the year does not: the quoted Academy Awards row states 2011, while the model outputs 2010. This cannot be classified as purely a wording mismatch.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "616-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "25.4 is an unrounded area ratio; the question requests the nearest integer and gold is 25. Historical applicability of area fields remains pending. No semantic equivalence is asserted.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "616-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "654-A": {
+    "status": "possible_equivalent",
+    "reason": "21 metres and 21 meters have the same number and standard British/American unit spelling. This is a strong equivalence candidate, but has not been human-confirmed and does not change EM.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "654-B": {
+    "status": "possible_equivalent",
+    "reason": "21 m and 21 meters use the same number and an SI unit abbreviation. The quoted heights 48 m and 27 m support the arithmetic. Human equivalence confirmation is still pending; EM is unchanged.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "692-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "264 feet differs from the gold 2452 ft. The underlying superlative in the frozen source is independently pending, so no source-grounded semantic accuracy is certified.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "692-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "946 feet differs from the gold 2452 ft. It also does not equal the subtraction between the mainland candidate height and the Alabama height in the excerpts. The source explicitly disclaims ranking, so the tallest constraint remains pending.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "754-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "231 differs from gold 228 times larger. No rounding or unit-only equivalence is evident.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "754-B": {
+    "status": "not_equivalent_candidate",
+    "reason": "The source facts are year 2000, Paris city 2165423 in 2019, and Brown County 9508 in 2020. Their ratio is about 227.75, which rounds to 228, not output 226. The wording times larger also deserves human convention review, but it does not explain this output as the requested rounded ratio.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "758-A": {
+    "status": "abstention",
+    "reason": "Explicit unknown under the new prompt. This is an abstention, not a positive or negative semantic equivalence judgment.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "758-B": {
+    "status": "possible_equivalent",
+    "reason": "Both full mayor names and order match the gold list. A semicolon replaces the gold conjunction and; normalized EM preserves the word and so fails. This exact entity-list candidate still awaits human confirmation.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "759-B": {
+    "status": "exact_match",
+    "reason": "Passes the unchanged normalized exact match primary metric; no extra semantic score is assigned.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  },
+  "759-A": {
+    "status": "not_equivalent_candidate",
+    "reason": "Lanee Butler is the female medalist in the clue, rather than the requested 1984 keelboat partner Richard Coxon. The literal sister relation in the question is contradicted by the frozen biographies; B sufficiency stays pending.",
+    "reviewer": "Codex agent",
+    "human_confirmed": false,
+    "affects_primary_score": false
+  }
+}

@@ -1,0 +1,1538 @@
+{
+  "phase": 15,
+  "measurement_type": "paired_real_vllm_answer_generation",
+  "model_id": "Qwen/Qwen3.5-4B",
+  "revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+  "seed": 42,
+  "gpu": 0,
+  "backend": {
+    "language_model_only": true,
+    "enable_thinking": false,
+    "dtype": "bfloat16",
+    "max_model_len": 8192,
+    "gpu_memory_utilization": 0.8,
+    "enforce_eager": true,
+    "enable_prefix_caching": false,
+    "seed": 42,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 0,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "max_tokens": 256,
+    "logprobs": 1
+  },
+  "sources": {
+    "measurements": "results/phase13_rag_measurements.jsonl",
+    "manifest": "results/phase13_frames_manifest.json",
+    "archive": "data/frames/docs.tar.gz",
+    "mapping": "data/frames/url_mapping.json"
+  },
+  "prompt_template": "Answer the question using only the supplied Wikipedia evidence.\nOutput exactly one line: FINAL: <short answer>\nDo not output explanations, reasoning, or citations.\nKeep the units, names, and all list items required by the question.\nIf the answer cannot be determined from the evidence, output FINAL: unknown.\nQuestion: {question}\nEvidence:\n{context}\n",
+  "curation_policy": {
+    "verifier": "Codex agent",
+    "human_confirmed": false,
+    "selection_completed_before_generation": true,
+    "selection_rule": "All 24 fixed samples, question-directed fact coverage using only frozen reference-document text; no selection by model output.",
+    "no_injected_answers": "Only exact substrings of Phase 13 html_text extraction are included in evidence; fact check comments and gold answers never enter prompts.",
+    "offset_convention": "Zero-based half-open Unicode character offsets in html_text output, not HTML byte offsets.",
+    "sufficient_definition": "All facts needed for the question are present and applicable; numerical or temporal reasoning still has to be performed by the model.",
+    "status_note": "sufficient means agent-verified only; no human verification has occurred."
+  },
+  "samples": [
+    {
+      "sample_id": "25",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [
+          "Professional first losses are used; the source does not claim these were their first amateur losses. Ages must be evaluated on separate fight dates, not by subtracting birth years."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Mike Tyson birth date",
+            "excerpt_ids": [
+              "25-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Mike Tyson birth date is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Date of Tyson loss and confirmation he was previously undefeated",
+            "excerpt_ids": [
+              "25-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Date of Tyson loss and confirmation he was previously undefeated is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Tyson Fury birth date",
+            "excerpt_ids": [
+              "25-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Tyson Fury birth date is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Date of Fury bout and explicit first professional loss",
+            "excerpt_ids": [
+              "25-B-4"
+            ],
+            "assessment": "supported",
+            "reason": "Date of Fury bout and explicit first professional loss is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "25-B-1",
+          "url": "https://en.wikipedia.org/wiki/Mike_Tyson",
+          "char_start": 984,
+          "char_end": 1135,
+          "text_sha256": "2f991aa2ca759584af94dcf29cbc16a438d8e94f835aeb6af0004d49fbb5fe40"
+        },
+        {
+          "excerpt_id": "25-B-2",
+          "url": "https://en.wikipedia.org/wiki/Mike_Tyson_vs._Buster_Douglas",
+          "char_start": 935,
+          "char_end": 1231,
+          "text_sha256": "4d872e161e0186348959baea6afbc43477d9ff0b21aeaa0799cb6d7c64f512b8"
+        },
+        {
+          "excerpt_id": "25-B-3",
+          "url": "https://en.wikipedia.org/wiki/Tyson_Fury",
+          "char_start": 0,
+          "char_end": 236,
+          "text_sha256": "d5b4cea82e4db0c301e2d99ee09b7051c9fdc26884db4bb728326086404a1895"
+        },
+        {
+          "excerpt_id": "25-B-4",
+          "url": "https://en.wikipedia.org/wiki/Tyson_Fury",
+          "char_start": 64719,
+          "char_end": 65074,
+          "text_sha256": "cd1ebdf3d9e2bf03e3686168653413bac19ab77502dd41a4ceb4472ff5308231"
+        }
+      ]
+    },
+    {
+      "sample_id": "27",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [
+          "The question asks the conventional number he would have worn; this is positional inference, not a photograph or squad-number register."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Playing position and Chelsea playing years",
+            "excerpt_ids": [
+              "27-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Playing position and Chelsea playing years is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Centre-forward number convention",
+            "excerpt_ids": [
+              "27-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Centre-forward number convention is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Mandatory shirt numbering before the Chelsea playing years",
+            "excerpt_ids": [
+              "27-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Mandatory shirt numbering before the Chelsea playing years is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "27-B-1",
+          "url": "https://en.wikipedia.org/wiki/Tommy_Lawton",
+          "char_start": 364,
+          "char_end": 684,
+          "text_sha256": "db5dfded2fde7897eb71bd410ff1344e02115e0c5c333a9c4a1861018ffcdcf0"
+        },
+        {
+          "excerpt_id": "27-B-2",
+          "url": "https://en.wikipedia.org/wiki/Squad_number_(association_football)",
+          "char_start": 1199,
+          "char_end": 1468,
+          "text_sha256": "30c0ea5bab7dbfd93746a3603db9ba66322df03204d3024e4cdc26386246e7c9"
+        },
+        {
+          "excerpt_id": "27-B-3",
+          "url": "https://en.wikipedia.org/wiki/Squad_number_(association_football)",
+          "char_start": 4425,
+          "char_end": 4865,
+          "text_sha256": "ea61383e401459e3999c16a75aae59a3d5444abe06ecf8ae3b0d2e02e7dfed1e"
+        }
+      ]
+    },
+    {
+      "sample_id": "30",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "insufficient",
+        "reason": "The supplied frozen population figure is dated April 1, 2025, after August 1, 2024. No applicable 2024 population observation was found in this reference page.",
+        "caveats": [
+          "A later population close to a rounded answer is not evidence of the requested historical population."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Identity of game story writer",
+            "excerpt_ids": [
+              "30-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Identity of game story writer is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Writer birthplace",
+            "excerpt_ids": [
+              "30-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Writer birthplace is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Available prefecture population and its recorded date",
+            "excerpt_ids": [
+              "30-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Available prefecture population and its recorded date is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Population as of August 1, 2024",
+            "excerpt_ids": [],
+            "assessment": "missing",
+            "reason": "No population observation at or before the requested date is provided in the selected demographic text."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "30-B-1",
+          "url": "https://en.wikipedia.org/wiki/Culdcept_Saga",
+          "char_start": 6499,
+          "char_end": 6884,
+          "text_sha256": "49c51baad228c1377de33734805b35150fa9d05c6521b40f1c60dceb0f75e3ec"
+        },
+        {
+          "excerpt_id": "30-B-2",
+          "url": "https://en.wikipedia.org/wiki/Tow_Ubukata",
+          "char_start": 405,
+          "char_end": 908,
+          "text_sha256": "e356548e1c9e0e98e19ca8f6bfaa510d0ad5ed7a1e9a0be3e8afaf5d6133fdde"
+        },
+        {
+          "excerpt_id": "30-B-3",
+          "url": "https://en.wikipedia.org/wiki/Gifu_Prefecture",
+          "char_start": 1390,
+          "char_end": 1822,
+          "text_sha256": "87e11a372095c3f1beee7c99eeebcd029578c06febeb4a91fe332727db9f776d"
+        }
+      ]
+    },
+    {
+      "sample_id": "32",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [
+          "Only wins dated on or before 2010 apply; later titles in the source must be excluded."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Brazil championship count and championship years",
+            "excerpt_ids": [
+              "32-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Brazil championship count and championship years is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Bulls championship count and championship years",
+            "excerpt_ids": [
+              "32-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Bulls championship count and championship years is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Cowboys Super Bowl count and championship years",
+            "excerpt_ids": [
+              "32-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Cowboys Super Bowl count and championship years is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "32-B-1",
+          "url": "https://en.wikipedia.org/wiki/FIFA_World_Cup",
+          "char_start": 37708,
+          "char_end": 38360,
+          "text_sha256": "6ad43fa97954f394d117e67a6b6f5d9b4d941ec4db2b89d1de7c0a5016788f2a"
+        },
+        {
+          "excerpt_id": "32-B-2",
+          "url": "https://en.wikipedia.org/wiki/Chicago_Bulls",
+          "char_start": 384,
+          "char_end": 710,
+          "text_sha256": "0d55319f066860bbcdec971f450a11764ce70d90b489475f9d38f12cf16ee32f"
+        },
+        {
+          "excerpt_id": "32-B-3",
+          "url": "https://en.wikipedia.org/wiki/Dallas_Cowboys",
+          "char_start": 962,
+          "char_end": 1257,
+          "text_sha256": "c8641cb9f941590ef4dd677d0dacc48e6556c50fda6c1148ba41650814c96fe2"
+        }
+      ]
+    },
+    {
+      "sample_id": "89",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "First Macy parade balloon appearance year",
+            "excerpt_ids": [
+              "89-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "First Macy parade balloon appearance year is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Mayor term containing that year",
+            "excerpt_ids": [
+              "89-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Mayor term containing that year is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Mayor birth date",
+            "excerpt_ids": [
+              "89-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Mayor birth date is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "89-B-1",
+          "url": "https://en.wikipedia.org/wiki/Snoopy",
+          "char_start": 6390,
+          "char_end": 6802,
+          "text_sha256": "932dd7d2fcbdc7799d2e0d0af6a763b4b6158d2646988440bd1695331ef14caa"
+        },
+        {
+          "excerpt_id": "89-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_New_York_City",
+          "char_start": 18829,
+          "char_end": 19320,
+          "text_sha256": "b3a034763adf8d9112eff129093f5200f85b7dc018b7b5c54110883d4395d1a0"
+        },
+        {
+          "excerpt_id": "89-B-3",
+          "url": "https://en.wikipedia.org/wiki/John_Lindsay",
+          "char_start": 270,
+          "char_end": 702,
+          "text_sha256": "2bc5281876a7197711760f981baf1dbc400a4f8e630079561a4891eb33690fd4"
+        }
+      ]
+    },
+    {
+      "sample_id": "95",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Season year, championship, and defeated opponent",
+            "excerpt_ids": [
+              "95-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Season year, championship, and defeated opponent is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "World Series results through 2023 to check most recent Braves title as of August 2024",
+            "excerpt_ids": [
+              "95-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "World Series results through 2023 to check most recent Braves title as of August 2024 is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Brooklyn Dodgers debut date",
+            "excerpt_ids": [
+              "95-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Brooklyn Dodgers debut date is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "95-B-1",
+          "url": "https://en.wikipedia.org/wiki/2021_Atlanta_Braves_season",
+          "char_start": 0,
+          "char_end": 1461,
+          "text_sha256": "140d35406c25dfced2851a7450d1508a5258e40cea2c7f7944245684bd7568ca"
+        },
+        {
+          "excerpt_id": "95-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_World_Series_champions",
+          "char_start": 15602,
+          "char_end": 15986,
+          "text_sha256": "18153c6f2d6baf4dd28111ed41cb534e34791e91664cac83d0b144f57468a621"
+        },
+        {
+          "excerpt_id": "95-B-3",
+          "url": "https://en.wikipedia.org/wiki/Jackie_Robinson",
+          "char_start": 1276,
+          "char_end": 1891,
+          "text_sha256": "96dd105d4d7dcea09f39077edfe4991cd1fe16462b486fbeac9adfeab9b38b6f"
+        }
+      ]
+    },
+    {
+      "sample_id": "104",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Gunfight date",
+            "excerpt_ids": [
+              "104-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Gunfight date is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Film release date",
+            "excerpt_ids": [
+              "104-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Film release date is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "104-B-1",
+          "url": "https://en.wikipedia.org/wiki/Gunfight_at_the_O.K._Corral",
+          "char_start": 273,
+          "char_end": 611,
+          "text_sha256": "146a0928e0dd8ac74d7cd6814314409fac6aff98e3ff150d33beaebe417354ca"
+        },
+        {
+          "excerpt_id": "104-B-2",
+          "url": "https://en.wikipedia.org/wiki/The_Terminator",
+          "char_start": 424,
+          "char_end": 948,
+          "text_sha256": "35e8727a8471b2a36eee6ac68d7eb1704bde0421d0295857a6b5198137b5401b"
+        }
+      ]
+    },
+    {
+      "sample_id": "114",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Painting identity and Louvre theft date",
+            "excerpt_ids": [
+              "114-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Painting identity and Louvre theft date is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Birth date",
+            "excerpt_ids": [
+              "114-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Birth date is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "114-B-1",
+          "url": "https://en.wikipedia.org/wiki/Mona_Lisa",
+          "char_start": 15677,
+          "char_end": 16137,
+          "text_sha256": "b44f8c1bba55a43a96639602a698d08f7c16836c939533458b4d25afa1df3544"
+        },
+        {
+          "excerpt_id": "114-B-2",
+          "url": "https://en.wikipedia.org/wiki/Serj_Tankian",
+          "char_start": 584,
+          "char_end": 1100,
+          "text_sha256": "0d0e2bb00672c13085471debb29b7868d46a0a0f3ec56c9f67cb838160d86de4"
+        }
+      ]
+    },
+    {
+      "sample_id": "142",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "pending",
+        "reason": "The Associated Press legal holding is explicit, but the undated frozen biography does not establish the employer as of August 5, 2024.",
+        "caveats": [
+          "The employment sentence is not explicitly dated August 5, 2024; the historical legal holding is explicit."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Associated Press employment",
+            "excerpt_ids": [
+              "142-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Associated Press employment is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Federal statute identified in the court holding",
+            "excerpt_ids": [
+              "142-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Federal statute identified in the court holding is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Employer as of August 5, 2024",
+            "excerpt_ids": [
+              "142-B-1"
+            ],
+            "assessment": "unverified",
+            "reason": "The employment sentence is undated."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "142-B-1",
+          "url": "https://en.wikipedia.org/wiki/Brian_Bergstein",
+          "char_start": 0,
+          "char_end": 660,
+          "text_sha256": "23f0cb2d6f86221a17dbb0bf1173fc47bb6aaa0a7dbec6cfc1b9371ca599a4da"
+        },
+        {
+          "excerpt_id": "142-B-2",
+          "url": "https://en.wikipedia.org/wiki/Associated_Press_v._United_States",
+          "char_start": 0,
+          "char_end": 940,
+          "text_sha256": "014b20c909d3beaa5fccec1dcb34190826b7b52c40d001a3a3021dbeb9334944"
+        }
+      ]
+    },
+    {
+      "sample_id": "223",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "pending",
+        "reason": "A subsequent brand launch is explicitly documented, but the excerpt does not establish an exhaustive list of launches or that it was the FIRST launch after the name change.",
+        "caveats": [
+          "Do not promote a plausible next launch to verified first launch without an exhaustive chronology."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Name-change year and commercial company",
+            "excerpt_ids": [
+              "223-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Name-change year and commercial company is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Company brand launch chronology near the name-change year",
+            "excerpt_ids": [
+              "223-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Company brand launch chronology near the name-change year is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "No other new brand was launched earlier after the name-change year",
+            "excerpt_ids": [
+              "223-B-2"
+            ],
+            "assessment": "unverified",
+            "reason": "The chronology is not declared exhaustive."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "223-B-1",
+          "url": "https://en.wikipedia.org/wiki/Meat_Loaf",
+          "char_start": 31611,
+          "char_end": 31902,
+          "text_sha256": "6c516e760608dc8502abdda2856cf7d098c891d1586ecb354e0cc068c1a7f4af"
+        },
+        {
+          "excerpt_id": "223-B-2",
+          "url": "https://en.wikipedia.org/wiki/Levi_Strauss_%26_Co.",
+          "char_start": 5599,
+          "char_end": 6594,
+          "text_sha256": "725077f3e8abdcb9d2c1675fa0f9b3d000e99e10449b08a40b4dd521781bc8fa"
+        }
+      ]
+    },
+    {
+      "sample_id": "228",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Ship sinking date and namesake state",
+            "excerpt_ids": [
+              "228-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Ship sinking date and namesake state is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "State admission date",
+            "excerpt_ids": [
+              "228-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "State admission date is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "First lady term covering the admission date",
+            "excerpt_ids": [
+              "228-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "First lady term covering the admission date is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "228-B-1",
+          "url": "https://en.wikipedia.org/wiki/USS_Maine_(1889)",
+          "char_start": 2066,
+          "char_end": 3053,
+          "text_sha256": "352a3bcb60a1694a8d2771e14c775890a62c78fabf6b10699eebabffac8fa70f"
+        },
+        {
+          "excerpt_id": "228-B-2",
+          "url": "https://en.wikipedia.org/wiki/Maine",
+          "char_start": 394,
+          "char_end": 790,
+          "text_sha256": "5dcf4035fb639328149d1db3ba964157386a886527d0e8741213c59521690968"
+        },
+        {
+          "excerpt_id": "228-B-3",
+          "url": "https://en.wikipedia.org/wiki/List_of_first_ladies_of_the_United_States",
+          "char_start": 3948,
+          "char_end": 4590,
+          "text_sha256": "0b5fe9010f5e4648d2ea73f0d7f869ad584b13714cba842487d2e1445f0d43e2"
+        }
+      ]
+    },
+    {
+      "sample_id": "238",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Record-breaking pitcher-catcher pair and prior Lolich/Freehan record",
+            "excerpt_ids": [
+              "238-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Record-breaking pitcher-catcher pair and prior Lolich/Freehan record is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Catcher putout rank on retirement in 2022",
+            "excerpt_ids": [
+              "238-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Catcher putout rank on retirement in 2022 is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Grand Ole Opry debut date",
+            "excerpt_ids": [
+              "238-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Grand Ole Opry debut date is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "238-B-1",
+          "url": "https://en.wikipedia.org/wiki/St._Louis_Cardinals",
+          "char_start": 18479,
+          "char_end": 19032,
+          "text_sha256": "dd2e3b625f8c7547b92c20af4cc00a13284bbadf33e8fff01a6ceb4b7743ef5e"
+        },
+        {
+          "excerpt_id": "238-B-2",
+          "url": "https://en.wikipedia.org/wiki/Yadier_Molina",
+          "char_start": 1798,
+          "char_end": 2315,
+          "text_sha256": "84233bf97dbcc0708f33113bd0348c7ce4cbe858c6be7299d3083ae8db13eeef"
+        },
+        {
+          "excerpt_id": "238-B-3",
+          "url": "https://en.wikipedia.org/wiki/Adam_Wainwright",
+          "char_start": 39760,
+          "char_end": 40316,
+          "text_sha256": "e7a73f773fe7007b470e7d473b63d79d0ffa3f342a15dc9e1564643916a403c3"
+        }
+      ]
+    },
+    {
+      "sample_id": "250",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Sikh Empire capital at the battle",
+            "excerpt_ids": [
+              "250-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Sikh Empire capital at the battle is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Punjab coming under British crown rule",
+            "excerpt_ids": [
+              "250-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Punjab coming under British crown rule is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Lahore colonial chronology and province",
+            "excerpt_ids": [
+              "250-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Lahore colonial chronology and province is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "250-B-1",
+          "url": "https://en.wikipedia.org/wiki/Battle_of_Sobraon",
+          "char_start": 7108,
+          "char_end": 7660,
+          "text_sha256": "90274034fa9a2bd8e2ccf80a7aa6008482ff3c01346b66f1122add83c105ba7d"
+        },
+        {
+          "excerpt_id": "250-B-2",
+          "url": "https://en.wikipedia.org/wiki/Punjab_Province_(British_India)",
+          "char_start": 3126,
+          "char_end": 3591,
+          "text_sha256": "a642319a039cc6ca132f8038dd216d5c5d9bce2ad884528db4d0ccdaaa783be9"
+        },
+        {
+          "excerpt_id": "250-B-3",
+          "url": "https://en.wikipedia.org/wiki/Lahore",
+          "char_start": 9262,
+          "char_end": 9764,
+          "text_sha256": "c3a614e09a8d1dbbe18a092b40f8293831e4d5832b3fb89358be0088c4f2e17b"
+        }
+      ]
+    },
+    {
+      "sample_id": "281",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Table key identifying winners",
+            "excerpt_ids": [
+              "281-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Table key identifying winners is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "1963 winner author and novel",
+            "excerpt_ids": [
+              "281-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "1963 winner author and novel is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Author final written novel",
+            "excerpt_ids": [
+              "281-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Author final written novel is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Final novel first-person narrator",
+            "excerpt_ids": [
+              "281-B-4"
+            ],
+            "assessment": "supported",
+            "reason": "Final novel first-person narrator is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "281-B-1",
+          "url": "https://en.wikipedia.org/wiki/Hugo_Award_for_Best_Novel",
+          "char_start": 3849,
+          "char_end": 4311,
+          "text_sha256": "a52288131b6d2405a111da0381e48f415f03f88c1ec18b44d85b208637b164c3"
+        },
+        {
+          "excerpt_id": "281-B-2",
+          "url": "https://en.wikipedia.org/wiki/Hugo_Award_for_Best_Novel",
+          "char_start": 6691,
+          "char_end": 6942,
+          "text_sha256": "b35584009a0063d47feaca39f733e6e9c9caeddea0d80d2d7c94573c5ee4cf01"
+        },
+        {
+          "excerpt_id": "281-B-3",
+          "url": "https://en.wikipedia.org/wiki/Philip_K._Dick",
+          "char_start": 17024,
+          "char_end": 17254,
+          "text_sha256": "87bce684676139f2b26f9f171aff5dfb11a311e8badd6bde4f3593bdced87930"
+        },
+        {
+          "excerpt_id": "281-B-4",
+          "url": "https://en.wikipedia.org/wiki/The_Transmigration_of_Timothy_Archer",
+          "char_start": 4698,
+          "char_end": 5205,
+          "text_sha256": "25c473dba24a5a5fc129515254c25fe2485080579dbf900dbbb3926f5e05cba7"
+        }
+      ]
+    },
+    {
+      "sample_id": "432",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Goths role in Western Roman Empire fall",
+            "excerpt_ids": [
+              "432-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Goths role in Western Roman Empire fall is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Emperor reign dates",
+            "excerpt_ids": [
+              "432-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Emperor reign dates is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Birthplace and its present country",
+            "excerpt_ids": [
+              "432-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Birthplace and its present country is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "432-B-1",
+          "url": "https://en.wikipedia.org/wiki/Goths",
+          "char_start": 249,
+          "char_end": 862,
+          "text_sha256": "51b52706eb867d619d6d6e9501e2387e9bdf9d52121b0a0c297b71200066c058"
+        },
+        {
+          "excerpt_id": "432-B-2",
+          "url": "https://en.wikipedia.org/wiki/Jovian_(emperor)",
+          "char_start": 0,
+          "char_end": 525,
+          "text_sha256": "f07135b1870cee53bfc022c7bb9bd460919f247138a26bc61026b1a6df244175"
+        },
+        {
+          "excerpt_id": "432-B-3",
+          "url": "https://en.wikipedia.org/wiki/Jovian_(emperor)",
+          "char_start": 1647,
+          "char_end": 2196,
+          "text_sha256": "9e84e28738da140a3c14d34902ae95c8d714ebe212b2d05d9f36ea18f0733680"
+        }
+      ]
+    },
+    {
+      "sample_id": "517",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Director and UK release date",
+            "excerpt_ids": [
+              "517-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Director and UK release date is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Director birth date",
+            "excerpt_ids": [
+              "517-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Director birth date is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "517-B-1",
+          "url": "https://en.wikipedia.org/wiki/Inception",
+          "char_start": 0,
+          "char_end": 1097,
+          "text_sha256": "1f8d9fefc715fbabacad73afeb3f8502e3607ffefa6762434d51c0cd3c435102"
+        },
+        {
+          "excerpt_id": "517-B-2",
+          "url": "https://en.wikipedia.org/wiki/Christopher_Nolan",
+          "char_start": 0,
+          "char_end": 649,
+          "text_sha256": "11fbfe5101ec152e3c441f218d5cd7cd42257d82883b22531dd78837815206e1"
+        }
+      ]
+    },
+    {
+      "sample_id": "558",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Novel publisher",
+            "excerpt_ids": [
+              "558-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Novel publisher is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Publisher cofounders",
+            "excerpt_ids": [
+              "558-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Publisher cofounders is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Male cofounder education",
+            "excerpt_ids": [
+              "558-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Male cofounder education is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "University earliest former name",
+            "excerpt_ids": [
+              "558-B-4"
+            ],
+            "assessment": "supported",
+            "reason": "University earliest former name is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "558-B-1",
+          "url": "https://en.wikipedia.org/wiki/The_Dragonfly_Sea",
+          "char_start": 0,
+          "char_end": 450,
+          "text_sha256": "fa9dc80cefac895c185cb7534c5959fcebf24395bf92c663f78474c82284c6a9"
+        },
+        {
+          "excerpt_id": "558-B-2",
+          "url": "https://en.wikipedia.org/wiki/Alfred_A._Knopf",
+          "char_start": 142,
+          "char_end": 715,
+          "text_sha256": "6899284464962fb68d87c9aed679e73791181c4fadd4201a4f94503426a684ba"
+        },
+        {
+          "excerpt_id": "558-B-3",
+          "url": "https://en.wikipedia.org/wiki/Alfred_A._Knopf_Sr.",
+          "char_start": 0,
+          "char_end": 585,
+          "text_sha256": "2f79c14b4e680faf3144fea953856e34f497f2dbc0b28958369746ed09f21796"
+        },
+        {
+          "excerpt_id": "558-B-4",
+          "url": "https://en.wikipedia.org/wiki/Columbia_University",
+          "char_start": 379,
+          "char_end": 820,
+          "text_sha256": "c0f501b32621bf64f6e250595e2026b01c432618be5d90f703dbb195a705f421"
+        }
+      ]
+    },
+    {
+      "sample_id": "604",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [
+          "Film release year and Academy Award ceremony year differ; the awards table is the applicable date source."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Actor portraying George Falconer",
+            "excerpt_ids": [
+              "604-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Actor portraying George Falconer is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Oscar nominations and first win year with film",
+            "excerpt_ids": [
+              "604-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Oscar nominations and first win year with film is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "604-B-1",
+          "url": "https://en.wikipedia.org/wiki/A_Single_Man",
+          "char_start": 988,
+          "char_end": 1475,
+          "text_sha256": "3606ddac6374013a7b084337470555d29ff524f14f4b686867d7cc7029622d44"
+        },
+        {
+          "excerpt_id": "604-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_awards_and_nominations_received_by_Colin_Firth",
+          "char_start": 2679,
+          "char_end": 3293,
+          "text_sha256": "51f94d91def2c1b447eebbc436a77caaee579c94d3c827229fc982e7373324db"
+        }
+      ]
+    },
+    {
+      "sample_id": "616",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "pending",
+        "reason": "Country linkage and areas are present, but the frozen infoboxes do not date the area measurements to 2024. Their accompanying statistics include 2026 observations.",
+        "caveats": [
+          "Interpret origin as the countries of these game forms, not India where their common ancestor chaturanga originated. Frozen infobox areas are not explicitly dated 2024."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Japanese game identification",
+            "excerpt_ids": [
+              "616-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Japanese game identification is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Transmission to Japan and development of present form",
+            "excerpt_ids": [
+              "616-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Transmission to Japan and development of present form is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Country native to xiangqi",
+            "excerpt_ids": [
+              "616-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Country native to xiangqi is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "China total area",
+            "excerpt_ids": [
+              "616-B-4"
+            ],
+            "assessment": "supported",
+            "reason": "China total area is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Japan total area",
+            "excerpt_ids": [
+              "616-B-5"
+            ],
+            "assessment": "supported",
+            "reason": "Japan total area is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Applicable country areas as of 2024",
+            "excerpt_ids": [
+              "616-B-4",
+              "616-B-5"
+            ],
+            "assessment": "unverified",
+            "reason": "The recorded area fields are undated, so historical applicability has not been independently checked."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "616-B-1",
+          "url": "https://en.wikipedia.org/wiki/Shogi",
+          "char_start": 305,
+          "char_end": 676,
+          "text_sha256": "409237093b2828494114d48f505c4bea584f1fe1d628fe604d4b442b2cc891d0"
+        },
+        {
+          "excerpt_id": "616-B-2",
+          "url": "https://en.wikipedia.org/wiki/Shogi",
+          "char_start": 1927,
+          "char_end": 2450,
+          "text_sha256": "39d7b7b3fef5dfe6d0386523c33f8ee694e7fba80137fc91080596d7e5be9b22"
+        },
+        {
+          "excerpt_id": "616-B-3",
+          "url": "https://en.wikipedia.org/wiki/Xiangqi",
+          "char_start": 0,
+          "char_end": 536,
+          "text_sha256": "eaf6ad2d7abdcbe01faf042897952ca9476ee62de6fddf1813c26d61044bc261"
+        },
+        {
+          "excerpt_id": "616-B-4",
+          "url": "https://en.wikipedia.org/wiki/China",
+          "char_start": 1174,
+          "char_end": 1785,
+          "text_sha256": "b2c1be0983fd9cd3ac8d2719091f13ee45fd05e69fc479a2521c2b6751570f39"
+        },
+        {
+          "excerpt_id": "616-B-5",
+          "url": "https://en.wikipedia.org/wiki/Japan",
+          "char_start": 687,
+          "char_end": 1201,
+          "text_sha256": "417be42352083e318d191f4810ea8e84e62ee216bb9eff778349f40739e1c2d3"
+        }
+      ]
+    },
+    {
+      "sample_id": "654",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [
+          "Kemusuk page says 10 km whereas another paragraph in Suharto says 15 km; entity linkage is explicit, so the mosque identification is supported despite this distance discrepancy."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Jerusalem of the Balkans nickname",
+            "excerpt_ids": [
+              "654-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Jerusalem of the Balkans nickname is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Mosque city, dome height and minaret height",
+            "excerpt_ids": [
+              "654-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Mosque city, dome height and minaret height is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "President associated with the mosque gift",
+            "excerpt_ids": [
+              "654-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "President associated with the mosque gift is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "President birthplace",
+            "excerpt_ids": [
+              "654-B-4"
+            ],
+            "assessment": "supported",
+            "reason": "President birthplace is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Birthplace distance from Yogyakarta",
+            "excerpt_ids": [
+              "654-B-5"
+            ],
+            "assessment": "supported",
+            "reason": "Birthplace distance from Yogyakarta is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "654-B-1",
+          "url": "https://en.wikipedia.org/wiki/Sarajevo",
+          "char_start": 372,
+          "char_end": 931,
+          "text_sha256": "6b7d03f5b896a9552d0886c18d93010f1803de3ab5034b800147290ea4d8d8fe"
+        },
+        {
+          "excerpt_id": "654-B-2",
+          "url": "https://en.wikipedia.org/wiki/Istiklal_Mosque,_Sarajevo",
+          "char_start": 879,
+          "char_end": 1430,
+          "text_sha256": "8641e7b9f675b93c1c27973998820926e91cdb8c39cb527da36436d9648a1357"
+        },
+        {
+          "excerpt_id": "654-B-3",
+          "url": "https://en.wikipedia.org/wiki/Istiklal_Mosque,_Sarajevo",
+          "char_start": 1960,
+          "char_end": 2580,
+          "text_sha256": "ec2ca91503aa22c86961d1bd89da116659ee25d3e24677611e9ef25a02eecc4d"
+        },
+        {
+          "excerpt_id": "654-B-4",
+          "url": "https://en.wikipedia.org/wiki/Suharto",
+          "char_start": 4489,
+          "char_end": 4828,
+          "text_sha256": "ddbebe7452b347c026cfb67722693eaadfdc2b3df5a8f1b437a0804d91836180"
+        },
+        {
+          "excerpt_id": "654-B-5",
+          "url": "https://en.wikipedia.org/wiki/Kemusuk",
+          "char_start": 0,
+          "char_end": 615,
+          "text_sha256": "1e558e049007c4c28d377db0fc1e78c7c328ffb2352ce8dfa2318f8370ffa517"
+        }
+      ]
+    },
+    {
+      "sample_id": "692",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "pending",
+        "reason": "The table contains a mainland-US height candidate, but explicitly disclaims ranking and completeness. The superlative tallest in continental US is not independently verified by this frozen reference.",
+        "caveats": [
+          "Preserve the source ranking caveat; highest among listed mainland-US entries is weaker than a verified global superlative."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Alabama tallest waterfall, height and Little River Canyon location",
+            "excerpt_ids": [
+              "692-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Alabama tallest waterfall, height and Little River Canyon location is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Listed high waterfalls, heights and countries/localities",
+            "excerpt_ids": [
+              "692-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Listed high waterfalls, heights and countries/localities is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Tallest waterfall in the entire continental United States",
+            "excerpt_ids": [
+              "692-B-2"
+            ],
+            "assessment": "unverified",
+            "reason": "The table explicitly warns that rank should not be inferred; it is a list of notable waterfalls."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "692-B-1",
+          "url": "https://en.wikipedia.org/wiki/Grace%27s_High_Falls",
+          "char_start": 0,
+          "char_end": 693,
+          "text_sha256": "715a213f3641f4bb3813947d7c3422dbb57c36ac9706b9f6528652bf9cb5d03f"
+        },
+        {
+          "excerpt_id": "692-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_waterfalls_by_height",
+          "char_start": 0,
+          "char_end": 2561,
+          "text_sha256": "2fb854e0eb864dab9ac3c2fd534a626bde94a5cff2e884cb467c8aedb96c5352"
+        }
+      ]
+    },
+    {
+      "sample_id": "754",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [
+          "Use Paris city population, not its metropolitan area; the city observation is January 1 of the requested year."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Designated international year",
+            "excerpt_ids": [
+              "754-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Designated international year is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "City population and observation date",
+            "excerpt_ids": [
+              "754-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "City population and observation date is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "County population in 2020",
+            "excerpt_ids": [
+              "754-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "County population in 2020 is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "754-B-1",
+          "url": "https://en.wikipedia.org/wiki/International_Year_for_the_Culture_of_Peace",
+          "char_start": 0,
+          "char_end": 568,
+          "text_sha256": "e76c0c6dc76c4404a3e500ba2ce10b666ee35548198817e3c8c16e70e72ee4ef"
+        },
+        {
+          "excerpt_id": "754-B-2",
+          "url": "https://en.wikipedia.org/wiki/Demographics_of_Paris",
+          "char_start": 1158,
+          "char_end": 1793,
+          "text_sha256": "32f56e5e32b963e0a97790e9eb658a12abc5849313df269a65a73af4b8dcfa30"
+        },
+        {
+          "excerpt_id": "754-B-3",
+          "url": "https://en.wikipedia.org/wiki/Brown_County,_Kansas",
+          "char_start": 847,
+          "char_end": 1404,
+          "text_sha256": "f2ba325b0cdaf858ebf5492090f6d0b0f532168d64316aacb1d2a061f271b3cc"
+        }
+      ]
+    },
+    {
+      "sample_id": "758",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "sufficient",
+        "reason": "All question-required source facts are present; the remaining step is the reasoning or formatting requested by the question.",
+        "caveats": [],
+        "required_facts": [
+          {
+            "requirement": "Hospital opening and closing dates",
+            "excerpt_ids": [
+              "758-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Hospital opening and closing dates is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Mayor term covering the opening",
+            "excerpt_ids": [
+              "758-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Mayor term covering the opening is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Mayor term covering the closure",
+            "excerpt_ids": [
+              "758-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Mayor term covering the closure is stated in the cited verbatim excerpt."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "758-B-1",
+          "url": "https://en.wikipedia.org/wiki/Quincy_Medical_Center",
+          "char_start": 333,
+          "char_end": 912,
+          "text_sha256": "cd9e697628d1e6a38b874e305a1ae570fb16f9a67dd00d0fc8e56ce2cbcbcc92"
+        },
+        {
+          "excerpt_id": "758-B-2",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_Quincy,_Massachusetts",
+          "char_start": 437,
+          "char_end": 752,
+          "text_sha256": "3b93ce0a0f3d2c7513dea367822491896f683a4ff8754ed61d9297578471ac42"
+        },
+        {
+          "excerpt_id": "758-B-3",
+          "url": "https://en.wikipedia.org/wiki/List_of_mayors_of_Quincy,_Massachusetts",
+          "char_start": 2128,
+          "char_end": 2404,
+          "text_sha256": "b109f863a5f5b218956bf722ef415a47499d45ee9bb6ce4adba658407028b435"
+        }
+      ]
+    },
+    {
+      "sample_id": "759",
+      "verification": {
+        "verifier": "Codex agent",
+        "human_confirmed": false,
+        "status": "pending",
+        "reason": "The question says sister, while both frozen biographies establish sister-in-law. The partner chain is documented but the literal kinship constraint is contradicted.",
+        "caveats": [
+          "Do not silently rewrite the question or count this as fully verified sufficient evidence."
+        ],
+        "required_facts": [
+          {
+            "requirement": "Complete mens and womens medal rows identifying the US medalist in those categories",
+            "excerpt_ids": [
+              "759-B-1"
+            ],
+            "assessment": "supported",
+            "reason": "Complete mens and womens medal rows identifying the US medalist in those categories is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Medalist marriage and documented brother-in-law",
+            "excerpt_ids": [
+              "759-B-2"
+            ],
+            "assessment": "supported",
+            "reason": "Medalist marriage and documented brother-in-law is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "Family linkage and 1984 two-person keelboat partner",
+            "excerpt_ids": [
+              "759-B-3"
+            ],
+            "assessment": "supported",
+            "reason": "Family linkage and 1984 two-person keelboat partner is stated in the cited verbatim excerpt."
+          },
+          {
+            "requirement": "The female medalist is the sailors biological sister",
+            "excerpt_ids": [
+              "759-B-2",
+              "759-B-3"
+            ],
+            "assessment": "contradicted",
+            "reason": "The biographies explicitly say brother in law and brothers wife."
+          }
+        ]
+      },
+      "selections": [
+        {
+          "excerpt_id": "759-B-1",
+          "url": "https://en.wikipedia.org/wiki/Sailing_at_the_2003_Pan_American_Games",
+          "char_start": 601,
+          "char_end": 1200,
+          "text_sha256": "9d9ce385fc9fc339880f1056b7dd0480a044fc3cc17f420d224794bd6d7df605"
+        },
+        {
+          "excerpt_id": "759-B-2",
+          "url": "https://en.wikipedia.org/wiki/Lanee_Butler",
+          "char_start": 491,
+          "char_end": 1010,
+          "text_sha256": "759da860ffad1c9b700caff3807b38f719301456b4ffe4bf89efc3bb5d6d48b8"
+        },
+        {
+          "excerpt_id": "759-B-3",
+          "url": "https://en.wikipedia.org/wiki/Colin_Beashel",
+          "char_start": 700,
+          "char_end": 1270,
+          "text_sha256": "5d0e676325281e367ba20b08224784148b48c5bfe4612853d0ad575a73127001"
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "results/phase13_rag_measurements.jsonl": "d58b13ee0dbaf7772f0c3dba8948452eca95198eb798d408dc28cf4c7ffd6876",
+    "results/phase13_frames_manifest.json": "e419623800c6b7a636c4d8d6cc83d87b75a3aab24dbd1b6f1fd1f62dc3968f15",
+    "data/frames/docs.tar.gz": "f5e6d7c14f93cdd0af49f9f72e2311419af7c9b0634755fb2310058a84e36e80",
+    "data/frames/url_mapping.json": "7992a39c3b7a647d9e4e64896149e724b878f13e134d158d6b2b02f3d4d94c54"
+  }
+}
